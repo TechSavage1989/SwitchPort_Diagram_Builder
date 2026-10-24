@@ -72,7 +72,7 @@ const path=require('path'),assert=require('assert');
   await update(staged);await page.locator('#updates').evaluate(el=>el.click());
   assert(await page.locator('#updateDialog').isHidden());assert(await page.locator('#installUpdate').isDisabled());
   await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
-  await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.getElementById('pasteDialog').open);
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.getElementById('pasteDialog').open&&window.__hubMessages.filter(m=>m.action==='updateEditing').at(-1)?.enabled===false);
   assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:false});
 
   await page.click('#devices');let request=await last('inspectDevices');
@@ -81,7 +81,7 @@ const path=require('path'),assert=require('assert');
   await page.locator('#device-0-Name').fill('Unsaved device detail');await update(staged);
   await page.locator('#updates').evaluate(el=>el.click());assert(await page.locator('#updateDialog').isHidden());
   await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
-  await page.click('#cancelDevices');await page.waitForFunction(()=>!document.getElementById('deviceDialog').open);
+  await page.click('#cancelDevices');await page.waitForFunction(()=>!document.getElementById('deviceDialog').open&&window.__hubMessages.filter(m=>m.action==='updateEditing').at(-1)?.enabled===false);
   assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:false});
   console.log('PASS report-generation interlock, restored install availability, unsaved paste/device edit locks and native edit-state notifications.');
 
