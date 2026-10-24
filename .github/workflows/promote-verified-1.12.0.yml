@@ -60,3 +60,24 @@ jobs:
           gh api "repos/$GH_REPO/releases/423029567" > proof/release.json
           python3 scripts/verify_initial_promotion.py --run-json proof/run.json --jobs-pages-json proof/jobs-pages.json --artifact-json proof/artifact.json --release-json proof/release.json --directory dist
           python3 scripts/verify_release_assets.py --directory dist --release-json proof/release.json --require-published
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '8.0.x'
+      - name: Verify live public feed with the actual updater client
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/live-update-check"
+          cat > "$RUNNER_TEMP/live-update-check/Probe.csproj" <<EOF
+          <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup><ItemGroup><ProjectReference Include="$GITHUB_WORKSPACE/Source/HUBTechUpdater/HUBTechUpdater.csproj" /></ItemGroup></Project>
+          EOF
+          cat > "$RUNNER_TEMP/live-update-check/Program.cs" <<'CS'
+          using HUBTechUpdater;
+          using var service = new UpdateService();
+          var offer = await service.CheckAsync(new Version(1,11,3));
+          if (offer?.VersionText != "1.12.0") throw new Exception("The live public feed did not offer version 1.12.0.");
+          Console.WriteLine("PASS live public GitHub feed, canonical manifest, package URL, size and checksum metadata.");
+          if (await service.CheckAsync(new Version(1,12,0)) != null) throw new Exception("The installed version was incorrectly offered as an update.");
+          Console.WriteLine("PASS current version is not offered as an update.");
+          CS
+          dotnet run --project "$RUNNER_TEMP/live-update-check/Probe.csproj" --configuration Release
