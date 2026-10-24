@@ -1,0 +1,62 @@
+NETWORK DIAGRAM BUILDER 1.12.0 - TEST REPORT
+
+Release scope
+-------------
+Built-in update checks and explicit download/install/restart using the public
+TechSavage1989/SwitchPort_Diagram_Builder GitHub Releases feed. This repository
+is the canonical source and development history for the application.
+
+The updater validates stable versions, repository/release URLs, manifest and
+release-asset agreement, bounded downloads, package and executable SHA256,
+flat ZIP entry allowlists, Windows x64 GUI format and product/version resources.
+Installation is deferred during report generation or open configuration edits.
+It uses a verified local helper, a per-install lock, parent identity/shutdown,
+atomic replacement, one previous executable and a visible-startup nonce.
+Startup failure restores the previous executable and reopens the app. Loaded
+configuration/device details survive restart and automatic rollback. Settings,
+report logos and generated reports retain their existing locations.
+
+Automatic checks run after startup and periodically, with busy/offline retry.
+The user chooses when to download and confirms installation/restart separately.
+Later defers reminders for 24 hours. Automatic checking can be disabled.
+Unknown recovery journals are retained; successful staging and completed
+verified helper files are cleaned conservatively.
+
+Completed local checks
+----------------------
+141 updater protocol, manifest, transport, integrity, archive, staging and file
+transaction assertions passed, including unknown-length interrupted/oversized
+streams, cancellation, stale current executable and verified rollback. The actual packaged EXE also passes bounded PE resource
+metadata/product/version checks and mocked feed/download integration.
+22 packaging/publication tests passed, including complete atomic ZIP output,
+inner/outer checksum agreement, immutable releases, upload digests and fail-closed
+GitHub lookup errors.
+6,641 layout-quality assertions passed across 19 synthetic fixtures.
+120,439 adaptive geometry, marker, readable-font and PDF-membership assertions
+passed, matching the previous release's results.
+All 149 hardware profiles and complete GeometryChecks passed, including 416-port
+stacks, 17 trunks, modular layouts, metadata, collision injection and data checks.
+All prior 1.11.3 layout fixes are retained: font caps, reserved readable keys,
+proportional preferred markers and side/below-bank key alternatives.
+The native Windows application published successfully from Linux, and all ten
+compiled icon resources match the unchanged source icon.
+
+GitHub release gates
+--------------------
+The release workflow runs parser/report regression cases, complete PDF inventory
+checks, device/module metadata checks, updater tests and all layout suites.
+On Windows it builds the actual application, runs the helper subprocess tests
+for healthy startup and failed-health rollback/reopen, and validates the real
+release ZIP/EXE through the application updater. Release assets are checked
+again after artifact download and as a draft before stable publication.
+An existing published release is never overwritten.
+
+Limits
+------
+An interactive Windows workstation check remains necessary for real visible
+WebView2 readiness, loaded-state restoration across distinct application versions,
+modal/busy UI behavior and filesystem permission/multiple-instance messages.
+Current releases are not Authenticode signed; hashes are integrity checks from
+the trusted GitHub repository, not a publisher-signing certificate.
+
+See root UPDATING.md and DEVELOPMENT.md and the GitHub workflow results.

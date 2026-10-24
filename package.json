@@ -1,0 +1,9 @@
+{
+  "name": "switchport-diagram-builder-ui-checks",
+  "version": "1.12.0",
+  "private": true,
+  "description": "Browser regression checks for the embedded desktop interface",
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

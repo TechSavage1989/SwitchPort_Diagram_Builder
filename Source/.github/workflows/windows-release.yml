@@ -1,0 +1,33 @@
+name: Windows release
+on: [workflow_dispatch, push]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build Windows release
+        shell: pwsh
+        run: ./build.ps1
+      - name: Install verification dependencies
+        run: python -m pip install pillow pypdf
+      - name: Test generator and host contract
+        shell: pwsh
+        run: |
+          $isolated = Join-Path $env:RUNNER_TEMP 'HUBTech isolated EXE'
+          New-Item -ItemType Directory -Path $isolated -Force | Out-Null
+          Copy-Item publish/App/HUBTechDiagramBuilder.exe $isolated
+          python tests/verify.py --generator "$isolated/HUBTechDiagramBuilder.exe" --host
+      - name: Test geometry validation
+        run: dotnet run --project tests/GeometryChecks.csproj -c Release
+      - name: Test interface messages
+        run: node tests/verify-ui.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HUBTech-Diagram-Builder-1.9.0-Windows-x64
+          path: HUBTech-Diagram-Builder-1.9.0-Windows-x64.zip

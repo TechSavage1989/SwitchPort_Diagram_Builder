@@ -1,0 +1,201 @@
+name: Build, test and release
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: diagram-builder-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ui-checks:
+    name: Embedded update and configuration controls
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned browser test dependencies
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium --only-shell
+      - name: Check embedded update controls
+        run: node Source/tests/verify-updates-ui.cjs
+      - name: Check configuration loading and report controls
+        run: node Source/tests/verify-ui.cjs
+      - name: Check independent device and module editing
+        run: node Source/tests/verify-device-details-ui.cjs
+
+  linux-checks:
+    name: Parser, report, geometry and updater checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install report inspection dependencies
+        run: python3 -m pip install -r scripts/requirements-test.txt
+      - name: Check release packaging
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Check updater protocol and rollback transactions
+        run: dotnet run --project Source/tests/UpdaterChecks/UpdaterChecks.csproj --configuration Release
+      - name: Check all supported hardware and geometry
+        run: dotnet run --project Source/tests/GeometryChecks.csproj --configuration Release
+      - name: Check adaptive marker packing
+        run: dotnet run --project Source/tests/AdaptiveLayoutChecks/AdaptiveLayoutChecks.csproj --configuration Release
+      - name: Check readable layouts without private client inputs
+        run: dotnet run --project Source/tests/LayoutQualityChecks/LayoutQualityChecks.csproj --configuration Release
+      - name: Check complete PDF inventory lists
+        run: |
+          dotnet run --project Source/tests/ReportInventoryChecks/ReportInventoryChecks.csproj --configuration Release -- build/inventory-fixtures
+          python3 Source/tests/verify-report-inventory-pdf.py build/inventory-fixtures --generator Source/HUBTechGenerator/bin/Release/net8.0/HUBTechGenerator.dll --dotnet dotnet
+      - name: Check parser and all report exports
+        run: python3 Source/tests/verify.py --generator Source/HUBTechGenerator/bin/Release/net8.0/HUBTechGenerator.dll --dotnet dotnet --report build/parser-checks.txt
+      - name: Check device and module report metadata
+        run: python3 Source/tests/verify-device-reports.py --generator Source/HUBTechGenerator/bin/Release/net8.0/HUBTechGenerator.dll --dotnet dotnet --report build/device-report-checks.txt
+
+  windows-build:
+    name: Windows build and real updater process checks
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: '8.0.x'
+      - name: Check updater protocol and rollback transactions
+        run: dotnet run --project Source/tests/UpdaterChecks/UpdaterChecks.csproj --configuration Release
+      - name: Publish the self-contained Windows application
+        run: dotnet publish Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true --output build/windows
+      - name: Verify compile-time icon resources
+        run: python Source/tests/verify-icon-resource.py build/windows/HUBTechDiagramBuilder.exe Source/Branding/HUBTech_Diagram_Builder_Icon.ico
+      - name: Check native helper installation, startup health and rollback
+        shell: pwsh
+        run: |
+          $stdout = Join-Path $env:RUNNER_TEMP 'updater-self-test.stdout.txt'
+          $stderr = Join-Path $env:RUNNER_TEMP 'updater-self-test.stderr.txt'
+          $process = Start-Process -FilePath (Resolve-Path 'build/windows/HUBTechDiagramBuilder.exe') -ArgumentList '--updater-self-test' -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          Get-Content $stdout
+          Get-Content $stderr
+          if ($process.ExitCode -ne 0) { throw "Updater helper self-test failed with exit code $($process.ExitCode)." }
+      - name: Package complete binary-only update assets
+        run: python scripts/package_release.py --publish-dir build/windows --output-dir dist
+      - name: Validate the real package through the application updater
+        run: dotnet Source/tests/UpdaterChecks/bin/Release/net8.0/UpdaterChecks.dll --release-dir dist
+      - name: Verify closed release assets before upload
+        run: python scripts/package_release.py --verify dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: windows-release-assets
+          path: dist/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  release:
+    name: Publish verified GitHub release
+    needs: [ui-checks, linux-checks, windows-build]
+    if: github.repository == 'TechSavage1989/SwitchPort_Diagram_Builder' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: windows-release-assets
+          path: dist
+      - name: Verify assets after artifact download
+        run: python3 scripts/package_release.py --verify dist
+      - name: Publish a new immutable stable release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: TechSavage1989/SwitchPort_Diagram_Builder
+        run: |
+          set -euo pipefail
+          version="$(python3 -c 'import json;print(json.load(open("dist/update-manifest.json"))["version"])')"
+          package="$(python3 -c 'import json;print(json.load(open("dist/update-manifest.json"))["package"]["name"])')"
+          tag="v$version"
+          api_read() {
+            local endpoint="$1" destination="$2"
+            if gh api "$endpoint" > "$destination" 2> "$destination.error"; then
+              return 0
+            fi
+            if python3 - "$destination.error" <<'PY'
+          import pathlib,re,sys
+          error=pathlib.Path(sys.argv[1]).read_text()
+          sys.exit(0 if re.search(r'\(HTTP 404\)',error) else 1)
+          PY
+            then
+              return 44
+            fi
+            cat "$destination.error" >&2
+            return 1
+          }
+          if api_read "repos/$GH_REPO/releases/tags/$tag" "$RUNNER_TEMP/existing-release.json"; then
+            if python3 -c 'import json,sys;r=json.load(open(sys.argv[1]));sys.exit(0 if r["draft"] or r["prerelease"] else 1)' "$RUNNER_TEMP/existing-release.json"; then
+              echo "A draft or prerelease already exists for $tag. Inspect it before retrying; published files are never overwritten."
+              exit 1
+            fi
+            echo "$tag already exists. Published release files are never overwritten; increase the project version for a new release."
+            exit 0
+          else
+            status=$?
+            if [ "$status" -ne 44 ]; then exit "$status"; fi
+          fi
+          if api_read "repos/$GH_REPO/releases/latest" "$RUNNER_TEMP/latest-release.json"; then
+            python3 - "$version" "$RUNNER_TEMP/latest-release.json" <<'PY'
+          import json,sys
+          current=tuple(map(int,sys.argv[1].split('.')))
+          latest=json.load(open(sys.argv[2]))['tag_name'].removeprefix('v')
+          previous=tuple(map(int,latest.split('.')))
+          if current<=previous:raise SystemExit('Release version must be newer than the current stable release.')
+          PY
+          else
+            status=$?
+            if [ "$status" -ne 44 ]; then exit "$status"; fi
+          fi
+          if api_read "repos/$GH_REPO/git/ref/tags/$tag" "$RUNNER_TEMP/existing-tag.json"; then
+            python3 - "$GITHUB_SHA" "$RUNNER_TEMP/existing-tag.json" <<'PY'
+          import json,sys
+          target=json.load(open(sys.argv[2]))['object']
+          if target['type']!='commit' or target['sha']!=sys.argv[1]:
+              raise SystemExit('Existing version tag does not point directly at this tested commit. Do not reuse version tags.')
+          PY
+          else
+            status=$?
+            if [ "$status" -ne 44 ]; then exit "$status"; fi
+          fi
+          python3 - "$version" "$GITHUB_SHA" > "$RUNNER_TEMP/release-notes.txt" <<'PY'
+          import sys
+          print('Windows x64 portable release '+sys.argv[1]+'.')
+          print('\nDownload HUBTechDiagramBuilder.exe or the portable Windows ZIP. The built-in Updates controls use this verified release package.')
+          print('\nComplete editable source is available from the version tag.\n\nBuilt from commit '+sys.argv[2]+'.')
+          PY
+          gh release create "$tag" "dist/HUBTechDiagramBuilder.exe" "dist/$package" "dist/update-manifest.json" "dist/SHA256SUMS.txt" --draft --target "$GITHUB_SHA" --title "HUB Tech Network Diagram Builder $version" --notes-file "$RUNNER_TEMP/release-notes.txt"
+          gh api "repos/$GH_REPO/releases/tags/$tag" > "$RUNNER_TEMP/release-receipt.json"
+          python3 scripts/verify_release_assets.py --directory dist --release-json "$RUNNER_TEMP/release-receipt.json" --require-draft
+          gh release edit "$tag" --draft=false --latest
+          gh api "repos/$GH_REPO/releases/tags/$tag" > "$RUNNER_TEMP/release-receipt.json"
+          python3 scripts/verify_release_assets.py --directory dist --release-json "$RUNNER_TEMP/release-receipt.json" --require-published

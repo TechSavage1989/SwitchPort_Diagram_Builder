@@ -1,0 +1,104 @@
+const {chromium}=require('playwright');
+const path=require('path'),assert=require('assert');
+(async()=>{
+ const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.HUBTECH_TEST_BROWSER?{executablePath:process.env.HUBTECH_TEST_BROWSER}:{})});
+ try{
+  const page=await browser.newPage({viewport:{width:1000,height:720}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(()=>{
+   let listener;window.__hubMessages=[];window.__hubDeliver=data=>listener({data});
+   window.chrome={webview:{addEventListener:(name,fn)=>listener=fn,postMessage:msg=>window.__hubMessages.push(msg)}};
+  });
+  await page.goto('file://'+path.resolve(__dirname,'../HUBTechDiagramBuilder/wwwroot/index.html'));
+  const deliver=async message=>page.evaluate(m=>window.__hubDeliver(m),message);
+  const messages=async action=>page.evaluate(a=>window.__hubMessages.filter(m=>m.action===a),action);
+  const last=async action=>(await messages(action)).at(-1);
+  const base={type:'updateState',currentVersion:'1.12.0',automaticChecks:true,availableVersion:'',notes:'',releaseUrl:'',status:'Updates are checked automatically. You choose when to download and restart.',checking:false,downloading:false,installing:false,progress:0,appBusy:false,downloaded:false,canDownload:false,canInstall:false,reminder:false};
+  const update=async patch=>deliver({...base,...patch});
+  const available={availableVersion:'1.12.1',notes:'Changes\n<img src=x onerror="window.__injected=true">\nLiteral release notes.',releaseUrl:'https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/tag/v1.12.1',status:'Version 1.12.1 is available.',canDownload:true};
+  const staged={...available,status:'Version 1.12.1 is downloaded and verified.',downloaded:true,canDownload:false,canInstall:true};
+  await update({});
+  assert.equal(await page.locator('#appVersion').innerText(),'Version 1.12.0');
+  assert(await page.locator('#updateReminder').isHidden());assert(await page.locator('#updateBadge').isHidden());
+  assert(await page.locator('#run').isDisabled());
+  await page.click('#updates');assert(await page.locator('#updateDialog').isVisible());
+  assert.equal((await last('updateState')).action,'updateState');
+  assert(await page.locator('#autoUpdates').isChecked());
+  await page.click('#checkUpdate');assert.equal((await last('updateCheck')).action,'updateCheck');
+  await update({checking:true,status:'Checking GitHub for a newer stable version...'});
+  assert(await page.locator('#checkUpdate').isDisabled());assert(await page.locator('#updateProgress').isHidden());
+  await update(available);
+  assert.equal(await page.locator('#updateNotes').innerText(),available.notes);
+  assert.equal(await page.locator('#updateNotes img').count(),0);
+  assert.equal(await page.evaluate(()=>window.__injected),undefined);
+  assert((await page.locator('#updateVersion').innerText()).includes('Available: 1.12.1'));
+  assert(!(await page.locator('#downloadUpdate').isDisabled()));assert(await page.locator('#installUpdate').isHidden());
+  assert.equal((await messages('updateDownload')).length,0);assert.equal((await messages('updateInstall')).length,0);
+  await page.click('#reviewUpdate');assert.equal((await last('updateReview')).action,'updateReview');
+  await page.locator('#autoUpdates').uncheck();assert.deepEqual(await last('updatePreference'),{action:'updatePreference',enabled:false});
+  await update({...available,automaticChecks:false});assert(!(await page.locator('#autoUpdates').isChecked()));
+  await page.locator('#autoUpdates').check();assert.deepEqual(await last('updatePreference'),{action:'updatePreference',enabled:true});
+  console.log('PASS updates dialog, installed/available versions, explicit manual checks, literal release notes, release review and automatic-check preference.');
+
+  await page.click('#downloadUpdate');assert.equal((await last('updateDownload')).action,'updateDownload');
+  await update({...available,downloading:true,canDownload:false,progress:42,status:'Downloading and verifying...'});
+  assert(await page.locator('#checkUpdate').isDisabled());assert(await page.locator('#downloadUpdate').isDisabled());
+  assert(await page.locator('#updateProgress').isVisible());assert.equal(await page.locator('#updateProgress').getAttribute('value'),'42');
+  await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,0);
+  await update({...available,status:'Update download failed: checksum did not match.'});
+  assert((await page.locator('#updateStatus').innerText()).includes('checksum did not match'));
+  assert(!(await page.locator('#downloadUpdate').isDisabled()));assert(await page.locator('#updateProgress').isHidden());
+  await page.click('#downloadUpdate');assert.equal((await messages('updateDownload')).length,2);
+  await update(staged);
+  assert(await page.locator('#downloadUpdate').isHidden());assert(await page.locator('#installUpdate').isVisible());
+  assert(!(await page.locator('#installUpdate').isDisabled()));assert.equal((await messages('updateInstall')).length,0);
+  await page.click('#installUpdate');assert.equal((await messages('updateInstall')).length,1);
+  await page.click('#laterUpdate');assert(await page.locator('#updateDialog').isHidden());assert.equal((await last('updateLater')).action,'updateLater');
+  await update({...staged,reminder:true});assert(await page.locator('#updateReminder').isVisible());
+  await page.click('#laterUpdateNotice');assert(await page.locator('#updateReminder').isHidden());assert.equal((await messages('updateLater')).length,2);
+  console.log('PASS explicit download, progress, integrity-error retry, verified-stage install availability, no automatic install and Later reminder controls.');
+
+  await deliver({type:'selected',name:'Lab.cfg',hostname:'UPDATE-LAB'});
+  await page.click('#run');assert.equal((await messages('run')).length,1);
+  await update({...staged,appBusy:true,canInstall:false});await page.click('#updates');
+  assert(await page.locator('#installUpdate').isDisabled());
+  await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
+  await deliver({type:'complete',message:'Reports created.',chartAvailable:true});await update(staged);
+  assert(!(await page.locator('#installUpdate').isDisabled()));await page.click('#closeUpdates');
+
+  await page.click('#paste');assert(await page.locator('#pasteDialog').isVisible());
+  assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:true});
+  await page.locator('#pasteText').fill('hostname Unsaved-paste');
+  await update(staged);await page.locator('#updates').evaluate(el=>el.click());
+  assert(await page.locator('#updateDialog').isHidden());assert(await page.locator('#installUpdate').isDisabled());
+  await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.getElementById('pasteDialog').open);
+  assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:false});
+
+  await page.click('#devices');let request=await last('inspectDevices');
+  assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:true});
+  await deliver({type:'devices',requestId:request.requestId,devices:[{Id:'1',Kind:'Switch',Label:'Switch',Model:'JL256A',Name:'',SerialNumber:'',AssetTag:'',Notes:''}]});
+  await page.locator('#device-0-Name').fill('Unsaved device detail');await update(staged);
+  await page.locator('#updates').evaluate(el=>el.click());assert(await page.locator('#updateDialog').isHidden());
+  await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
+  await page.click('#cancelDevices');await page.waitForFunction(()=>!document.getElementById('deviceDialog').open);
+  assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:false});
+  console.log('PASS report-generation interlock, restored install availability, unsaved paste/device edit locks and native edit-state notifications.');
+
+  await page.click('#updates');await update({...staged,installing:true,canInstall:false,status:'Preparing verified update and restart...'});
+  for(const id of ['choose','paste','chooseOutput','chooseLogo','devices','run','autoUpdates','checkUpdate','installUpdate','closeUpdates'])assert(await page.locator('#'+id).isDisabled(),id+' locks during installation');
+  let runCount=(await messages('run')).length;await page.locator('#run').evaluate(el=>el.click());assert.equal((await messages('run')).length,runCount);
+  await page.keyboard.press('Escape');assert(await page.locator('#updateDialog').isVisible());
+  await update({...staged,status:'The update could not be installed: folder is not writable.'});
+  assert(!(await page.locator('#closeUpdates').isDisabled()));assert(!(await page.locator('#run').isDisabled()));
+  assert((await page.locator('#file').innerText()).includes('UPDATE-LAB'));
+  assert((await page.locator('#updateStatus').innerText()).includes('not writable'));
+  await page.setViewportSize({width:600,height:430});
+  const box=await page.locator('#updateDialog').boundingBox();assert(box.x>=0&&box.y>=0&&box.x+box.width<=600.5&&box.y+box.height<=430.5);
+  await page.locator('#closeUpdates').scrollIntoViewIfNeeded();assert(await page.locator('#closeUpdates').isVisible());
+  if(process.env.HUBTECH_TEST_SCREENSHOT)await page.screenshot({path:process.env.HUBTECH_TEST_SCREENSHOT});
+  await page.click('#closeUpdates');assert(await page.locator('#updateDialog').isHidden());
+  assert.deepEqual(errors,[]);
+  console.log('PASS install mutation locks, blocked Escape, clear install errors/recovery, retained input, compact accessible dialog and zero page errors.');
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exit(1)});

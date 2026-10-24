@@ -1,0 +1,4 @@
+Pillow==12.3.0
+pypdf==6.10.0
+pdfplumber==0.11.9
+PyYAML==6.0.3

@@ -1,0 +1,10 @@
+Solid albedo colors
+Navy #142B42
+Cyan #5CCDE5
+Mint #70D5B5
+Amber #F6C966
+Slate #9CAEBB
+Magenta #AF6596
+Off-white #F5F8FC
+
+Edit the SVG in Inkscape, Illustrator or another vector editor. The supplied SVG retains its vector groups and Illustrator editing data. The PNG is 1024x1024 with transparency outside the navy tile. The ICO contains 16,20,24,32,40,48,64,96,128,256 pixel frames.
