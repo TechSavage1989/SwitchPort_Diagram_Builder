@@ -153,16 +153,23 @@ jobs:
             cat "$destination.error" >&2
             return 1
           }
-          if api_read "repos/$GH_REPO/releases/tags/$tag" "$RUNNER_TEMP/existing-release.json"; then
+          read_version_release() {
+            gh api "repos/$GH_REPO/releases?per_page=100" --paginate --slurp > "$RUNNER_TEMP/release-pages.json"
+            python3 - "$tag" "$RUNNER_TEMP/release-pages.json" > "$RUNNER_TEMP/existing-release.json" <<'PY'
+          import json,sys
+          matches=[r for page in json.load(open(sys.argv[2])) for r in page if r['tag_name']==sys.argv[1]]
+          if len(matches)>1:raise SystemExit('Multiple release records use this version; inspect them before publishing.')
+          if matches:print(json.dumps(matches[0]))
+          PY
+          }
+          read_version_release
+          if [ -s "$RUNNER_TEMP/existing-release.json" ]; then
             if python3 -c 'import json,sys;r=json.load(open(sys.argv[1]));sys.exit(0 if r["draft"] or r["prerelease"] else 1)' "$RUNNER_TEMP/existing-release.json"; then
               echo "A draft or prerelease already exists for $tag. Inspect it before retrying; published files are never overwritten."
               exit 1
             fi
             echo "$tag already exists. Published release files are never overwritten; increase the project version for a new release."
             exit 0
-          else
-            status=$?
-            if [ "$status" -ne 44 ]; then exit "$status"; fi
           fi
           if api_read "repos/$GH_REPO/releases/latest" "$RUNNER_TEMP/latest-release.json"; then
             python3 - "$version" "$RUNNER_TEMP/latest-release.json" <<'PY'
@@ -194,8 +201,17 @@ jobs:
           print('\nComplete editable source is available from the version tag.\n\nBuilt from commit '+sys.argv[2]+'.')
           PY
           gh release create "$tag" "dist/HUBTechDiagramBuilder.exe" "dist/$package" "dist/update-manifest.json" "dist/SHA256SUMS.txt" --draft --target "$GITHUB_SHA" --title "HUB Tech Network Diagram Builder $version" --notes-file "$RUNNER_TEMP/release-notes.txt"
-          gh api "repos/$GH_REPO/releases/tags/$tag" > "$RUNNER_TEMP/release-receipt.json"
+          read_version_release
+          python3 - "$RUNNER_TEMP/existing-release.json" "$GITHUB_SHA" > "$RUNNER_TEMP/release-id.txt" <<'PY'
+          import json,sys
+          release=json.load(open(sys.argv[1]))
+          if release['draft'] is not True or release['target_commitish']!=sys.argv[2]:
+              raise SystemExit('Created draft does not target the tested source commit.')
+          if not isinstance(release['id'],int) or release['id']<=0:raise SystemExit('Created draft has no valid release ID.')
+          print(release['id'])
+          PY
+          release_id="$(cat "$RUNNER_TEMP/release-id.txt")"
+          gh api "repos/$GH_REPO/releases/$release_id" > "$RUNNER_TEMP/release-receipt.json"
           python3 scripts/verify_release_assets.py --directory dist --release-json "$RUNNER_TEMP/release-receipt.json" --require-draft
-          gh release edit "$tag" --draft=false --latest
-          gh api "repos/$GH_REPO/releases/tags/$tag" > "$RUNNER_TEMP/release-receipt.json"
+          gh api "repos/$GH_REPO/releases/$release_id" --method PATCH -F draft=false -f make_latest=true > "$RUNNER_TEMP/release-receipt.json"
           python3 scripts/verify_release_assets.py --directory dist --release-json "$RUNNER_TEMP/release-receipt.json" --require-published

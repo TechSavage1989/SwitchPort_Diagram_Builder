@@ -129,6 +129,7 @@ class PackageChecks(unittest.TestCase):
     def receipt(self, draft=True):
         manifest = self.create()
         return {"tag_name": "v1.12.0", "prerelease": False, "draft": draft,
+                "html_url": "https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/tag/v1.12.0",
                 "assets": [{"name": path.name, "state": "uploaded", "size": path.stat().st_size,
                     "digest": "sha256:" + package.sha256(path), "browser_download_url":
                     "https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/"
@@ -174,6 +175,23 @@ class PackageChecks(unittest.TestCase):
         receipt = self.receipt()
         with self.assertRaisesRegex(ValueError, "publication state"):
             verify_receipt(self.output, receipt, False)
+
+    def test_exact_pending_draft_tag_is_accepted_only_before_publication(self):
+        receipt = self.receipt()
+        pending = "untagged-" + "a" * 20
+        receipt["html_url"] = receipt["html_url"].replace("v1.12.0", pending)
+        for asset in receipt["assets"]:
+            asset["browser_download_url"] = asset["browser_download_url"].replace("v1.12.0", pending)
+        verify_receipt(self.output, receipt, True)
+        receipt["draft"] = False
+        with self.assertRaisesRegex(ValueError, "release URL"):
+            verify_receipt(self.output, receipt, False)
+
+    def test_pending_tag_cannot_come_from_another_repository(self):
+        receipt = self.receipt()
+        receipt["html_url"] = "https://github.com/someone/else/releases/tag/untagged-" + "a" * 20
+        with self.assertRaisesRegex(ValueError, "release URL"):
+            verify_receipt(self.output, receipt, True)
 
 
 if __name__ == "__main__":

@@ -24,17 +24,22 @@ def error(code):
  print('gh: simulated failure (HTTP '+str(code)+')',file=sys.stderr);sys.exit(1)
 if args[:1]==['api']:
  endpoint=args[1]
- if endpoint.endswith('/releases/tags/v1.12.0'):
+ if endpoint.endswith('/releases?per_page=100') or endpoint.endswith('/releases/123'):
   if current.get('created'):
+   if '--method' in args:
+    current['draft']=False;state.write_text(json.dumps(current))
    manifest=json.loads((root/'dist/update-manifest.json').read_text())
+   urltag='untagged-'+'a'*20 if current['draft'] else 'v1.12.0'
    assets=[{'name':p.name,'state':'uploaded','size':p.stat().st_size,
      'digest':'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest(),
-     'browser_download_url':'https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/download/v1.12.0/'+p.name}
+     'browser_download_url':'https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/download/'+urltag+'/'+p.name}
       for p in (root/'dist').iterdir()]
-   print(json.dumps({'tag_name':'v1.12.0','draft':current['draft'],'prerelease':False,'assets':assets}));sys.exit(0)
-  if mode=='existing':print(json.dumps({'draft':False,'prerelease':False}));sys.exit(0)
+   receipt={'id':123,'tag_name':'v1.12.0','draft':current['draft'],'prerelease':False,'assets':assets,
+    'target_commitish':'a'*40,'html_url':'https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/tag/'+urltag}
+   print(json.dumps([[receipt]] if endpoint.endswith('/releases?per_page=100') else receipt));sys.exit(0)
+  if mode=='existing':print(json.dumps([[{'tag_name':'v1.12.0','draft':False,'prerelease':False}]]));sys.exit(0)
   if mode=='first403':error(403)
-  error(404)
+  print(json.dumps([[]]));sys.exit(0)
  if endpoint.endswith('/releases/latest'):
   if mode=='latest503':error(503)
   if mode=='older':print(json.dumps({'tag_name':'v1.13.0'}));sys.exit(0)
@@ -46,8 +51,6 @@ if args[:1]==['api']:
  error(500)
 if args[:2]==['release','create']:
  state.write_text(json.dumps({'created':True,'draft':True}));sys.exit(0)
-if args[:2]==['release','edit']:
- current['draft']=False;state.write_text(json.dumps(current));sys.exit(0)
 raise SystemExit('Unexpected fake gh command')
 '''
 
@@ -97,7 +100,7 @@ class WorkflowChecks(unittest.TestCase):
         result, calls = self.run_mode(mode)
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertNotIn("release create", calls)
-        self.assertNotIn("release edit", calls)
+        self.assertNotIn("--method PATCH", calls)
 
     def test_non404_initial_failure_blocks_publication(self):
         self.assert_no_mutation("first403")
@@ -118,14 +121,15 @@ class WorkflowChecks(unittest.TestCase):
         result, calls = self.run_mode("existing")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("release create", calls)
-        self.assertNotIn("release edit", calls)
+        self.assertNotIn("--method PATCH", calls)
 
     def test_new_release_is_draft_verified_then_published(self):
         result, calls = self.run_mode("new")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("--draft", calls)
-        self.assertIn("release edit v1.12.0 --draft=false --latest", calls)
-        self.assertGreater(calls.index("release edit"), calls.index("release create"))
+        self.assertIn("/releases/123 --method PATCH -F draft=false -f make_latest=true", calls)
+        self.assertNotIn("/releases/tags/v1.12.0", calls)
+        self.assertGreater(calls.index("--method PATCH"), calls.index("release create"))
         self.assertEqual(json.loads((self.root / "gh-state.json").read_text()),
                          {"created": True, "draft": False})
 
