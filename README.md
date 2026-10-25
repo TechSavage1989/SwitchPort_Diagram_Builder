@@ -1,76 +1,99 @@
-# HUBTech Network Diagram Builder
+<p align="center">
+  <img src="Source/Branding/HUBTech_Diagram_Builder_Icon.png" width="112" alt="HUBTech Network Diagram Builder icon">
+</p>
 
-Windows desktop application for building physical switch port maps and complete
-VLAN inventory reports from supported switch configurations.
+<h1 align="center">HUBTech Network Diagram Builder</h1>
+<p align="center">Turn supported switch configurations into physical port maps and readable VLAN reports.</p>
 
-Development and updates use this repository:
-https://github.com/TechSavage1989/SwitchPort_Diagram_Builder
+<p align="center">
+  <a href="https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest">Download</a> ·
+  <a href="#getting-started">Get started</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#updates-and-settings">Updates</a> ·
+  <a href="#development">Development</a>
+</p>
+
+## Features
+
+- **Map physical ports:** generate device layouts with proportional RJ45 and optical connectors, member/chassis/module identity and VLAN keys.
+- **Read VLAN membership at a glance:** native VLAN fills, tagged-VLAN circles and voice-VLAN diamonds use configuration-aware colors.
+- **Keep the complete inventory:** PDF tables retain full tagged-VLAN lists, with wrapped cells and continuation pages for long rows.
+- **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
 ## Download
 
-Get the current Windows x64 executable or portable package from
-[Releases](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest).
-Run HUBTechDiagramBuilder.exe. Microsoft Edge WebView2 Runtime is required;
-a separate .NET installation is not required for published builds.
+Get **`HUBTechDiagramBuilder.exe`** or the versioned **Windows x64 ZIP** from [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Extract the ZIP before launching.
 
-Version 1.12.0 introduces the built-in updater. Earlier builds need this first
-updater-enabled release downloaded manually. Later releases can be installed
-through Updates in the app.
+## Requirements
 
-## Updates
+| Requirement | Details |
+| --- | --- |
+| Operating system | Windows 10 or 11, 64-bit x64 |
+| Runtime | Microsoft Edge WebView2 Runtime; no separate .NET installation for published builds |
+| Configuration input | Supported HPE/Aruba configurations and documented MikroTik RouterOS text/binary inputs |
+| Coverage | Model, syntax and export-format support are bounded; check the guides below before relying on a diagram |
 
-Automatic checks are enabled by default. The app checks shortly after startup
-and periodically while it remains open. Updates provides manual checking,
-download progress, release notes, a reminder delay and an automatic-check setting.
+> **Validate before sharing:** a researched model is not automatically a supported layout. Typing a model name does not bypass physical-layout validation. Unknown hardware, conflicting identity or layouts beyond readable A4 capacity can block export rather than silently omit information.
 
-Download and installation are separate actions. Installation requires explicit
-confirmation and waits for report generation to finish. The updater verifies
-the package and executable SHA-256 hashes and validates the Windows executable
-before installation. A previous executable is retained for recovery. The new
-interface must become ready after restart; failed startup restores the previous
-version. App settings, report logo and generated reports stay in place.
+See [hardware coverage](Source/SUPPORT_COVERAGE.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
 
-See [UPDATING.md](UPDATING.md) for installation, recovery and release details.
+## Getting started
 
-## Diagram and report features
+1. Open [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Download **`HUBTechDiagramBuilder.exe`** or extract the **Windows x64 ZIP**.
+2. Launch the executable from a writable local folder. **Microsoft Edge WebView2 Runtime** must be installed.
+3. Choose a saved configuration, drop one file into the window, or use **Paste configuration → Use configuration**.
+4. Leave **Model** empty for automatic detection, or supply an exact supported SKU when the configuration omits the hardware identity. Review member/module details where needed.
+5. Choose an output folder and select **Build reports**. After a successful build, use **Open chart** or **Open output folder**.
 
-- Proportional RJ45 and optical port geometry with physical device layouts.
-- Readable VLAN keys beside or below wide port banks, bounded text sizes and
-  consistent tagged-VLAN circles and voice-VLAN diamonds.
-- Configuration-aware soft colors selected for perceptual separation.
-- Complete tagged VLAN lists in PDF inventory tables, with wrapped cells and
-  continuation pages for unusually long rows.
-- A4 PDF, 300 DPI PNG, CSV, JSON, network summary and validation report exports.
-- Independent switch, member, chassis and module identity fields and models.
-- Supported HPE/Aruba platforms and documented MikroTik RouterOS text/binary
-  input. Hardware and syntax limits are documented in Source/.
+Reports are saved in a child folder named for the switch hostname or identified model. Repeated exports create numbered folders rather than replacing earlier results.
 
-See [hardware coverage](Source/SUPPORT_COVERAGE.md),
-[MikroTik support](Source/MIKROTIK_SUPPORT.md),
-[layout rules](Source/LAYOUT_SIZING.md) and
-[color selection](Source/COLOR_SELECTION.md).
+## How to use
+
+| Output | Purpose |
+| --- | --- |
+| `wall-chart.png`, `a4-one-page.png` | A4 landscape port maps at 300 DPI |
+| `a4-one-page.pdf` | Single-page visual diagram |
+| `a4-booklet.pdf` | Diagram followed by detailed port inventory |
+| `port-map.csv`, `technician-summary.txt` | Tabular data and a readable summary |
+| `inventory.json`, `validation-report.txt` | Complete inventory and diagnostic records for internal review |
+
+The validation report records assumptions and provenance. Review it alongside the diagram; configuration exports do not establish live device state.
+
+## Updates and settings
+
+Open **Updates** for manual checks, release notes, download progress, reminder delay and the automatic-check setting. Automatic checks are enabled by default and run shortly after startup and periodically while the app is open.
+
+**Download and installation are separate actions.** Installation requires explicit confirmation and waits for report generation to finish. The updater verifies package/executable SHA-256 hashes and Windows executable identity. It retains the previous executable and attempts recovery if the new interface does not become ready after restart.
+
+Current builds are not Authenticode signed. Checksums verify integrity through the trusted release repository; they are not a code-signing certificate.
+
+Settings, your report logo and generated reports stay in place. Builds older than **1.12.0** do not have the built-in updater: download an updater-enabled release manually first.
+
+See [UPDATING.md](UPDATING.md) for writable-folder requirements, trust limitations and recovery instructions.
 
 ## Development
 
-Editable application, generator, resources and regression checks are in Source/.
-The native host uses .NET 8, WinForms and WebView2. The generator and shared
-updater validation library also build on Linux.
+<details>
+<summary>Build, checks and release safeguards</summary>
 
-Build the application with the .NET 8 SDK:
+Read [DEVELOPMENT.md](DEVELOPMENT.md) for the source layout, checks and release safeguards. Editable application, generator, resources and regression checks are in [Source](Source/). Keep private configuration backups and generated client reports out of the repository.
 
-    dotnet build Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj -c Release
+The Windows host uses .NET 8, WinForms and WebView2. The generator and shared updater validation library also build on Linux.
 
-Publish the portable Windows executable:
+Build with the .NET 8 SDK:
 
-    dotnet publish Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj -c Release -r win-x64 --self-contained true -o artifacts/windows
+```sh
+dotnet build Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj -c Release
+```
 
-Package the release with scripts/package_release.py. GitHub Actions runs the
-regression checks and publishes a new versioned release after a successful main
-branch build. Existing releases are not overwritten.
+Publish a self-contained Windows executable:
 
-Source code is available directly from this repository and GitHub's source
-archives. Update ZIPs contain the application and update documentation; user
-configurations and generated reports are kept outside the source repository.
+```sh
+dotnet publish Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/windows
+```
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for the development and release process.
+Package with [scripts/package_release.py](scripts/package_release.py). The [build workflow](.github/workflows/build-and-release.yml) defines the complete regression checks and publishes new versioned releases after a successful main build. Existing published releases are not overwritten; documentation updates must not bump the application version.
 
+Source is available in this repository and GitHub's versioned source archives. Update ZIPs contain application/update files, not user configurations. Native helper tests do not replace interactive Windows/WebView2 and real restart testing.
+
+</details>
