@@ -91,6 +91,12 @@ jobs:
         run: dotnet run --project Source/tests/UpdaterChecks/UpdaterChecks.csproj --configuration Release
       - name: Publish the self-contained Windows application
         run: dotnet publish Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true --output build/windows
+      - name: Verify exact Windows display metadata
+        shell: pwsh
+        run: |
+          $info = [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Resolve-Path 'build/windows/SwitchportDiagramBuilder.exe'))
+          if ($info.ProductName -ne 'Switchport Diagram Builder' -or $info.FileDescription -ne 'Switchport Diagram Builder') { throw 'Windows product and file description must match the application display name exactly.' }
+          Write-Host "PASS Windows ProductName and FileDescription: $($info.ProductName)"
       - name: Verify compile-time icon resources
         run: python Source/tests/verify-icon-resource.py build/windows/SwitchportDiagramBuilder.exe Source/Branding/Switchport_Diagram_Builder_Icon.ico
       - name: Check native helper installation, startup health and rollback

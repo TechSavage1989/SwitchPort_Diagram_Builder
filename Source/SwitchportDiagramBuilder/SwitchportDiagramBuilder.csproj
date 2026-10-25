@@ -5,7 +5,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier><SelfContained>true</SelfContained><PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <EnableWindowsTargeting>true</EnableWindowsTargeting><AssemblyName>SwitchportDiagramBuilder</AssemblyName>
-    <Product>Switchport Diagram Builder</Product><Title>Switchport Diagram Builder</Title><Description>Switchport Diagram Builder</Description><Company>TechSavage1989</Company>
+    <Product>Switchport Diagram Builder</Product><Title>Switchport Diagram Builder</Title><AssemblyTitle>Switchport Diagram Builder</AssemblyTitle><Description>Switchport Diagram Builder</Description><Company>TechSavage1989</Company>
     <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

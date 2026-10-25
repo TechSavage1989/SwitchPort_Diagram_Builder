@@ -23,7 +23,7 @@ class BrandingChecks(unittest.TestCase):
 
     def test_display_name_and_windows_metadata(self):
         root = ET.parse(ROOT / 'Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj').getroot()
-        for name in ['Product', 'Title', 'Description']:
+        for name in ['Product', 'Title', 'AssemblyTitle', 'Description']:
             self.assertEqual(root.findtext('./PropertyGroup/' + name), DISPLAY)
         self.assertEqual(root.findtext('./PropertyGroup/AssemblyName'), 'SwitchportDiagramBuilder')
         html = (ROOT / 'Source/SwitchportDiagramBuilder/wwwroot/index.html').read_text()
