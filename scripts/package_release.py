@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 REPOSITORY = "TechSavage1989/SwitchPort_Diagram_Builder"
-PRODUCT = "HUBTechDiagramBuilder"
+PRODUCT = "SwitchportDiagramBuilder"
 EXECUTABLE = PRODUCT + ".exe"
 ZIP_MEMBERS = frozenset((EXECUTABLE, "READ_ME.txt", "SHA256SUMS.txt", "UPDATE_INFO.txt"))
 MAX_EXE_BYTES = 512 * 1024 * 1024
@@ -39,7 +39,7 @@ def parse_version(value: str) -> str:
 
 
 def project_version(root: Path) -> str:
-    project = root / "Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj"
+    project = root / "Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj"
     values = [node.text or "" for node in ET.parse(project).iter("Version")]
     if len(values) != 1:
         raise ValueError("The application project must declare exactly one Version.")
@@ -71,9 +71,9 @@ def read_me(root: Path, version: str) -> bytes:
     licenses = root / "Source/Licenses"
     if not all((licenses / name).is_file() for name in ("SkiaSharp.txt", "DejaVu-Fonts.txt")):
         raise ValueError("Required third-party license notices are missing.")
-    text = f"""HUB Tech Network Diagram Builder {version} - Windows 10/11 x64
+    text = f"""Switchport Diagram Builder {version} - Windows 10/11 x64
 
-Run HUBTechDiagramBuilder.exe. Keep the executable in a writable folder.
+Run SwitchportDiagramBuilder.exe. Keep the executable in a writable folder.
 Microsoft Edge WebView2 Runtime must be installed. No separate .NET installation
 or companion application files are required.
 
@@ -113,7 +113,7 @@ def verify_release(directory: Path) -> dict:
     version = parse_version(manifest["version"])
     package = manifest["package"]
     executable = manifest["executable"]
-    expected_package = f"HUBTech-Diagram-Builder-{version}-Windows-x64.zip"
+    expected_package = f"Switchport-Diagram-Builder-{version}-Windows-x64.zip"
     expected_url = f"https://github.com/{REPOSITORY}/releases/download/v{version}/{expected_package}"
     if (manifest["schema_version"] != 1 or manifest["product"] != PRODUCT
             or manifest["architecture"] != "x64" or package["name"] != expected_package
@@ -188,7 +188,7 @@ def package_release(root: Path, publish_directory: Path, output_directory: Path,
         executable = stage / EXECUTABLE
         shutil.copyfile(source, executable)
         documents = {"READ_ME.txt": read_me(root, version), "UPDATE_INFO.txt": (
-            f"HUB Tech Network Diagram Builder {version}\n\n"
+            f"Switchport Diagram Builder {version}\n\n"
             "This package contains the Windows application and third-party notices.\n"
             "Updates are provided through the application's Updates controls.\n"
             "Packages and executables are checked before installation.\n"
@@ -200,7 +200,7 @@ def package_release(root: Path, publish_directory: Path, output_directory: Path,
         inner_sums = executable_hash + "  " + EXECUTABLE + "\n"
         inner_sums += "".join(hashlib.sha256(data).hexdigest() + "  " + name + "\n"
                               for name, data in documents.items())
-        package_name = f"HUBTech-Diagram-Builder-{version}-Windows-x64.zip"
+        package_name = f"Switchport-Diagram-Builder-{version}-Windows-x64.zip"
         package = stage / package_name
         with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
             with executable.open("rb") as source_stream, archive.open(zip_info(EXECUTABLE), "w", force_zip64=True) as target:

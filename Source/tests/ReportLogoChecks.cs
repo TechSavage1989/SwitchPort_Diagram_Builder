@@ -1,4 +1,4 @@
-using HUBTechGenerator;
+using SwitchportGenerator;
 using SkiaSharp;
 string root=args[0];
 void Check(bool value,string reason){if(!value)throw new Exception(reason);}

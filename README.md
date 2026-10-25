@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="Source/Branding/HUBTech_Diagram_Builder_Icon.png" width="112" alt="HUBTech Network Diagram Builder icon">
+  <img src="Source/Branding/Switchport_Diagram_Builder_Icon.png" width="112" alt="Switchport Diagram Builder icon">
 </p>
 
-<h1 align="center">HUBTech Network Diagram Builder</h1>
+<h1 align="center">Switchport Diagram Builder</h1>
 <p align="center">Turn supported switch configurations into physical port maps and readable VLAN reports.</p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 
 ## Download
 
-Get **`HUBTechDiagramBuilder.exe`** or the versioned **Windows x64 ZIP** from [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Extract the ZIP before launching.
+Get **`SwitchportDiagramBuilder.exe`** or the versioned **Windows x64 ZIP** from [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Extract the ZIP before launching.
 
 ## Requirements
 
@@ -39,7 +39,7 @@ See [hardware coverage](Source/SUPPORT_COVERAGE.md), [MikroTik support](Source/M
 
 ## Getting started
 
-1. Open [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Download **`HUBTechDiagramBuilder.exe`** or extract the **Windows x64 ZIP**.
+1. Open [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Download **`SwitchportDiagramBuilder.exe`** or extract the **Windows x64 ZIP**.
 2. Launch the executable from a writable local folder. **Microsoft Edge WebView2 Runtime** must be installed.
 3. Choose a saved configuration, drop one file into the window, or use **Paste configuration → Use configuration**.
 4. Leave **Model** empty for automatic detection, or supply an exact supported SKU when the configuration omits the hardware identity. Review member/module details where needed.
@@ -67,7 +67,7 @@ Open **Updates** for manual checks, release notes, download progress, reminder d
 
 Current builds are not Authenticode signed. Checksums verify integrity through the trusted release repository; they are not a code-signing certificate.
 
-Settings, your report logo and generated reports stay in place. Builds older than **1.12.0** do not have the built-in updater: download an updater-enabled release manually first.
+Settings, your report logo and generated reports persist between sessions and future updates. **1.12.1 starts the current application identity:** install it from the release download. Earlier builds are historical and do not update into this identity.
 
 See [UPDATING.md](UPDATING.md) for writable-folder requirements, trust limitations and recovery instructions.
 
@@ -83,13 +83,13 @@ The Windows host uses .NET 8, WinForms and WebView2. The generator and shared up
 Build with the .NET 8 SDK:
 
 ```sh
-dotnet build Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj -c Release
+dotnet build Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj -c Release
 ```
 
 Publish a self-contained Windows executable:
 
 ```sh
-dotnet publish Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/windows
+dotnet publish Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/windows
 ```
 
 Package with [scripts/package_release.py](scripts/package_release.py). The [build workflow](.github/workflows/build-and-release.yml) defines the complete regression checks and publishes new versioned releases after a successful main build. Existing published releases are not overwritten; documentation updates must not bump the application version.

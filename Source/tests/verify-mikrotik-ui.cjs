@@ -1,11 +1,11 @@
 const {chromium}=require('playwright');
 const assert=require('assert'),path=require('path'),fs=require('fs');
 (async()=>{
- const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.HUBTECH_TEST_BROWSER?{executablePath:process.env.HUBTECH_TEST_BROWSER}:{})});
+ const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.SWITCHPORT_TEST_BROWSER?{executablePath:process.env.SWITCHPORT_TEST_BROWSER}:{})});
  try{
   const page=await browser.newPage({viewport:{width:1100,height:720}});
   await page.addInitScript(()=>{let listener;window.__messages=[];window.__deliver=data=>listener({data});window.chrome={webview:{addEventListener:(name,fn)=>listener=fn,postMessage:m=>{window.__messages.push(m);if(m.action==='loadBackup')queueMicrotask(()=>listener({data:{type:'selected',name:m.name,hostname:'ScaleFiberSwitch2'}}));}}};});
-  await page.goto('file://'+path.resolve(__dirname,'../HUBTechDiagramBuilder/wwwroot/index.html'));
+  await page.goto('file://'+path.resolve(__dirname,'../SwitchportDiagramBuilder/wwwroot/index.html'));
   const bytes=Array.from(fs.readFileSync(process.argv[2]));
   await page.evaluate(bytes=>{const dt=new DataTransfer();dt.items.add(new File([new Uint8Array(bytes)],'Winthrop-switch2.backup'));document.body.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));},bytes);
   await page.waitForFunction(()=>window.__messages.some(m=>m.action==='loadBackup'));

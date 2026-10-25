@@ -63,7 +63,7 @@ class WorkflowChecks(unittest.TestCase):
         self.publish = self.root / "publish"
         self.publish.mkdir()
         (self.publish / package.EXECUTABLE).write_bytes(stub_gui_pe())
-        project = self.root / "Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj"
+        project = self.root / "Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj"
         project.parent.mkdir(parents=True)
         project.write_text("<Project><PropertyGroup><Version>1.12.0</Version></PropertyGroup></Project>")
         notices = self.root / "Source/Licenses"
@@ -127,6 +127,9 @@ class WorkflowChecks(unittest.TestCase):
         result, calls = self.run_mode("new")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("--draft", calls)
+        self.assertIn('--title Switchport Diagram Builder 1.12.0', calls)
+        self.assertIn("dist/SwitchportDiagramBuilder.exe", calls)
+        self.assertIn("dist/Switchport-Diagram-Builder-1.12.0-Windows-x64.zip", calls)
         self.assertIn("/releases/123 --method PATCH -F draft=false -f make_latest=true", calls)
         self.assertNotIn("/releases/tags/v1.12.0", calls)
         self.assertGreater(calls.index("--method PATCH"), calls.index("release create"))

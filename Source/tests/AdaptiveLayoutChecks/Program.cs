@@ -1,4 +1,4 @@
-using HUBTechGenerator;
+using SwitchportGenerator;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -8,7 +8,7 @@ static class AdaptiveLayoutChecks
     static readonly SkiaSharp.SKTypeface Regular=LoadFont("Report-Regular.ttf"),Bold=LoadFont("Report-Bold.ttf");
     static SkiaSharp.SKTypeface LoadFont(string name)
     {
-        using var stream=typeof(ReportRenderer).Assembly.GetManifestResourceStream("HUBTechGenerator.Fonts."+name)??throw new Exception("Missing embedded font: "+name);
+        using var stream=typeof(ReportRenderer).Assembly.GetManifestResourceStream("SwitchportGenerator.Fonts."+name)??throw new Exception("Missing embedded font: "+name);
         return SkiaSharp.SKTypeface.FromStream(stream)??throw new Exception("Unreadable embedded font: "+name);
     }
     static void Check(bool value,string message)

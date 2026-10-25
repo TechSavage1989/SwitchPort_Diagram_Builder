@@ -7,7 +7,7 @@ function Invoke-Native {
     if ($LASTEXITCODE -ne 0) { throw "$Command failed with exit code $LASTEXITCODE" }
 }
 $repository = Split-Path $PSScriptRoot -Parent
-$project = Join-Path $PSScriptRoot 'HUBTechDiagramBuilder\HUBTechDiagramBuilder.csproj'
+$project = Join-Path $PSScriptRoot 'SwitchportDiagramBuilder\SwitchportDiagramBuilder.csproj'
 $version = ([xml](Get-Content $project -Raw)).Project.PropertyGroup.Version | Where-Object { $_ }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repository "artifacts\release-$version" }
 $publish = Join-Path $repository 'build\windows'

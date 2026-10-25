@@ -6,7 +6,7 @@ from pypdf import PdfReader
 ap=argparse.ArgumentParser();ap.add_argument('--generator',required=True);ap.add_argument('--dotnet');ap.add_argument('--host',action='store_true');ap.add_argument('--report');ap.add_argument('--instant-on-input-dir');ap.add_argument('--instant-on-1960-input');args=ap.parse_args()
 command=([args.dotnet] if args.dotnet else [])+[str(Path(args.generator).resolve())]+(['--generate'] if args.host else [])
 checks=[]
-root=Path(tempfile.mkdtemp(prefix='HUBTech verification with spaces '))
+root=Path(tempfile.mkdtemp(prefix='Switchport verification with spaces '))
 def run(name,text,code=0,models=None,model_name=None):
     p=root/name;p.mkdir();source=p/'config with spaces.txt';source.write_text(text);out=p/'output with spaces'
     result=subprocess.run(command+['--input',str(source),'--output',str(out)]+(['--models',models] if models else [])+(['--model-name',model_name] if model_name else []),capture_output=True,text=True,timeout=90)

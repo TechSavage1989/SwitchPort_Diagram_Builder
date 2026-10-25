@@ -5,11 +5,11 @@ https://github.com/TechSavage1989/SwitchPort_Diagram_Builder
 
 ## Source layout
 
-- Source/HUBTechDiagramBuilder: Windows host, embedded WebView2 interface,
+- Source/SwitchportDiagramBuilder: Windows host, embedded WebView2 interface,
   compiled icon and native update helper.
-- Source/HUBTechGenerator: switch parsing, verified hardware layouts, adaptive
+- Source/SwitchportGenerator: switch parsing, verified hardware layouts, adaptive
   chart generation, PDF reports and data exports.
-- Source/HUBTechUpdater: shared feed, manifest, package and installation
+- Source/SwitchportUpdater: shared feed, manifest, package and installation
   validation.
 - Source/tests: generator, layout, updater and report regression checks.
 - Source/Branding and Source/Licenses: editable icon resources and dependency
@@ -35,7 +35,10 @@ Use a new stable three-part version for a published update. The native app and
 generator versions must match. UI and native-runtime cache directories derive
 their version from the application assembly automatically.
 
-Keep HUBTechDiagramBuilder.exe as the public stable download name. The updater
+Keep SwitchportDiagramBuilder.exe as the public stable download name.
+The display name is exactly Switchport Diagram Builder. Version 1.12.1 starts
+a clean application, storage and update identity; earlier releases remain
+unchanged historical artifacts. The updater
 respects the current installed path. Published portable ZIPs are immutable.
 Package and executable hashes are calculated after all streams close, the ZIP
 is verified, and only then are final filenames exposed to release upload.

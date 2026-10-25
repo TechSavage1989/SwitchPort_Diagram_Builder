@@ -32,7 +32,7 @@ class PackageChecks(unittest.TestCase):
         self.publish = self.root / "publish"
         self.publish.mkdir()
         (self.publish / package.EXECUTABLE).write_bytes(stub_gui_pe())
-        project = self.root / "Source/HUBTechDiagramBuilder/HUBTechDiagramBuilder.csproj"
+        project = self.root / "Source/SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj"
         project.parent.mkdir(parents=True)
         project.write_text("<Project><PropertyGroup><Version>1.12.0</Version></PropertyGroup></Project>")
         notices = self.root / "Source/Licenses"
@@ -55,7 +55,7 @@ class PackageChecks(unittest.TestCase):
         self.assertEqual(manifest["version"], "1.12.0")
         self.assertEqual(manifest["package"]["url"],
             "https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/download/"
-            "v1.12.0/HUBTech-Diagram-Builder-1.12.0-Windows-x64.zip")
+            "v1.12.0/Switchport-Diagram-Builder-1.12.0-Windows-x64.zip")
         with zipfile.ZipFile(self.output / manifest["package"]["name"]) as archive:
             self.assertEqual(set(archive.namelist()), package.ZIP_MEMBERS)
             self.assertEqual(len(archive.namelist()), 4)
@@ -67,6 +67,19 @@ class PackageChecks(unittest.TestCase):
         self.assertEqual((self.output / manifest["package"]["name"]).read_bytes(),
                          (second / manifest["package"]["name"]).read_bytes())
         self.assertFalse(list(self.root.glob("diagram-release-*")))
+
+    def test_current_release_has_only_clean_names_and_documentation(self):
+        manifest = self.create()
+        self.assertEqual(manifest["product"], "SwitchportDiagramBuilder")
+        self.assertEqual(manifest["executable"]["path"], "SwitchportDiagramBuilder.exe")
+        self.assertEqual(set(path.name for path in self.output.iterdir()), {
+            "SwitchportDiagramBuilder.exe", "Switchport-Diagram-Builder-1.12.0-Windows-x64.zip",
+            "update-manifest.json", "SHA256SUMS.txt"})
+        with zipfile.ZipFile(self.output / manifest["package"]["name"]) as archive:
+            for name in ("READ_ME.txt", "UPDATE_INFO.txt"):
+                text = archive.read(name).decode("utf-8")
+                self.assertIn("Switchport Diagram Builder", text)
+                self.assertNotRegex(text, r"(?i)hub[ _-]?tech")
 
     def test_executable_tampering_is_rejected(self):
         self.create()

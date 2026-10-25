@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><Version>1.12.1</Version><FileVersion>1.12.1.0</FileVersion><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AssemblyName>SwitchportGenerator</AssemblyName><PublishSingleFile>true</PublishSingleFile><IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile></PropertyGroup>
+<ItemGroup>
+<PackageReference Include="SkiaSharp" Version="3.119.4"/>
+<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.4" Condition="'$(RuntimeIdentifier)' != 'win-x64'"/>
+<EmbeddedResource Include="Fonts/*.ttf"/>
+<EmbeddedResource Include="Data/*.json"/>
+</ItemGroup><Target Name="PublishNativeReportRenderer" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+<Copy SourceFiles="$(NuGetPackageRoot)skiasharp.nativeassets.win32/3.119.4/runtimes/win-x64/native/libSkiaSharp.dll" DestinationFiles="$(PublishDir)libSkiaSharp.dll"/>
+</Target></Project>

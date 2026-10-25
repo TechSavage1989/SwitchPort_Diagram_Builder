@@ -1,17 +1,19 @@
 const {chromium}=require('playwright');
 const path=require('path'),assert=require('assert');
 (async()=>{
- const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.HUBTECH_TEST_BROWSER?{executablePath:process.env.HUBTECH_TEST_BROWSER}:{})});
+ const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.SWITCHPORT_TEST_BROWSER?{executablePath:process.env.SWITCHPORT_TEST_BROWSER}:{})});
  try{
   const page=await browser.newPage({viewport:{width:1000,height:720}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{
-   let listener;window.__hubMessages=[];window.__hubDeliver=data=>listener({data});
-   window.chrome={webview:{addEventListener:(name,fn)=>listener=fn,postMessage:msg=>window.__hubMessages.push(msg)}};
+   let listener;window.__switchportMessages=[];window.__switchportDeliver=data=>listener({data});
+   window.chrome={webview:{addEventListener:(name,fn)=>listener=fn,postMessage:msg=>window.__switchportMessages.push(msg)}};
   });
-  await page.goto('file://'+path.resolve(__dirname,'../HUBTechDiagramBuilder/wwwroot/index.html'));
-  const deliver=async message=>page.evaluate(m=>window.__hubDeliver(m),message);
-  const messages=async action=>page.evaluate(a=>window.__hubMessages.filter(m=>m.action===a),action);
+  await page.goto('file://'+path.resolve(__dirname,'../SwitchportDiagramBuilder/wwwroot/index.html'));
+  assert.equal(await page.title(),'Switchport Diagram Builder');
+  assert.equal(await page.locator('h1').innerText(),'Switchport Diagram Builder');
+  const deliver=async message=>page.evaluate(m=>window.__switchportDeliver(m),message);
+  const messages=async action=>page.evaluate(a=>window.__switchportMessages.filter(m=>m.action===a),action);
   const last=async action=>(await messages(action)).at(-1);
   const base={type:'updateState',currentVersion:'1.12.0',automaticChecks:true,availableVersion:'',notes:'',releaseUrl:'',status:'Updates are checked automatically. You choose when to download and restart.',checking:false,downloading:false,installing:false,progress:0,appBusy:false,downloaded:false,canDownload:false,canInstall:false,reminder:false};
   const update=async patch=>deliver({...base,...patch});
@@ -72,7 +74,7 @@ const path=require('path'),assert=require('assert');
   await update(staged);await page.locator('#updates').evaluate(el=>el.click());
   assert(await page.locator('#updateDialog').isHidden());assert(await page.locator('#installUpdate').isDisabled());
   await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
-  await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.getElementById('pasteDialog').open&&window.__hubMessages.filter(m=>m.action==='updateEditing').at(-1)?.enabled===false);
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.getElementById('pasteDialog').open&&window.__switchportMessages.filter(m=>m.action==='updateEditing').at(-1)?.enabled===false);
   assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:false});
 
   await page.click('#devices');let request=await last('inspectDevices');
@@ -81,7 +83,7 @@ const path=require('path'),assert=require('assert');
   await page.locator('#device-0-Name').fill('Unsaved device detail');await update(staged);
   await page.locator('#updates').evaluate(el=>el.click());assert(await page.locator('#updateDialog').isHidden());
   await page.locator('#installUpdate').evaluate(el=>el.click());assert.equal((await messages('updateInstall')).length,1);
-  await page.click('#cancelDevices');await page.waitForFunction(()=>!document.getElementById('deviceDialog').open&&window.__hubMessages.filter(m=>m.action==='updateEditing').at(-1)?.enabled===false);
+  await page.click('#cancelDevices');await page.waitForFunction(()=>!document.getElementById('deviceDialog').open&&window.__switchportMessages.filter(m=>m.action==='updateEditing').at(-1)?.enabled===false);
   assert.deepEqual(await last('updateEditing'),{action:'updateEditing',enabled:false});
   console.log('PASS report-generation interlock, restored install availability, unsaved paste/device edit locks and native edit-state notifications.');
 
@@ -96,7 +98,7 @@ const path=require('path'),assert=require('assert');
   await page.setViewportSize({width:600,height:430});
   const box=await page.locator('#updateDialog').boundingBox();assert(box.x>=0&&box.y>=0&&box.x+box.width<=600.5&&box.y+box.height<=430.5);
   await page.locator('#closeUpdates').scrollIntoViewIfNeeded();assert(await page.locator('#closeUpdates').isVisible());
-  if(process.env.HUBTECH_TEST_SCREENSHOT)await page.screenshot({path:process.env.HUBTECH_TEST_SCREENSHOT});
+  if(process.env.Switchport_TEST_SCREENSHOT)await page.screenshot({path:process.env.Switchport_TEST_SCREENSHOT});
   await page.click('#closeUpdates');assert(await page.locator('#updateDialog').isHidden());
   assert.deepEqual(errors,[]);
   console.log('PASS install mutation locks, blocked Escape, clear install errors/recovery, retained input, compact accessible dialog and zero page errors.');

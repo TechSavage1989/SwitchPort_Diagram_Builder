@@ -1,4 +1,4 @@
-using HUBTechUpdater;
+using SwitchportUpdater;
 using System.Buffers.Binary;
 using System.IO.Compression;
 using System.Net;
@@ -11,11 +11,11 @@ using System.Text.Json.Nodes;
 static class UpdaterChecks
 {
     const string Repository = "TechSavage1989/SwitchPort_Diagram_Builder";
-    const string Product = "HUBTechDiagramBuilder";
+    const string Product = "SwitchportDiagramBuilder";
     const string Current = "1.12.0";
     const string Tag = "v1.12.0";
-    const string PackageName = "HUBTech-Diagram-Builder-1.12.0-Windows-x64.zip";
-    const string ExeName = "HUBTechDiagramBuilder.exe";
+    const string PackageName = "Switchport-Diagram-Builder-1.12.0-Windows-x64.zip";
+    const string ExeName = "SwitchportDiagramBuilder.exe";
     const string Api = "https://api.github.com/repos/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest";
     static readonly string ReleaseBase = "https://github.com/" + Repository + "/releases/download/" + Tag + "/";
     static readonly string Root = Path.Combine(Path.GetTempPath(), "Diagram updater checks " + Guid.NewGuid().ToString("N"));
@@ -477,7 +477,7 @@ static class UpdaterChecks
             return -1;
         }
         int productValue = FindValue(blob, blob + blobSize, "ProductName");
-        Check(productValue >= 0 && Encoding.Unicode.GetString(data, productValue, Product.Length * 2) == Product,
+        Check(productValue >= 0 && Encoding.Unicode.GetString(data, productValue, UpdateProtocol.DisplayName.Length * 2) == UpdateProtocol.DisplayName,
             "Fixture must locate ProductName in the native version resource, not bundled assembly bytes.");
         return new(pe, optional, directory, root, leaf, blob, blobSize, fixedInfo, productValue);
     }

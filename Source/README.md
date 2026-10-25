@@ -1,6 +1,6 @@
-HUB Tech Network Diagram Builder 1.11.2 - Windows 10/11 x64
+Switchport Diagram Builder 1.12.1 - Windows 10/11 x64
 
-Run HUBTechDiagramBuilder.exe. The ZIP places it in App/; it can also be copied
+Run SwitchportDiagramBuilder.exe. The ZIP contains it at its root; it can also be copied
 and run by itself. No companion EXE, wwwroot directory, .NET installation or DLL
 beside the executable is required. Microsoft Edge WebView2 Runtime must still
 be installed on Windows. The app restores its embedded interface and native
@@ -44,7 +44,7 @@ Instant On 1960 automatic stacks retain the verified JL805A signature; other
 stack members need explicit member=SKU pairs. A lead model cannot identify
 unreported member variants. Bare 1930 backup identity remains automatic.
 
-CLI: HUBTechGenerator.exe --input config.txt --output chosen-directory
+CLI: SwitchportGenerator.exe --input config.txt --output chosen-directory
 Optional: --models JG932A or --models 1=JG932A,2=JG934A
 Optional printed model name: --model-name "Aruba CX 6100"
 Use --named-folder to put exports in the switch hostname/model child directory.
@@ -300,7 +300,7 @@ exact empty output directory for CLI compatibility.
 The Windows CI workflow tests a copy of the EXE in an otherwise empty folder.
 That workflow has not been executed here. The distributed release was built
 on Linux; see TEST_REPORT.txt for actual and pending validation.
-Startup diagnostics: %LOCALAPPDATA%\HUBTechDiagramBuilder\startup-error.txt.
+Startup diagnostics: %LOCALAPPDATA%\SwitchportDiagramBuilder\startup-error.txt.
 Renderer/font notices are in Licenses. Source and documentation are optional
 for running the app.
 
@@ -382,7 +382,7 @@ icon has larger, more widely spaced VLAN dots and remains editable as SVG.
 
 Changes in 1.10.10
 -----------------
-Applies the supplied updated HUBTech Diagram Builder.svg artwork to the app
+Applies the supplied updated Switchport Diagram Builder.svg artwork to the app
 header, executable and window/taskbar icons. The original SVG bytes, including
 Illustrator editing data, are retained as the editable master in Branding/.
 PNG and all ten ICO sizes are regenerated. Icons are embedded during the
@@ -399,7 +399,7 @@ configuration exports all 184 interfaces with the correct VLAN memberships.
 
 Changes in 1.10.12
 -----------------
-Removes automatic HUB Tech branding from generated diagrams, all PDF pages,
+Removes automatic Switchport branding from generated diagrams, all PDF pages,
 network summaries and validation reports. The chart heading is NETWORK PORT
 MAP. The cable-move disclaimer and optional report-logo support are retained.
 

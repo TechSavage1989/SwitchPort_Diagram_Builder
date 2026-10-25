@@ -1,4 +1,4 @@
-using HUBTechGenerator;
+using SwitchportGenerator;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;

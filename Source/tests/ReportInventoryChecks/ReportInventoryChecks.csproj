@@ -6,6 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../HUBTechGenerator/HUBTechGenerator.csproj"/>
+    <ProjectReference Include="../../SwitchportGenerator/SwitchportGenerator.csproj"/>
   </ItemGroup>
 </Project>

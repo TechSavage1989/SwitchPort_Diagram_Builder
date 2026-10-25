@@ -1,7 +1,7 @@
 const {JSDOM}=require('jsdom');
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
-const ui=require('path').join(__dirname,'../HUBTechDiagramBuilder/wwwroot/');
-const dom=new JSDOM(fs.readFileSync(ui+'index.html','utf8'),{url:'https://hubtech.local',runScripts:'outside-only'});
+const ui=require('path').join(__dirname,'../SwitchportDiagramBuilder/wwwroot/');
+const dom=new JSDOM(fs.readFileSync(ui+'index.html','utf8'),{url:'https://switchport.local',runScripts:'outside-only'});
 const w=dom.window;let listener;const messages=[];
 w.TextEncoder=TextEncoder;w.TextDecoder=TextDecoder;
 w.HTMLDialogElement.prototype.showModal=function(){this.open=true;};

@@ -2,9 +2,12 @@
 
 ## First installation
 
-Download HUBTechDiagramBuilder.exe or the portable ZIP from the latest GitHub
-release. Extract the ZIP before running the executable. Builds before 1.12.0 do
-not contain the updater and need this first download.
+Download SwitchportDiagramBuilder.exe or the portable ZIP from the latest GitHub
+release. Extract the ZIP before running the executable. Version 1.12.1 starts
+the current application identity. Earlier builds are historical; download the
+current release directly rather than using their updater. Future releases use
+the built-in updater. Create or re-pin shortcuts to the current executable.
+Existing files from earlier builds are not deleted.
 
 ## Normal use
 

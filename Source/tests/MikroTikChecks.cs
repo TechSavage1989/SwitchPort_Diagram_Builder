@@ -1,4 +1,4 @@
-using HUBTechGenerator;
+using SwitchportGenerator;
 using System.Text;
 static class MikroTikChecks
 {

@@ -1,7 +1,7 @@
 
 Application icon and report logos (1.10.10)
 ------------------------------------------
-The supplied updated HUBTech Diagram Builder.svg is preserved unchanged as
+The supplied updated Switchport_Diagram_Builder_Icon.svg is preserved unchanged as
 the editable master, including Illustrator editing data. The flat artwork
 uses navy, cyan, mint, amber, slate, magenta and off-white colors. It depicts
 two port panels, colored VLAN dots in ports and keys, and a matching magenta

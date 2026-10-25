@@ -1,4 +1,4 @@
-using HUBTechGenerator;
+using SwitchportGenerator;
 static class DeviceIdentityChecks
 {
     static void Check(bool value,string message){if(!value)throw new Exception(message);}

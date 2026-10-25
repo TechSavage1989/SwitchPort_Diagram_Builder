@@ -1,4 +1,4 @@
-namespace HUBTechGenerator;
+namespace SwitchportGenerator;
 
 static class PreviousVlanPalette
 {

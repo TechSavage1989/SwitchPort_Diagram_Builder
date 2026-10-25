@@ -1,4 +1,4 @@
-using HUBTechGenerator;
+using SwitchportGenerator;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -15,7 +15,7 @@ static class ReportInventoryChecks
     static Inventory Inventory(int count)
     {
         var inv=new Inventory{Hostname="PDF-VLAN-REGRESSION",OS="Test fixture",Firmware="7.0",Topology="Fixed"};
-        inv.Groups.Add(new HUBTechGenerator.Group{Id="Switch",Device="1",Product="JL256A",Copper=count,Optical=0});
+        inv.Groups.Add(new SwitchportGenerator.Group{Id="Switch",Device="1",Product="JL256A",Copper=count,Optical=0});
         for(int i=1;i<=count;i++)inv.Ports.Add(new Port{Id="P"+i.ToString("D3"),Group="Switch",Number=i,Description="Fixture port "+i,Mode="Trunk",Media="RJ-45",UntaggedVlan=1,UntaggedState="Known",Disabled=false});
         return inv;
     }
@@ -128,7 +128,7 @@ static class ReportInventoryChecks
         {
             FocusedSemantics();
             if(args.Contains("--focused-only")){Console.WriteLine("PASS "+checks+" focused PDF inventory assertions.");return 0;}
-            string output=Path.GetFullPath(args.FirstOrDefault()??Path.Combine(Path.GetTempPath(),"hubtech-pdf-vlan-checks"));Directory.CreateDirectory(output);
+            string output=Path.GetFullPath(args.FirstOrDefault()??Path.Combine(Path.GetTempPath(),"Switchport-pdf-vlan-checks"));Directory.CreateDirectory(output);
             var sparse25=Inventory(3);sparse25.Ports[0].TaggedVlans=SparseIds.Take(25).Order().ToList();sparse25.Ports[1].TaggedVlans=new(){7,111,2222,4094};
             CheckAndWrite(output,"sparse-25",sparse25);
             var sparse40=Inventory(4);sparse40.Ports[0].TaggedVlans=SparseIds.Order().ToList();sparse40.Ports[1].TaggedVlans=Enumerable.Range(101,40).ToList();sparse40.Ports[2].TaggedVlans=new(){1,8,99,101,1001,2001,3001,4001,4094};

@@ -5,5 +5,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="../../HUBTechUpdater/HUBTechUpdater.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../SwitchportUpdater/SwitchportUpdater.csproj" /></ItemGroup>
 </Project>
