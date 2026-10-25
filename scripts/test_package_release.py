@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression checks for the updater's published package contract."""
 import hashlib
+import io
 import json
 from pathlib import Path
 import struct
@@ -80,6 +81,35 @@ class PackageChecks(unittest.TestCase):
                 text = archive.read(name).decode("utf-8")
                 self.assertIn("Switchport Diagram Builder", text)
                 self.assertNotRegex(text, r"(?i)hub[ _-]?tech")
+
+    def test_retired_brand_executable_bytes_are_rejected(self):
+        for encoding in ("utf-8", "utf-16-le"):
+            for separator in ("", " ", "_-", "\t"):
+                with self.subTest(encoding=encoding, separator=separator):
+                    mark = ("hUb" + separator + "TeCh").encode(encoding)
+                    (self.publish / package.EXECUTABLE).write_bytes(stub_gui_pe() + mark)
+                    with self.assertRaisesRegex(ValueError, "Retired product branding"):
+                        self.create()
+                    self.assertFalse(self.output.exists())
+
+    def test_retired_brand_detector_handles_every_chunk_boundary(self):
+        for encoding in ("utf-8", "utf-16-le"):
+            mark = ("HuB" + " " * 100 + "tEcH").encode(encoding)
+            for boundary in range(1, len(mark)):
+                class TinyStream(io.BytesIO):
+                    def read(self, count=-1):
+                        return super().read(boundary)
+                with self.subTest(encoding=encoding, boundary=boundary):
+                    with self.assertRaisesRegex(ValueError, "Retired product branding"):
+                        package.check_retired_brand(TinyStream(b"!" + mark), "fixture")
+        package.check_retired_brand(io.BytesIO(b"hubcap technical hub teacup"), "clean fixture")
+        package.check_retired_brand(io.BytesIO("Switchport Diagram Builder".encode("utf-16-le")), "clean fixture")
+
+    def test_retired_brand_in_packaged_documents_is_rejected(self):
+        (self.root / "Source/Licenses/SkiaSharp.txt").write_text("HuB" + " TeCh")
+        with self.assertRaisesRegex(ValueError, "portable document"):
+            self.create()
+        self.assertFalse(self.output.exists())
 
     def test_executable_tampering_is_rejected(self):
         self.create()

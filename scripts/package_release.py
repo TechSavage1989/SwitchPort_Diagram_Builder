@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import codecs
 import hashlib
 import json
 import os
@@ -20,6 +21,39 @@ EXECUTABLE = PRODUCT + ".exe"
 ZIP_MEMBERS = frozenset((EXECUTABLE, "READ_ME.txt", "SHA256SUMS.txt", "UPDATE_INFO.txt"))
 MAX_EXE_BYTES = 512 * 1024 * 1024
 MAX_DOC_BYTES = 2 * 1024 * 1024
+
+
+
+def check_retired_brand(stream, label: str) -> None:
+    """Scan raw ASCII/UTF-16LE strings, including strings across block boundaries.
+
+    This complements source and PE metadata checks; compressed managed resources
+    still need the source/UI checks because raw byte scanning cannot unpack them.
+    Partial matches retain only their significant characters, so even arbitrarily
+    long runs of whitespace do not require an unbounded overlap buffer.
+    """
+    complete = re.compile(r"hu[b][\s_-]*te[c]h", re.I | re.ASCII)
+    partial = re.compile(r"(hu[b])([\s_-]*)(t(?:e(?:c)?)?)?$|(hu|h)$", re.I | re.ASCII)
+    decoders = [codecs.getincrementaldecoder(encoding)(errors="replace")
+                for encoding in ("ascii", "utf-16-le", "utf-16-le")]
+    tails = ["", "", ""]
+    first = True
+    for block in iter(lambda: stream.read(1024 * 1024), b""):
+        for index, decoder in enumerate(decoders):
+            # Scan UTF-16 strings at either byte alignment, not just PE-aligned data.
+            chunk = block[1:] if index == 2 and first else block
+            data = tails[index] + decoder.decode(chunk)
+            if complete.search(data):
+                raise ValueError("Retired product branding remains in " + label + ".")
+            match = partial.search(data)
+            if match is None:
+                tails[index] = ""
+            elif match.group(1) is not None:
+                # Separators have no semantic significance to this detector.
+                tails[index] = match.group(1) + (match.group(3) or "")
+            else:
+                tails[index] = match.group(4)
+        first = False
 
 
 def sha256(path: Path) -> str:
@@ -65,6 +99,8 @@ def check_gui_executable(path: Path) -> None:
         raise ValueError("Published executable is not PE32+.")
     if struct.unpack_from("<H", pe, 24 + 68)[0] != 2:
         raise ValueError("Published executable is not a Windows GUI application.")
+    with path.open("rb") as stream:
+        check_retired_brand(stream, "published executable")
 
 
 def read_me(root: Path, version: str) -> bytes:
@@ -135,6 +171,10 @@ def verify_release(directory: Path) -> dict:
             maximum = MAX_EXE_BYTES if name == EXECUTABLE else MAX_DOC_BYTES
             if archive.getinfo(name).file_size > maximum:
                 raise ValueError("Portable ZIP entry exceeds its size limit.")
+        for name in names:
+            if name != EXECUTABLE:
+                with archive.open(name) as stream:
+                    check_retired_brand(stream, "portable document " + name)
         digest = hashlib.sha256()
         with archive.open(EXECUTABLE) as stream:
             for block in iter(lambda: stream.read(1024 * 1024), b""):

@@ -12,6 +12,8 @@ const path=require('path'),assert=require('assert');
   await page.goto('file://'+path.resolve(__dirname,'../SwitchportDiagramBuilder/wwwroot/index.html'));
   assert.equal(await page.title(),'Switchport Diagram Builder');
   assert.equal(await page.locator('h1').innerText(),'Switchport Diagram Builder');
+  require('fs').mkdirSync('build',{recursive:true});
+  await page.screenshot({path:'build/switchport-interface.png',fullPage:true});
   const deliver=async message=>page.evaluate(m=>window.__switchportDeliver(m),message);
   const messages=async action=>page.evaluate(a=>window.__switchportMessages.filter(m=>m.action===a),action);
   const last=async action=>(await messages(action)).at(-1);
