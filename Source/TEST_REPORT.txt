@@ -59,4 +59,4 @@ modal/busy UI behavior and filesystem permission/multiple-instance messages.
 Current releases are not Authenticode signed; hashes are integrity checks from
 the trusted GitHub repository, not a publisher-signing certificate.
 
-See root UPDATING.md and DEVELOPMENT.md and the GitHub workflow results.
+See root docs/UPDATING.md and DEVELOPMENT.md and the GitHub workflow results.

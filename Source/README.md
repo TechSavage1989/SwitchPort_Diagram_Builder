@@ -627,5 +627,5 @@ configuration details are retained across an update restart.
 Canonical development source and release feed:
 https://github.com/TechSavage1989/SwitchPort_Diagram_Builder
 
-See the root README, UPDATING.md and DEVELOPMENT.md for the current workflow,
+See the root README, docs/UPDATING.md and DEVELOPMENT.md for the current workflow,
 package contract and recovery details. All 1.11.3 layout fixes remain.

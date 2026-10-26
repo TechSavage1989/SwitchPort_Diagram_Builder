@@ -69,7 +69,7 @@ Current builds are not Authenticode signed. Checksums verify integrity through t
 
 Settings, your report logo and generated reports persist between sessions and future updates. **1.12.1 starts the current application identity:** install it from the release download. Earlier builds are historical and do not update into this identity.
 
-See [UPDATING.md](UPDATING.md) for writable-folder requirements, trust limitations and recovery instructions.
+See [UPDATING.md](docs/UPDATING.md) for writable-folder requirements, trust limitations and recovery instructions.
 
 ## Development
 
