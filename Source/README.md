@@ -1,4 +1,12 @@
-Switchport Diagram Builder 1.12.1 - Windows 10/11 x64
+Switchport Diagram Builder 1.13.0 - Windows 10/11 x64
+
+1.13.0: Ordered multi-configuration workspaces
+- Add multiple files or paste a new configuration without replacing existing items.
+- Drag or use accessible up/down controls to organize export order; each item keeps independent device/model details and output state.
+- Explicit .spworkspace.json save/open preserves source snapshots, order and selection; protect saved files like original configurations.
+- Build selected reports or all items, with collision-safe batch folders and optional combined A4 diagrams/booklets (one complete diagram per page).
+- Existing parsers, layout rules, formats, branding and updater safeguards remain unchanged.
+- Full workflow and validation limits: ../docs/DEVELOPMENT_HANDOFF.md.
 
 Run SwitchportDiagramBuilder.exe. The ZIP contains it at its root; it can also be copied
 and run by itself. No companion EXE, wwwroot directory, .NET installation or DLL

@@ -1,11 +1,17 @@
 const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[];
+let workspaceItems=[],selectedId=null,batchLoading=false,draggedItem=null,batchOutput=false;
 const post=message=>window.chrome.webview.postMessage(message);
 const locked=()=>updating||busy||loading||deviceLoading;
 function controls(){
- for(const id of ['choose','paste','chooseOutput','chooseLogo'])el(id).disabled=locked();
+ for(const id of ['choose','paste','chooseOutput','chooseLogo','openWorkspace'])el(id).disabled=locked();
  el('run').disabled=locked()||!hasInput;
+ el('saveWorkspace').disabled=locked()||!workspaceItems.length;
+ el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
+ el('openBatch').disabled=locked()||!batchOutput;
+ el('workspaceList').querySelectorAll('button').forEach(button=>button.disabled=locked()||button.dataset.boundary==='true');
+ el('workspaceList').querySelectorAll('li').forEach(row=>row.draggable=!locked());
  el('devices').disabled=locked()||!hasInput;el('saveDevices').disabled=deviceLoading||!deviceDraft;el('cancelDevices').disabled=deviceSaving;
  el('deviceRows').querySelectorAll('input,textarea').forEach(input=>input.disabled=deviceLoading);
  el('removeLogo').disabled=locked()||!hasLogo;
@@ -30,6 +36,7 @@ function loadText(text,name){
 el('choose').onclick=()=>{if(!locked())post({action:'choose'});};
 el('paste').onclick=()=>{if(!locked()){el('pasteError').textContent='';el('pasteDialog').showModal();post({action:'updateEditing',enabled:true});el('pasteText').focus();controls();}};
 el('cancelPaste').onclick=()=>{if(!loading)el('pasteDialog').close();};
+el('pasteDialog').addEventListener('cancel',event=>{if(loading)event.preventDefault();});
 el('pasteDialog').addEventListener('close',()=>post({action:'updateEditing',enabled:false}));
 el('pasteText').oninput=()=>{el('pasteError').textContent='';controls();};
 el('usePaste').onclick=()=>loadText(el('pasteText').value,'Pasted configuration');
@@ -42,6 +49,10 @@ el('copyOutput').onclick=()=>{
  copying=true;el('copyOutput').disabled=true;el('copyFeedback').textContent='';post({action:'copyOutput',text});
 };
 el('openChart').onclick=()=>{if(!locked()&&!el('openChart').disabled)post({action:'openChart'});};
+el('openWorkspace').onclick=()=>{if(!locked())post({action:'openWorkspace'});};
+el('saveWorkspace').onclick=()=>{if(!locked()&&workspaceItems.length)post({action:'saveWorkspace'});};
+el('openBatch').onclick=()=>{if(!locked()&&batchOutput)post({action:'openBatch'});};
+el('runAll').onclick=()=>{if(locked()||!workspaceItems.length)return;busy=true;controls();post({action:'runAll',combined:el('combinePdf').checked});};
 el('run').onclick=()=>{if(locked()||!hasInput)return;busy=true;el('openChart').disabled=true;controls();post({action:'run'});};
 function closeDevices(){post({action:'updateEditing',enabled:false});deviceRequest++;deviceLoading=false;deviceSaving=false;deviceDraft=null;controls();}
 function renderDevices(rows){
@@ -86,6 +97,53 @@ el('saveDevices').onclick=()=>{
  const devices=deviceDraft.map(({Id,Name,SerialNumber,AssetTag,Notes,ModelSelection})=>({Id,Name:Name||'',SerialNumber:SerialNumber||'',AssetTag:AssetTag||'',Notes:Notes||'',ModelSelection:ModelSelection||''}));
  post({action:'saveDevices',devices,requestId:deviceRequest});
 };
+
+function renderWorkspace(message){
+ workspaceItems=message.items||[];selectedId=message.selectedId||null;
+ if(message.batchAvailable===false){batchOutput=false;el('batchResult').hidden=true;}
+ const active=document.activeElement,focusId=active?.dataset.itemId,focusAction=active?.dataset.workspaceAction,scrollTop=el('workspaceList').scrollTop;
+ el('workspaceList').replaceChildren();el('workspaceCount').textContent=workspaceItems.length;
+ el('workspaceDirty').hidden=!message.dirty;el('workspaceEmpty').hidden=workspaceItems.length>0;
+ workspaceItems.forEach((item,index)=>{
+  const row=document.createElement('li');row.className='workspace-row'+(item.id===selectedId?' selected':'')+(item.error?' has-error':'');row.dataset.itemId=item.id;
+  const name=item.hostname||item.name||'Configuration';
+  function button(label,action,className){const control=document.createElement('button');control.type='button';control.className=className;control.setAttribute('aria-label',label);control.title=label;control.dataset.itemId=item.id;control.dataset.workspaceAction=action;return control;}
+  const choose=button('Select '+name,'select','workspace-select');choose.setAttribute('aria-current',item.id===selectedId?'true':'false');
+  const title=document.createElement('strong');title.textContent=(index+1)+'. '+name+(item.dirty?' *':'');
+  const detail=document.createElement('small');detail.textContent=[item.name,item.model,item.error].filter(Boolean).join(' · ');choose.title=[name,detail.textContent].filter(Boolean).join('\n');choose.append(title,detail);
+  choose.onclick=()=>{if(locked()||item.id===selectedId)return;loading=true;controls();post({action:'selectItem',id:item.id});};
+  const order=document.createElement('div');order.className='workspace-order';
+  for(const [action,delta,label,glyph] of [['up',-1,'Move up','↑'],['down',1,'Move down','↓']]){
+   const move=button(label+' '+name,action,'secondary');move.textContent=glyph;move.dataset.boundary=String(index+delta<0||index+delta>=workspaceItems.length);
+   move.onclick=()=>{if(!locked())post({action:'moveItem',id:item.id,index:index+delta});};order.append(move);
+  }
+  const remove=button('Remove '+name,'remove','secondary workspace-remove');remove.textContent='×';remove.onclick=()=>{if(!locked())post({action:'removeItem',id:item.id});};
+  row.append(choose,order,remove);row.draggable=!locked();
+  row.addEventListener('dragstart',event=>{if(locked()){event.preventDefault();return;}draggedItem=item.id;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('application/x-switchport-item',item.id);});
+  row.addEventListener('dragover',event=>{if(!draggedItem||locked())return;event.preventDefault();event.stopPropagation();event.dataTransfer.dropEffect='move';row.classList.add('drag-target');});
+  row.addEventListener('dragleave',()=>row.classList.remove('drag-target'));
+  row.addEventListener('drop',event=>{if(!draggedItem)return;event.preventDefault();event.stopPropagation();row.classList.remove('drag-target');if(!locked()&&draggedItem!==item.id)post({action:'moveItem',id:draggedItem,index});draggedItem=null;});
+  row.addEventListener('dragend',()=>{draggedItem=null;el('workspaceList').querySelectorAll('.drag-target').forEach(item=>item.classList.remove('drag-target'));});
+  el('workspaceList').append(row);
+ });
+ controls();el('workspaceList').scrollTop=scrollTop;
+ if(focusId&&focusAction){const target=Array.from(el('workspaceList').querySelectorAll('button')).find(button=>button.dataset.itemId===focusId&&button.dataset.workspaceAction===focusAction);if(target&&!target.disabled)target.focus({preventScroll:true});}
+}
+async function readDroppedFile(file){
+ if(file.size>MAX_INPUT_BYTES)throw new Error('Configuration exceeds the 20 MB limit.');
+ const bytes=new Uint8Array(await file.arrayBuffer());
+ if(bytes.length>=4&&bytes[0]===0x88&&bytes[1]===0xac&&bytes[2]===0xa1&&bytes[3]===0xb1){
+  let binary='';for(let offset=0;offset<bytes.length;offset+=8192)binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
+  return {name:file.name,text:btoa(binary),encoding:'base64'};
+ }
+ if(bytes.length>=3&&bytes[0]===0xef&&bytes[1]===0xa8&&bytes[2]===0x91)throw new Error('This MikroTik backup is encrypted. Load an unencrypted backup or a RouterOS .rsc export.');
+ const encoding=bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8';
+ const text=new TextDecoder(encoding).decode(bytes);
+ if(!text.trim())throw new Error('The configuration is empty.');
+ if(new TextEncoder().encode(text).length>MAX_INPUT_BYTES)throw new Error('Configuration exceeds the 20 MB limit.');
+ return {name:file.name,text,encoding:'text'};
+}
+
 function filesIn(event){return Array.from(event.dataTransfer?.types||[]).includes('Files');}
 function clearDrag(){dragDepth=0;document.body.classList.remove('drop-active');}
 document.addEventListener('dragenter',event=>{if(filesIn(event)){event.preventDefault();dragDepth++;if(!locked())document.body.classList.add('drop-active');}});
@@ -98,27 +156,45 @@ document.addEventListener('drop',async event=>{
  if(!files.length&&editing)return;
  event.preventDefault();clearDrag();
  if(locked())return;
- if(files.length>1){inputError('Drop one configuration file at a time.');return;}
+ if(Array.from(transfer?.types||[]).includes('application/x-switchport-item'))return;
+ if(el('deviceDialog').open||el('pasteDialog').open||el('updateDialog').open)return;
  if(!files.length){const text=transfer?.getData('text/plain');if(text)loadText(text,'Dropped configuration');return;}
- const file=files[0];
- if(file.size>MAX_INPUT_BYTES){inputError('Configuration exceeds the 20 MB limit.');return;}
- loading=true;controls();el('openChart').disabled=true;status('status','Reading configuration...');
- try{
-  const bytes=new Uint8Array(await file.arrayBuffer());
-  if(bytes.length>=4&&bytes[0]===0x88&&bytes[1]===0xac&&bytes[2]===0xa1&&bytes[3]===0xb1){
-   let binary='';for(let offset=0;offset<bytes.length;offset+=8192)binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
-   post({action:'loadBackup',text:btoa(binary),name:file.name});return;
+ loading=true;batchLoading=files.length>1;controls();status('status',batchLoading?'Reading configurations...':'Reading configuration...');
+ if(batchLoading){
+  const results=[];let accepted=0,payloadBytes=0;
+  for(const file of files){
+   try{
+    if(workspaceItems.length+accepted>=100)throw new Error('A workspace can contain up to 100 configurations.');
+    if(payloadBytes+file.size>100_000_000)throw new Error('The import batch exceeds the 100 MB limit. Add fewer configurations at once.');
+    const decoded=await readDroppedFile(file),size=new TextEncoder().encode(decoded.text).length;
+    if(payloadBytes+size>100_000_000)throw new Error('The import batch exceeds the 100 MB limit. Add fewer configurations at once.');
+    results.push(decoded);payloadBytes+=size;accepted++;
+   }catch(error){results.push({name:file.name,error:error.message||'The dropped file could not be read.'});}
   }
-  if(bytes.length>=4&&bytes[0]===0xef&&bytes[1]===0xa8&&bytes[2]===0x91){inputError('This MikroTik backup is encrypted. Load an unencrypted backup or a RouterOS .rsc export.');return;}
-  const encoding=bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8';
-  const text=new TextDecoder(encoding).decode(bytes);
-  loading=false;loadText(text,file.name);
- }catch{inputError('The dropped file could not be read. Choose or drop a text configuration file.');}
+  post({action:'loadFiles',files:results});return;
+ }
+ try{
+  const file=await readDroppedFile(files[0]);
+  if(file.encoding==='base64'){post({action:'loadBackup',text:file.text,name:file.name});return;}
+  loading=false;loadText(file.text,file.name);
+ }catch(error){inputError(error.message||'The dropped file could not be read. Choose or drop a text configuration file.');}
 });
 window.addEventListener('blur',clearDrag);
 window.chrome.webview.addEventListener('message',event=>{
  const m=event.data;
  if(m.type==='updateState'){renderUpdate(m);return;}
+ if(m.type==='workspace'){renderWorkspace(m);return;}
+ if(m.type==='workspaceSaved'){el('importResult').textContent=m.message;el('importResult').className='import-result';el('importResult').hidden=!m.message;return;}
+ if(m.type==='importComplete'){
+  batchLoading=false;loading=false;controls();
+  el('importResult').textContent=[m.message,...(m.errors||[])].filter(Boolean).join('\n');
+  el('importResult').className='import-result'+(m.errors?.length?' error':'');el('importResult').hidden=!el('importResult').textContent;
+  return;
+ }
+ if(m.type==='batchComplete'){
+  busy=false;loading=false;batchOutput=!!m.output;el('batchResult').hidden=false;
+  el('batchStatus').textContent=[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n\n');controls();return;
+ }
  if(['devices','devicesSaved','deviceError'].includes(m.type)){
   if(m.requestId!==deviceRequest)return;deviceLoading=false;deviceSaving=false;
   if(m.type==='devices'){el('deviceError').textContent='';renderDevices(m.devices);el('deviceRows').querySelector('input')?.focus();}
@@ -138,18 +214,18 @@ window.chrome.webview.addEventListener('message',event=>{
  if(m.type==='models'){modelChoices=m.models;return;}
  if(m.type==='outputSelected'){el('outputFolder').textContent=m.path;el('openChart').disabled=true;return;}
  if(m.type==='selected'){
-  hasInput=true;loading=false;
+  hasInput=m.id!==null;loading=batchLoading;selectedId=m.id||selectedId;
   if(el('deviceDialog').open)el('deviceDialog').close();deviceDraft=null;deviceLoading=false;deviceSaving=false;deviceRequest++;
-  el('file').textContent=m.hostname?m.hostname+' - '+m.name:m.name;el('file').title=m.path||m.name;
-  el('openChart').disabled=true;el('pasteError').textContent='';
+  el('file').textContent=hasInput?(m.hostname?m.hostname+' - '+m.name:m.name):'No configuration loaded';el('file').title=m.path||m.name||'';
+  el('openChart').disabled=!m.chartAvailable;el('pasteError').textContent='';
   if(el('pasteDialog').open)el('pasteDialog').close();
-  status('','');controls();return;
+  status(m.statusType||'',m.statusText||'');controls();return;
  }
  if(m.type==='complete')el('openChart').disabled=!m.chartAvailable;
  if(['blocked','error','chartUnavailable'].includes(m.type))el('openChart').disabled=true;
  status(m.type,[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n\n'));
  if(['complete','blocked','error'].includes(m.type)){
-  busy=false;loading=false;controls();
+  busy=false;loading=false;batchLoading=false;controls();
   if(m.type==='error'&&el('pasteDialog').open)el('pasteError').textContent=m.message;
  }
 });

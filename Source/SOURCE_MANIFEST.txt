@@ -1,21 +1,28 @@
-Source files for 1.12.1
+Source files for 1.13.0
 
+Branding/Palette.txt
+Branding/README.txt
 Branding/Switchport_Diagram_Builder_Icon.ico
 Branding/Switchport_Diagram_Builder_Icon.png
 Branding/Switchport_Diagram_Builder_Icon.svg
-Branding/Palette.txt
-Branding/README.txt
 COLOR_SELECTION.md
 GENERATOR_IMPLEMENTATION_REQUIRED.md
 HARDWARE_CATALOG.csv
 HARDWARE_LAYOUT.md
+LAYOUT_SIZING.md
+Licenses/DejaVu-Fonts.txt
+Licenses/SkiaSharp.txt
+MIKROTIK_SUPPORT.md
+README.md
+SUPPORT_COVERAGE.md
 SwitchportDiagramBuilder/AppUpdateController.cs
 SwitchportDiagramBuilder/Assets/AppIcon.ico
-SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj
 SwitchportDiagramBuilder/MainForm.Updates.cs
+SwitchportDiagramBuilder/MainForm.Workspace.cs
 SwitchportDiagramBuilder/MainForm.cs
 SwitchportDiagramBuilder/NativeRuntime.cs
 SwitchportDiagramBuilder/Program.cs
+SwitchportDiagramBuilder/SwitchportDiagramBuilder.csproj
 SwitchportDiagramBuilder/UpdateApplyHost.cs
 SwitchportDiagramBuilder/UpdateHelperSelfTest.cs
 SwitchportDiagramBuilder/wwwroot/app-icon.svg
@@ -25,6 +32,7 @@ SwitchportDiagramBuilder/wwwroot/index.html
 SwitchportGenerator/AggregatePalette.cs
 SwitchportGenerator/ComwareParser.cs
 SwitchportGenerator/ConfigInput.cs
+SwitchportGenerator/ConfigurationWorkspace.cs
 SwitchportGenerator/Data/hardware-catalog.json
 SwitchportGenerator/DeviceIdentities.cs
 SwitchportGenerator/DeviceModels.cs
@@ -32,7 +40,6 @@ SwitchportGenerator/Fonts/LICENSE.txt
 SwitchportGenerator/Fonts/Report-Bold.ttf
 SwitchportGenerator/Fonts/Report-Regular.ttf
 SwitchportGenerator/Graphics.cs
-SwitchportGenerator/SwitchportGenerator.csproj
 SwitchportGenerator/HardwareCatalog.cs
 SwitchportGenerator/HardwareProfiles.cs
 SwitchportGenerator/InstantOnParser.cs
@@ -45,19 +52,15 @@ SwitchportGenerator/QuickSheet.cs
 SwitchportGenerator/ReportLogo.cs
 SwitchportGenerator/ReportNaming.cs
 SwitchportGenerator/ReportText.cs
+SwitchportGenerator/SwitchportGenerator.csproj
 SwitchportGenerator/VlanPalette.cs
+SwitchportGenerator/WorkspaceExport.cs
 SwitchportUpdater/FileInstallTransaction.cs
-SwitchportUpdater/SwitchportUpdater.csproj
 SwitchportUpdater/PackageValidator.cs
 SwitchportUpdater/PortableVersionInfo.cs
+SwitchportUpdater/SwitchportUpdater.csproj
 SwitchportUpdater/UpdateProtocol.cs
 SwitchportUpdater/UpdateService.cs
-LAYOUT_SIZING.md
-Licenses/DejaVu-Fonts.txt
-Licenses/SkiaSharp.txt
-MIKROTIK_SUPPORT.md
-README.md
-SUPPORT_COVERAGE.md
 TEST_REPORT.txt
 build-fixed.ps1
 build.ps1
@@ -82,6 +85,10 @@ tests/ReportLogoChecks.cs
 tests/ReportLogoChecks.csproj
 tests/UpdaterChecks/Program.cs
 tests/UpdaterChecks/UpdaterChecks.csproj
+tests/WorkspaceChecks/Program.cs
+tests/WorkspaceChecks/WorkspaceChecks.csproj
+tests/WorkspaceChecks/verify-pdfs.py
+tests/create-logo-fixtures.py
 tests/verify-additional-configs.py
 tests/verify-device-details-ui.cjs
 tests/verify-device-reports.py
@@ -94,5 +101,6 @@ tests/verify-report-inventory-pdf.py
 tests/verify-report-logo-ui.cjs
 tests/verify-ui.cjs
 tests/verify-updates-ui.cjs
+tests/verify-workspace-ui.cjs
 tests/verify.py
 tests/verify_saved_exports.py

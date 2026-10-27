@@ -18,6 +18,7 @@
 - **Map physical ports:** generate device layouts with proportional RJ45 and optical connectors, member/chassis/module identity and VLAN keys.
 - **Read VLAN membership at a glance:** native VLAN fills, tagged-VLAN circles and voice-VLAN diamonds use configuration-aware colors.
 - **Keep the complete inventory:** PDF tables retain full tagged-VLAN lists, with wrapped cells and continuation pages for long rows.
+- **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
 ## Download
@@ -41,11 +42,21 @@ See [hardware coverage](Source/SUPPORT_COVERAGE.md), [MikroTik support](Source/M
 
 1. Open [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Download **`SwitchportDiagramBuilder.exe`** or extract the **Windows x64 ZIP**.
 2. Launch the executable from a writable local folder. **Microsoft Edge WebView2 Runtime** must be installed.
-3. Choose a saved configuration, drop one file into the window, or use **Paste configuration → Use configuration**.
-4. Leave **Model** empty for automatic detection, or supply an exact supported SKU when the configuration omits the hardware identity. Review member/module details where needed.
-5. Choose an output folder and select **Build reports**. After a successful build, use **Open chart** or **Open output folder**.
+3. Choose one or more saved configurations, drop files into the window, or use **Paste new → Add configuration**. Imports add items; duplicate names stay separate.
+4. Select a configuration in the workspace. Open **Device details**, leave its model empty for automatic detection, or supply an exact supported SKU when hardware identity is missing. Each item retains its own member/module details.
+5. Choose an output folder and select **Build selected** (or **Build all**). After a successful build, use **Open chart** or **Open output folder** for the selected item.
 
 Reports are saved in a child folder named for the switch hostname or identified model. Repeated exports create numbered folders rather than replacing earlier results.
+
+### Ordered workspaces
+
+Drag list items or use their **Move up / Move down** controls. Selection follows the item, not its old position. Remove affects only that item; unsaved changes require confirmation. Unsupported configurations remain visible with validation warnings so you can supply missing model details without blocking the others.
+
+**Save workspace** writes a separate versioned `.spworkspace.json` containing ordered configuration snapshots, selection and per-item details. It does not change existing configuration or inventory formats. Saving is explicit; the app does not upload or automatically save these files. **Protect workspace files like the original configurations: they can contain credentials and network details.** Opening validates the complete file before replacing the current workspace and asks before replacing existing items. Reopened workspaces rebuild exports; external output paths are not trusted from workspace files.
+
+**Build all** exports the existing eight deliverables for every item in list order into a fresh batch directory. Numbered hostname/model subfolders avoid collisions and never overwrite earlier output. Enable **Combined PDFs** for one complete A4 diagram per successful item, plus a combined full-inventory booklet. Invalid items are reported individually; successful items still export. The selected **Output / Copy / Open chart / Open output folder** remain separate from **Open batch folder**. Output folder, report logo and update preferences remain app-wide.
+
+See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.13.0 release notes](docs/releases/1.13.0.md).
 
 ## How to use
 

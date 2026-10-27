@@ -37,10 +37,18 @@ jobs:
       - name: Check independent device and module editing
         run: node Source/tests/verify-device-details-ui.cjs
 
+      - name: Check ordered multi-configuration workspace
+        run: node Source/tests/verify-workspace-ui.cjs
+      - name: Check launch, copy, logo and RouterOS controls
+        run: |
+          node Source/tests/verify-launch-layout.cjs
+          node Source/tests/verify-output-copy.cjs
+          node Source/tests/verify-report-logo-ui.cjs
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: interface-preview
-          path: build/switchport-interface.png
+          path: build/*.png
           if-no-files-found: error
           retention-days: 14
 
@@ -61,6 +69,17 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Check updater protocol and rollback transactions
         run: dotnet run --project Source/tests/UpdaterChecks/UpdaterChecks.csproj --configuration Release
+      - name: Check ordered workspaces, persistence and batch export
+        run: |
+          dotnet run --project Source/tests/WorkspaceChecks/WorkspaceChecks.csproj --configuration Release -- build/workspace-fixtures
+          python3 Source/tests/WorkspaceChecks/verify-pdfs.py build/workspace-fixtures
+      - name: Check device, palette, logo and RouterOS regressions
+        run: |
+          dotnet run --project Source/tests/DeviceIdentityChecks.csproj --configuration Release
+          dotnet run --project Source/tests/PaletteChecks.csproj --configuration Release
+          python3 Source/tests/create-logo-fixtures.py build/logo-fixtures
+          dotnet run --project Source/tests/ReportLogoChecks.csproj --configuration Release -- build/logo-fixtures
+          dotnet run --project Source/tests/MikroTikChecks.csproj --configuration Release
       - name: Check all supported hardware and geometry
         run: dotnet run --project Source/tests/GeometryChecks.csproj --configuration Release
       - name: Check adaptive marker packing
@@ -210,6 +229,9 @@ jobs:
           python3 - "$version" "$GITHUB_SHA" > "$RUNNER_TEMP/release-notes.txt" <<'PY'
           import sys
           print('Windows x64 portable release '+sys.argv[1]+'.')
+          from pathlib import Path
+          notes=Path('docs/releases')/(sys.argv[1]+'.md')
+          if notes.is_file():print('\n'+notes.read_text())
           print('\nDownload SwitchportDiagramBuilder.exe or the portable Windows ZIP. The built-in Updates controls use this verified release package.')
           print('\nComplete editable source is available from the version tag.\n\nBuilt from commit '+sys.argv[2]+'.')
           PY

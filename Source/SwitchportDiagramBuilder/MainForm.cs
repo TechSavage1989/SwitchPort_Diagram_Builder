@@ -12,11 +12,13 @@ public sealed partial class MainForm : Form
     readonly string data = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SwitchportDiagramBuilder");
     bool busy;
     string outputRoot="";
-    string? lastOutput;
-    string? lastChart;
-    string? selectedPath;
-    string? selectedText;
-    List<DeviceIdentity> deviceDetails=new();
+    ConfigurationWorkspace workspace=new();
+    string? lastBatchOutput;
+    string? lastOutput { get=>workspace.Selected?.LastOutput; set { if(workspace.Selected is {} item)item.LastOutput=value; } }
+    string? lastChart { get=>workspace.Selected?.LastChart; set { if(workspace.Selected is {} item)item.LastChart=value; } }
+    string? selectedPath=>workspace.Selected?.SourcePath;
+    string? selectedText=>workspace.Selected?.Text;
+    List<DeviceIdentity> deviceDetails=>workspace.Selected?.Devices??new();
     const int MaxInputBytes=20_000_000;
     ReportLogo? reportLogo;
     string logoName="Report logo";
@@ -35,6 +37,12 @@ public sealed partial class MainForm : Form
         outputRoot=Path.Combine(data,"Output");
         InitializeUpdates(launchArgs??Array.Empty<string>());
         Shown += async (_, _) => await Init();
+        FormClosing+=(_,e)=>
+        {
+            if(updater?.Installing==true)return;
+            if(busy){e.Cancel=true;return;}
+            if(workspace.Dirty&&!ConfirmDiscard("Close the app and discard unsaved workspace changes?"))e.Cancel=true;
+        };
     }
     async Task Init()
     {
@@ -95,6 +103,14 @@ public sealed partial class MainForm : Form
             if (message?.action == "choose" && !busy) Choose();
             else if (message?.action == "loadText" && !busy) SelectText(message.text??"",message.name??"Pasted configuration");
             else if (message?.action == "loadBackup" && !busy) SelectText(ConfigInput.Decode(Convert.FromBase64String(message.text??"")),message.name??"RouterOS backup");
+            else if (message?.action == "loadFiles" && !busy) ImportFiles(message.files??Array.Empty<IncomingFile>());
+            else if (message?.action == "selectItem" && !busy) { workspace.Select(message.id??"");SendSelection(); }
+            else if (message?.action == "moveItem" && !busy) { workspace.Move(message.id??"",message.index??0);SendWorkspace(); }
+            else if (message?.action == "removeItem" && !busy) RemoveItem(message.id??"");
+            else if (message?.action == "saveWorkspace" && !busy) SaveWorkspace();
+            else if (message?.action == "openWorkspace" && !busy) OpenWorkspace();
+            else if (message?.action == "runAll" && !busy) await RunAll(message.combined??false);
+            else if (message?.action == "openBatch") OpenBatch();
             else if (message?.action == "chooseOutput" && !busy) ChooseOutput();
             else if (message?.action == "chooseLogo" && !busy) ChooseLogo();
             else if (message?.action == "removeLogo" && !busy) RemoveLogo();
@@ -105,6 +121,7 @@ public sealed partial class MainForm : Form
                 Send(new {type="models",models=DeviceModels.Choices.Select(m=>new{sku=m.Sku,name=m.Name,kind=m.Kind}).ToArray()});
                 SendLogo();
                 RestoreUpdateSession();
+                SendWorkspace();
                 UpdatesReady();
             }
             else if (message?.action == "open") Open();
@@ -116,26 +133,26 @@ public sealed partial class MainForm : Form
     }
     void Choose()
     {
-        using var dialog = new OpenFileDialog { Filter = "Switch configurations|*.txt;*.cfg;*.conf;*.log;*.rsc;*.backup|All files|*.*", CheckFileExists = true };
-        if (dialog.ShowDialog(this) == DialogResult.OK)
+        using var dialog = new OpenFileDialog { Filter = "Switch configurations|*.txt;*.cfg;*.conf;*.log;*.rsc;*.backup|All files|*.*", CheckFileExists = true, Multiselect=true };
+        if(dialog.ShowDialog(this)!=DialogResult.OK)return;
+        var errors=new List<string>();int added=0;
+        foreach(string path in dialog.FileNames)
         {
-            if(new FileInfo(dialog.FileName).Length>MaxInputBytes)throw new InvalidOperationException("Configuration exceeds the 20 MB limit.");
-            string text=ConfigInput.Read(dialog.FileName);
-            if(string.IsNullOrWhiteSpace(text))throw new InvalidOperationException("The configuration is empty.");
-            selectedPath=dialog.FileName;selectedText=null;
-            deviceDetails.Clear();
-            lastChart=null;lastOutput=null;
-            Send(new { type = "selected", path = dialog.FileName, name = Path.GetFileName(dialog.FileName),hostname=ReportText.ReadHostname(text) });
+            try
+            {
+                if(workspace.Items.Count>=ConfigurationWorkspace.MaxItems)throw new InvalidOperationException("A workspace can contain up to 100 configurations.");
+                if(new FileInfo(path).Length>MaxInputBytes)throw new InvalidOperationException("Configuration exceeds the 20 MB limit.");
+                workspace.AddText(ConfigInput.Read(path),Path.GetFileName(path),path);added++;
+            }
+            catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+            { errors.Add(Path.GetFileName(path)+": "+ex.Message); }
         }
+        SendSelection();SendImportResult(added,errors);
     }
     void SelectText(string text,string name)
     {
-        if(string.IsNullOrWhiteSpace(text))throw new InvalidOperationException("Paste or drop a configuration that contains text.");
-        if(System.Text.Encoding.UTF8.GetByteCount(text)>MaxInputBytes)throw new InvalidOperationException("Configuration exceeds the 20 MB limit.");
-        selectedText=text;selectedPath=null;lastChart=null;lastOutput=null;
-        deviceDetails.Clear();
-        string display=string.IsNullOrWhiteSpace(name)?"Pasted configuration":name;
-        Send(new {type="selected",path="",name=display[..Math.Min(display.Length,200)],hostname=ReportText.ReadHostname(text)});
+        workspace.AddText(text,string.IsNullOrWhiteSpace(name)?"Pasted configuration":name);
+        SendSelection();
     }
     string SelectedSource()
     {
@@ -149,7 +166,10 @@ public sealed partial class MainForm : Form
             var inv=DeviceModels.Parse(source,message.action=="saveDevices"?(message.devices??Array.Empty<DeviceIdentity>()):deviceDetails);
             if(message.action=="saveDevices")
             {
-                deviceDetails=inv.Devices.Where(d=>d.HasDetails).ToList();lastOutput=null;lastChart=null;
+                workspace.SetDevices(workspace.SelectedId!,inv.Devices.Where(d=>d.HasDetails));
+                lastOutput=null;lastChart=null;
+                if(workspace.Selected is {} selected){selected.Status="Device details saved. Build reports to apply them.";selected.StatusType="status";}
+                SendWorkspace();
                 Send(new {type="devicesSaved",count=deviceDetails.Count,requestId=message.requestId});
             }
             else Send(new {type="devices",devices=inv.Devices,requestId=message.requestId});
@@ -162,8 +182,8 @@ public sealed partial class MainForm : Form
         if(dialog.ShowDialog(this)!=DialogResult.OK)return;
         string selected=Path.GetFullPath(dialog.SelectedPath);
         File.WriteAllText(Path.Combine(data,"output-folder.txt"),selected);
-        outputRoot=selected;lastOutput=null;lastChart=null;
-        Send(new {type="outputSelected",path=outputRoot});
+        outputRoot=selected;InvalidateOutputs();
+        Send(new {type="outputSelected",path=outputRoot});SendSelection();
     }
     void SendLogo()=>Send(new {type="logoSelected",name=reportLogo==null?"":logoName,preview=reportLogo==null?"":"data:image/png;base64,"+Convert.ToBase64String(reportLogo.PngData)});
     void ChooseLogo()
@@ -176,12 +196,12 @@ public sealed partial class MainForm : Form
         finally{if(File.Exists(temporary))File.Delete(temporary);}
         reportLogo=logo;logoName=Path.GetFileName(dialog.FileName);
         File.WriteAllText(Path.Combine(data,"report-logo-name.txt"),logoName);
-        lastChart=null;lastOutput=null;SendLogo();
+        InvalidateOutputs();SendLogo();SendSelection();
     }
     void RemoveLogo()
     {
         File.Delete(LogoPath);File.Delete(Path.Combine(data,"report-logo-name.txt"));
-        reportLogo=null;lastChart=null;lastOutput=null;SendLogo();
+        reportLogo=null;InvalidateOutputs();SendLogo();SendSelection();
     }
     void CopyOutput(string text)
     {
@@ -216,6 +236,7 @@ public sealed partial class MainForm : Form
         if (selectedText==null&&!File.Exists(selectedPath)) { Send(new { type = "error", message = "Choose, paste or drop a configuration first." }); return; }
         string runner = Environment.ProcessPath??throw new InvalidOperationException("Application path is unavailable.");
         busy = true;lastOutput=null;lastChart=null;
+        if(workspace.Selected is {} current){current.Status="";current.StatusType="";}
         string? temporaryInput=null;
         string? temporaryDetails=null;
         try
@@ -261,6 +282,17 @@ public sealed partial class MainForm : Form
                 Send(new { type = "complete", message = "Reports created.", details = "", output,chartAvailable=lastChart!=null });
             }
             else Send(new { type = "blocked", message = "Generation blocked. Review the validation report.", details = text, output });
+            if(workspace.Selected is {} selected)
+            {
+                selected.StatusType=process.ExitCode==0?"complete":"blocked";
+                selected.Status=(process.ExitCode==0?"Reports created.":"Generation blocked. Review the validation report.\n\n"+text)+"\n\nOutput: "+output;
+            }
+            SendWorkspace();
+        }
+        catch(Exception ex)
+        {
+            if(workspace.Selected is {} failed){failed.Status=ex.Message;failed.StatusType="error";}
+            throw;
         }
         finally
         {
@@ -274,5 +306,6 @@ public sealed partial class MainForm : Form
     {
         if (!IsDisposed && web.CoreWebView2 != null) web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(value));
     }
-    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null);
+    sealed record IncomingFile(string? name,string? text,string? encoding,string? error);
+    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null);
 }

@@ -55,3 +55,8 @@ native helper test modes. Interactive WebView2 startup, Windows file locks and
 real update/restart behavior should also be checked on a Windows workstation.
 Do not describe a process spawn as a successful application startup.
 
+
+## Multi-configuration workspace
+
+Read [the 1.13.0 development handoff](docs/DEVELOPMENT_HANDOFF.md) for the explicit-save
+workspace schema, host/UI protocol, regression checks and release evidence.

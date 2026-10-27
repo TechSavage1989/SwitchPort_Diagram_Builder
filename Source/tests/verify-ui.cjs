@@ -58,13 +58,13 @@ const path=require('path'),assert=require('assert');
   await page.waitForFunction(()=>document.getElementById('file').textContent.includes('UTF16-Lab'));
   assert.equal((await page.evaluate(()=>window.__switchportMessages.at(-1))).text,'hostname "UTF16-Lab"\r\n');
   count=await page.evaluate(()=>window.__switchportMessages.length);
-  for(const options of [{text:'config',name:'one.txt',multiple:true},{text:'',name:'empty.txt'},{text:'config',name:'large.txt',oversized:true}]){
+  for(const options of [{text:'',name:'empty.txt'},{text:'config',name:'large.txt',oversized:true}]){
    await drop(options);await page.waitForFunction(()=>document.getElementById('status').className==='error');
    assert.equal(await page.evaluate(()=>window.__switchportMessages.length),count);
    assert(!(await page.locator('#run').isDisabled()));
    assert((await page.locator('#file').innerText()).includes('UTF16-Lab'));
   }
-  console.log('PASS file drop, UTF-16 decoding, no navigation, stale chart reset, multi-file/empty/20 MB guards and retained selection.');
+  console.log('PASS file drop, UTF-16 decoding, no navigation, stale chart reset, empty/20 MB guards (multi-file acceptance is covered by verify-workspace-ui) and retained selection.');
   await page.evaluate(()=>{const dt=new DataTransfer();dt.setData('text/plain','hostname Text-Drop\n');document.body.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));});
   await page.waitForFunction(()=>document.getElementById('file').textContent.includes('Text-Drop'));
   await page.click('#paste');await page.locator('#pasteText').fill('hostname Unused');await page.keyboard.press('Escape');
