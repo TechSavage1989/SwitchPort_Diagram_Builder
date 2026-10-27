@@ -182,6 +182,7 @@ document.addEventListener('drop',async event=>{
  }catch(error){inputError(error.message||'The dropped file could not be read. Choose or drop a text configuration file.');}
 });
 window.addEventListener('blur',clearDrag);
+window.addEventListener('resize',()=>requestAnimationFrame(()=>el('workspaceList').querySelector('.selected')?.scrollIntoView({block:'nearest'})));
 window.chrome.webview.addEventListener('message',event=>{
  const m=event.data;
  if(m.type==='updateState'){renderUpdate(m);return;}
@@ -195,7 +196,7 @@ window.chrome.webview.addEventListener('message',event=>{
  }
  if(m.type==='batchComplete'){
   busy=false;loading=false;batchOutput=!!m.output;el('batchResult').hidden=false;
-  el('batchStatus').textContent=[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n\n');controls();return;
+  el('batchStatus').textContent=[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');controls();return;
  }
  if(['devices','devicesSaved','deviceError'].includes(m.type)){
   if(m.requestId!==deviceRequest)return;deviceLoading=false;deviceSaving=false;

@@ -1,3 +1,42 @@
+SWITCHPORT DIAGRAM BUILDER 1.13.0 - TEST NOTES
+
+Scope: ordered multi-configuration workspaces, independent device/model details,
+explicit versioned save/open, batch exports and combined A4 PDFs. Existing parsers,
+rendering geometry, eight per-item deliverables and updater safeguards are retained.
+
+Verified development baseline
+-----------------------------
+Local packaging, branding, root-layout and immutable-release safeguards: 34 passed.
+JavaScript syntax and independent static review passed.
+Initial isolated branch 9d07194 passed the complete hosted workflow:
+https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/actions/runs/40458388758
+This includes new workspace/batch/PDF checks, all existing required CI suites,
+supplemental device/palette/RouterOS/logo checks, Windows compilation, PE branding/
+icon checks, real updater helper installation/rollback and package verification.
+
+Follow-up regression coverage adds pure full-workspace update/restart handoff
+roundtrip and legacy single-item migration, plus selected-row visibility during
+window resizing. The final commit must pass the same CI gate before promotion.
+Workspace/PDF tests cover duplicates, mixed vendors, invalid inputs, per-item errors,
+manual models, reorder/remove/switching, save/load validation, all eight formats,
+collision isolation, PDF page ordering/equality, A4 and 300 DPI raster outputs.
+Browser tests cover additive paste/drop, ordering keyboard/drag controls, selected
+vs batch output/copy/folder actions, state locks, and normal/small windows.
+Hosted UI screenshots were downloaded with verified artifact hashes and inspected.
+
+Verification boundaries
+-----------------------
+Local .NET runtime cannot start due the execution sandbox's NuGet mutex restriction;
+the supported escalation also failed during environment bootstrap. Actual .NET and
+Windows execution uses hosted CI; local runtime parity is not claimed.
+Interactive native Windows/WebView2 file dialogs, a real user update/restart, and
+historical private-client-only fixture scripts remain workstation follow-up checks.
+New pure restart-state tests supplement, not replace, a real interactive restart.
+See ../docs/DEVELOPMENT_HANDOFF.md and the final release workflow for current evidence.
+
+Historical 1.12.0 report (unchanged below)
+========================================
+
 SWITCHPORT DIAGRAM BUILDER 1.12.0 - TEST REPORT
 
 Release scope

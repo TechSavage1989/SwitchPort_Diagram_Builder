@@ -72,6 +72,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await deliver({type:'importComplete',message:'',errors:[]});
   for(const viewport of [{width:1180,height:760},{width:900,height:650},{width:884,height:611}]){
    await page.setViewportSize(viewport);
+   await page.waitForFunction(()=>{const selected=document.querySelector('.workspace-row.selected'),list=document.getElementById('workspaceList');if(!selected)return false;const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();return row.top>=bounds.top&&row.bottom<=bounds.bottom;});
    const bounds=await page.evaluate(()=>({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,listScroll:document.getElementById('workspaceList').scrollHeight,listClient:document.getElementById('workspaceList').clientHeight}));
    assert(bounds.scrollWidth<=bounds.width+1,JSON.stringify(bounds));
    for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
