@@ -19,14 +19,18 @@ port/description data and shared palette colors; ordinary small configurations
 still share sheets. The page reports its true standalone geometry scale. A tight
 optional title can use the existing top header rather than splitting a fitting
 configuration; an overlong title is rejected explicitly, never silently truncated.
-Only the existing genuine overflow path produces detail continuations. Side-key
-pagination, minimum text/socket geometry and validation remain intact.
+Page grouping measures the merged side key as well as switch height: if keys
+fit individually but not together, the next whole configuration moves to a new
+page rather than repeating both across key continuation pages. Only the existing
+genuine overflow path produces detail continuations. The side-key requirement remains: a configuration that only fits standalone with
+a bottom VLAN list can still need side-key continuation; no hidden key relocation
+or unreadable shrinking is introduced. Side-key pagination, minimum text/socket geometry and validation remain intact.
 
 The supplied private eight-member regression passes standalone, after-small,
 reordered and repeated-config tests; its complete 17-LAG key now stays with the
 switch on one page. Original inputs/reports remain outside Git/CI. Synthetic
 fixtures cover the same side-LAG fallback and genuine oversized descriptions.
-Local verification passed 1,945 shared-sheet assertions, 122 workspace/state
+Local verification passed 1,997 shared-sheet assertions, 122 workspace/state
 assertions, actual PDF/PNG checks and 34 packaging/root/branding tests. The supplied
 configuration passed 320 atomic-layout checks including the optional title.
 Local compilation uses the standard Roslyn compiler with existing public runtime

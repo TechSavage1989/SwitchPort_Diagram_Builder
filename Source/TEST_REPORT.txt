@@ -1,5 +1,5 @@
 1.14.6 focused regression additions
-Local: 1,945 shared-sheet, 122 workspace/state, 320 original-input atomic-layout
+Local: 1,997 shared-sheet, 122 workspace/state, 320 original-input atomic-layout
 assertions, actual PDF/PNG verification and 34 packaging/root/branding tests passed.
 - Remove/Undo selected/nonselected/final items; repeated undo restores exact edits.
 - Clear all/Undo restores workspace naming/title/order while retaining new items.

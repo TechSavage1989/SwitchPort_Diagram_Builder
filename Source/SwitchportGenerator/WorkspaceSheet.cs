@@ -140,10 +140,24 @@ public static class WorkspaceSheet
                 continue;
             }
             double candidateHeight=bodyHeight+(group.Count==0?0:BlockGap)+component.Scene.Height;
-            if(candidateHeight>ContentBottom-top&&group.Count>0)
+            bool keyOverflow=false;
+            if(group.Count>0)
+            {
+                int KeyPages(IEnumerable<Block> candidates)
+                {
+                    var blocks=candidates.ToArray();
+                    double width=PageWidth-Math.Max(MinimumBodyWidth,blocks.Max(block=>block.Scene.DiagramBodyWidth))-LegendGap;
+                    return PlanLegend(blocks.Select(block=>block.Item).DistinctBy(item=>item.Id).ToArray(),width,ContentBottom-top).Count;
+                }
+                // A fitting complete key must not acquire continuation pages just
+                // because another configuration was added to the same sheet.
+                // Already oversized keys retain their existing readable continuation.
+                keyOverflow=KeyPages(group.Append(component))>1&&(KeyPages(group)==1||KeyPages(new[]{component})==1);
+            }
+            if((candidateHeight>ContentBottom-top||keyOverflow)&&group.Count>0)
             {
                 Flush();candidateHeight=component.Scene.Height;
-                result.Warnings.Add("A new sheet starts with "+component.Item.Name+" so complete switch blocks remain readable beside the VLAN key.");
+                result.Warnings.Add("A new sheet starts with "+component.Item.Name+" so complete switch blocks and their side keys remain together and readable.");
             }
             if(candidateHeight>ContentBottom-top)throw new OnePageCapacityException(component.Item.Name+" cannot fit beside its side VLAN key at readable reference geometry; its individual export remains available");
             group.Add(component);bodyHeight=candidateHeight;

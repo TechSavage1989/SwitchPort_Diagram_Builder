@@ -175,6 +175,20 @@ static class WorkspaceSheetChecks
             atomic.Ports[0].Description="Uplink to core";
             atomic.Vlans.Add(new(){Id=10,Name="Shared alias"});
             CheckAtomic(atomic,root,"atomic-stack");
+            var keyA=Router("KEY-FIT-A");var keyB=Router("KEY-FIT-B");
+            foreach(var (inventory,start) in new[]{(keyA,100),(keyB,200)})
+                inventory.Vlans.AddRange(Enumerable.Range(start,20).Select(id=>new Vlan{Id=id,Name="Infrastructure Research Operations Managed Department Segment "+id}));
+            var keyItems=new[]{Item("key-fit-a",keyA),Item("key-fit-b",keyB)};
+            foreach(var item in keyItems)
+            {
+                Check(WorkspaceSheet.Build(new[]{item}).Pages.Count==1,"Each complete side-key configuration must fit on its own fresh shared page.");
+                Check(Charts.ValidateScene(QuickSheet.Build(item.Inventory,Charts.Layout(item.Inventory),"KEY-FIT").Scene).Count==0,"Each key-fit fixture also fits the standalone renderer.");
+            }
+            var keySheets=WorkspaceSheet.Build(keyItems);Validate(keySheets,keyItems);
+            Check(keySheets.Pages.Count==2&&keySheets.Placements.Select(place=>place.PageNumber).SequenceEqual(new[]{1,2}),"Merged-key overflow moves the next whole configuration, rather than repeating both across key continuations.");
+            Check(keySheets.Pages.All(page=>!page.Labels.Any(label=>label.Text.StartsWith("Key page "))),"Individually fitting side keys remain complete on their configuration's page.");
+            Check(!keySheets.Pages[0].Labels.Any(label=>label.Text=="KEY-FIT-B")&&!keySheets.Pages[1].Labels.Any(label=>label.Text=="KEY-FIT-A"),"Each configuration and its key occur together once, in workspace order.");
+            Save(keySheets,root,"atomic-keys");
             var overflow=DetailOverflow();
             bool legacyOverflow=false;
             try{QuickSheet.BuildCompact(overflow,Charts.Layout(overflow),"SYNTHETIC",null,false,749.89);}

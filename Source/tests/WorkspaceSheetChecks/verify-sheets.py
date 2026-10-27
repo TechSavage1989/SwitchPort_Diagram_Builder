@@ -6,7 +6,7 @@ from PIL import Image, ImageChops
 from pypdf import PdfReader
 
 root = Path(sys.argv[1])
-for prefix in ['atomic-stack-after-small', 'atomic-stack-reordered', 'detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
+for prefix in ['atomic-keys', 'atomic-stack-after-small', 'atomic-stack-reordered', 'detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
     plan = json.loads((root / (prefix + '-plan.json')).read_text())
     pdf = PdfReader(root / (prefix + '.pdf'))
     assert len(pdf.pages) == plan['PageCount']
@@ -26,6 +26,11 @@ for prefix in ['atomic-stack-after-small', 'atomic-stack-reordered', 'detail-ove
         assert [text.index('ORDERED-' + str(i)) for i in range(1, 6)] == sorted(text.index('ORDERED-' + str(i)) for i in range(1, 6))
     if prefix == 'mixed-vendors':
         assert len(pdf.pages) == 1 and 'MIXED-ARUBA' in pdf.pages[0].extract_text() and 'MIXED-ROUTEROS' in pdf.pages[0].extract_text()
+    if prefix == 'atomic-keys':
+        assert len(pdf.pages) == 2
+        for page_index, own, other in [(0, 'KEY-FIT-A', 'KEY-FIT-B'), (1, 'KEY-FIT-B', 'KEY-FIT-A')]:
+            text = pdf.pages[page_index].extract_text()
+            assert own in text and other not in text and 'Key page ' not in text
     if prefix.startswith('atomic-stack-'):
         assert len(pdf.pages) == 2
         target = pdf.pages[1 if prefix.endswith('after-small') else 0].extract_text()
