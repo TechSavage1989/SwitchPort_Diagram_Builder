@@ -4,7 +4,11 @@
 - Split a single oversized description; reserve optional title and bottom key.
 - Validate scene bounds, actual PDF text, side key and matching PNG page counts.
 - Optional --workspace diagnostic runs original private inputs only on the consumer.
-Required CI and original-input runtime results remain pending until recorded in handoff.
+Local: 1,625 shared-sheet assertions and actual PDF/PNG checks passed; 34 packaging/
+root/branding checks passed. All seven supplied original inputs generated seven
+shared pages locally; complete descriptions/LAG identities and ID colors verified.
+No customer input or resulting report is included in source or CI. Final required
+CI/release receipts are the authoritative publication gates; see handoff.
 
 SWITCHPORT DIAGRAM BUILDER 1.14.4 - TEST NOTES
 

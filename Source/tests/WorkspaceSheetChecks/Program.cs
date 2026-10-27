@@ -145,17 +145,17 @@ static class WorkspaceSheetChecks
             Check(legacyOverflow,"Synthetic tall stack reproduces the non-paginating trunk/description capacity failure, not a physical geometry failure.");
             var detailInputs=new[]{Item("detail-before",Aruba("DETAIL-BEFORE")),Item("detail-overflow",overflow),Item("detail-after",Router("DETAIL-AFTER"))};
             var detailSheets=WorkspaceSheet.Build(detailInputs);Validate(detailSheets,detailInputs);
-            Check(detailSheets.Pages.Count>3&&detailSheets.Warnings.Any(warning=>warning.StartsWith("Trunk / port-description details")),"Overflowing detail sections receive readable additional sheets.");
+            Check(detailSheets.Pages.Count>2&&detailSheets.Warnings.Any(warning=>warning.StartsWith("Trunk / port-description details")),"Overflowing detail sections receive readable additional sheets.");
             var detailText=string.Concat(detailSheets.Pages.SelectMany(page=>page.Labels).Select(label=>label.Text.Replace(" ","")));
             foreach(var port in overflow.Ports.Where(port=>port.Description.Length>0))Check(detailText.Contains(port.Description.Replace(" ","")),"Every complete port description survives pagination: "+port.Id);
             foreach(string lag in overflow.Ports.Select(port=>port.Aggregate).Where(value=>value.Length>0).Distinct())Check(detailText.Contains(lag+"(LACP):"),"Every LAG identity and mode survives continuation: "+lag);
             Check(detailSheets.Pages.Any(page=>page.Labels.Any(label=>label.Text.Contains("Details continued"))),"Additional detail pages identify the switch and their continuation purpose.");
             Save(detailSheets,root,"detail-overflow");
             // One oversized description must split at wrapped lines, not disappear.
-            var huge=Aruba("ONE-LONG-DESCRIPTION");huge.Ports[0].Description=string.Join(' ',Enumerable.Range(1,300).Select(index=>"Token"+index.ToString("D3")));
+            var huge=Aruba("ONE-LONG-DESCRIPTION");huge.Ports[0].Description=string.Join(' ',Enumerable.Range(1,900).Select(index=>"Token"+index.ToString("D3")));
             var hugeInputs=new[]{Item("huge-description",huge)};var hugeSheets=WorkspaceSheet.Build(hugeInputs,title:"Details room");Validate(hugeSheets,hugeInputs);
             var hugeText=string.Concat(hugeSheets.Pages.SelectMany(page=>page.Labels).Select(label=>label.Text.Replace(" ","")));
-            foreach(int token in Enumerable.Range(1,300))Check(hugeText.Contains("Token"+token.ToString("D3")),"A single oversized entry keeps token "+token);
+            foreach(int token in Enumerable.Range(1,900))Check(hugeText.Contains("Token"+token.ToString("D3")),"A single oversized entry keeps token "+token);
             Check(hugeSheets.Pages.Count>1,"One exceptionally long description can continue across pages with an optional title.");
             string logoPath=Path.Combine(root,"synthetic-logo.png");
             using(var bitmap=new SKBitmap(120,30)){bitmap.Erase(SKColors.DarkCyan);using var image=SKImage.FromBitmap(bitmap);using var bytes=image.Encode(SKEncodedImageFormat.Png,100);File.WriteAllBytes(logoPath,bytes.ToArray());}

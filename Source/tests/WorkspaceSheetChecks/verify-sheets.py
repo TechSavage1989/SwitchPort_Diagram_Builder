@@ -28,7 +28,7 @@ for prefix in ['detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 
         assert len(pdf.pages) == 1 and 'MIXED-ARUBA' in pdf.pages[0].extract_text() and 'MIXED-ROUTEROS' in pdf.pages[0].extract_text()
     if prefix == 'detail-overflow':
         all_text = ''.join(''.join(page.extract_text().split()) for page in pdf.pages)
-        assert len(pdf.pages) > 3 and 'Detailscontinued' in all_text
+        assert len(pdf.pages) > 2 and 'Detailscontinued' in all_text
         for index in range(34):
             assert f'Endpointpurpose{index:02d}withacompletereadablelocationdescription' in all_text
         for lag in range(1, 18):

@@ -24,8 +24,24 @@ or identifying content is included in repository fixtures or CI artifacts. A
 compiled public-code-only `workspace-local-checker` artifact supports local
 `WorkspaceSheetChecks.dll --workspace INPUT_DIRECTORY OUTPUT_DIRECTORY` validation
 without requiring a local SDK bootstrap. It is not a public application asset.
-Required review CI and consumer-local original-input results must be recorded
-before promotion; none are claimed in this draft handoff.
+Validation evidence: the compiled application from review commit `11ac508` ran
+locally against all seven supplied configurations (not uploaded). Seven individual
+packages and seven shared PNG/PDF pages succeeded; the legacy non-paginating
+compact path failed on one input. All 29 distinct descriptions, 17 LAG identities
+and 23 VLAN IDs were verified complete/consistent in the actual combined PDF.
+The tall-stack and continuation/next-switch pages were visually inspected, with
+clear side/bottom keys and no clipping. These private inputs/reports stay outside
+Git and CI. The local SDK bootstrap cannot create its NuGet mutex, but running
+the CI-compiled managed harness directly works normally within the sandbox.
+
+The synthetic page-count assertion was corrected to allow efficient packing
+(three sheets, not an arbitrary minimum of four), and its oversized single-entry
+fixture enlarged until it actually requires continuation. Application code did
+not change. The locally compiled focused checker passes 1,625 assertions plus
+actual PDF text/bottom-band/PNG checks; packaging/root/branding passes 34 tests.
+Windows native build/update and UI gates passed the initial review. The corrected
+final review and main release must pass all enforced CI before publication.
+Interactive native Windows dialogs/user update restart remain untested here.
 
 # Bottom icon key on all diagrams — 1.14.4
 
