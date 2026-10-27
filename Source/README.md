@@ -1,6 +1,13 @@
-Switchport Diagram Builder 1.13.0 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.0 - Windows 10/11 x64
 
-1.13.0: Ordered multi-configuration workspaces
+1.14.0: Shared multi-switch A4 sheets and consistent workspace colors
+- Shared A4 sheets now place multiple switches from separate configurations together in workspace order; pagination occurs only when another complete readable switch block will not fit.
+- Exact-sheet PNG previews and vector PDFs use the same geometry; combined booklets retain full per-switch inventory appendices. Selected exports remain available.
+- Named workspace folders default to the saved filename, support custom labels, and derive switch names before saving. Repeated names receive safe numeric suffixes.
+- Matching VLAN ID/name pairs and normalized LAG labels have one shared color mapping across combined and selected workspace exports. Conflicting or unnamed VLAN identities stay distinct with explicit warnings.
+- This corrects the earlier separate-diagram-per-page behavior; see ../docs/DEVELOPMENT_HANDOFF.md for policies and validation.
+
+Historical 1.13.0: Ordered multi-configuration workspaces
 - Add multiple files or paste a new configuration without replacing existing items.
 - Drag or use accessible up/down controls to organize export order; each item keeps independent device/model details and output state.
 - Explicit .spworkspace.json save/open preserves source snapshots, order and selection; protect saved files like original configurations.

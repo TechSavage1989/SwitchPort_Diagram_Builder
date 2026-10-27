@@ -1,15 +1,20 @@
 const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[];
-let workspaceItems=[],selectedId=null,batchLoading=false,draggedItem=null,batchOutput=false;
+let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null,batchOutput=false;
+let workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
 const post=message=>window.chrome.webview.postMessage(message);
 const locked=()=>updating||busy||loading||deviceLoading;
+const editorOpen=()=>['deviceDialog','pasteDialog','workspaceLabelDialog','combinedPreviewDialog'].some(id=>el(id).open);
 function controls(){
  for(const id of ['choose','paste','chooseOutput','chooseLogo','openWorkspace'])el(id).disabled=locked();
  el('run').disabled=locked()||!hasInput;
- el('saveWorkspace').disabled=locked()||!workspaceItems.length;
+ el('saveWorkspace').disabled=locked()||(!workspaceItems.length&&!workspaceDirty);
  el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
  el('openBatch').disabled=locked()||!batchOutput;
+ el('editWorkspaceLabel').disabled=locked();el('applyWorkspaceLabel').disabled=locked();el('workspaceLabelInput').disabled=locked();
+ el('previewCombined').hidden=!combinedAvailable;el('previewCombined').disabled=locked()||!combinedAvailable;
+ el('previousCombined').disabled=previewLoading||previewIndex<=0;el('nextCombined').disabled=previewLoading||previewIndex>=combinedPageCount-1;el('openCombined').disabled=locked()||!combinedAvailable;
  el('workspaceList').querySelectorAll('button').forEach(button=>button.disabled=locked()||button.dataset.boundary==='true');
  el('workspaceList').querySelectorAll('li').forEach(row=>row.draggable=!locked());
  el('devices').disabled=locked()||!hasInput;el('saveDevices').disabled=deviceLoading||!deviceDraft;el('cancelDevices').disabled=deviceSaving;
@@ -50,8 +55,41 @@ el('copyOutput').onclick=()=>{
 };
 el('openChart').onclick=()=>{if(!locked()&&!el('openChart').disabled)post({action:'openChart'});};
 el('openWorkspace').onclick=()=>{if(!locked())post({action:'openWorkspace'});};
-el('saveWorkspace').onclick=()=>{if(!locked()&&workspaceItems.length)post({action:'saveWorkspace'});};
+el('saveWorkspace').onclick=()=>{if(!locked()&&(workspaceItems.length||workspaceDirty))post({action:'saveWorkspace'});};
 el('openBatch').onclick=()=>{if(!locked()&&batchOutput)post({action:'openBatch'});};
+
+el('editWorkspaceLabel').onclick=()=>{
+ if(locked()||editorOpen())return;
+ el('workspaceLabelInput').value=workspaceOutputLabel;el('workspaceLabelInput').placeholder=workspaceSuggestedLabel||'Automatic';
+ el('workspaceLabelAutomatic').textContent='Automatic: '+(workspaceSuggestedLabel||'Switch names, or the saved workspace filename');
+ el('workspaceLabelDialog').showModal();post({action:'updateEditing',enabled:true});el('workspaceLabelInput').focus();
+};
+el('cancelWorkspaceLabel').onclick=()=>el('workspaceLabelDialog').close();
+el('workspaceLabelDialog').addEventListener('close',()=>post({action:'updateEditing',enabled:false}));
+el('applyWorkspaceLabel').onclick=()=>{
+ if(locked())return;
+ const text=el('workspaceLabelInput').value.trim();
+ if(text!==workspaceOutputLabel)post({action:'setWorkspaceLabel',text});
+ el('workspaceLabelDialog').close();
+};
+el('workspaceLabelInput').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();el('applyWorkspaceLabel').click();}});
+function requestCombinedPreview(index){
+ if(!combinedAvailable||locked()||previewLoading)return;
+ previewLoading=true;previewRequest++;el('combinedPreviewImage').hidden=true;el('combinedPreviewImage').removeAttribute('src');
+ el('combinedPreviewStatus').textContent='Loading combined sheet...';controls();post({action:'previewCombined',index,requestId:previewRequest});
+}
+el('previewCombined').onclick=()=>{
+ if(!combinedAvailable||locked()||editorOpen())return;
+ previewIndex=0;el('combinedPreviewName').textContent=workspaceEffectiveLabel;el('combinedPreviewPage').textContent='';
+ el('combinedPreviewDialog').showModal();post({action:'updateEditing',enabled:true});requestCombinedPreview(0);
+};
+el('previousCombined').onclick=()=>{if(previewIndex>0)requestCombinedPreview(previewIndex-1);};
+el('nextCombined').onclick=()=>{if(previewIndex<combinedPageCount-1)requestCombinedPreview(previewIndex+1);};
+el('openCombined').onclick=()=>{if(combinedAvailable&&!locked())post({action:'openCombined'});};
+el('closeCombinedPreview').onclick=()=>el('combinedPreviewDialog').close();
+el('combinedPreviewImage').addEventListener('error',()=>{if(el('combinedPreviewDialog').open){el('combinedPreviewImage').hidden=true;el('combinedPreviewStatus').textContent='The saved PNG preview could not be displayed. Open the PDF or build the sheets again.';}});
+el('combinedPreviewDialog').addEventListener('close',()=>{previewRequest++;previewLoading=false;el('combinedPreviewImage').removeAttribute('src');el('combinedPreviewImage').hidden=true;post({action:'updateEditing',enabled:false});controls();});
+
 el('runAll').onclick=()=>{if(locked()||!workspaceItems.length)return;busy=true;controls();post({action:'runAll',combined:el('combinePdf').checked});};
 el('run').onclick=()=>{if(locked()||!hasInput)return;busy=true;el('openChart').disabled=true;controls();post({action:'run'});};
 function closeDevices(){post({action:'updateEditing',enabled:false});deviceRequest++;deviceLoading=false;deviceSaving=false;deviceDraft=null;controls();}
@@ -100,8 +138,15 @@ el('saveDevices').onclick=()=>{
 
 function renderWorkspace(message){
  const selectionChanged=selectedId!==(message.selectedId||null);
- workspaceItems=message.items||[];selectedId=message.selectedId||null;
- if(message.batchAvailable===false){batchOutput=false;el('batchResult').hidden=true;}
+ workspaceItems=message.items||[];workspaceDirty=!!message.dirty;selectedId=message.selectedId||null;
+ if(message.batchAvailable===false){batchOutput=false;combinedAvailable=false;combinedPageCount=0;el('batchResult').hidden=true;if(el('combinedPreviewDialog').open)el('combinedPreviewDialog').close();}
+ if(typeof message.outputLabel==='string')workspaceOutputLabel=message.outputLabel;
+ if(typeof message.suggestedLabel==='string')workspaceSuggestedLabel=message.suggestedLabel;
+ if(typeof message.effectiveLabel==='string')workspaceEffectiveLabel=message.effectiveLabel;
+ el('workspaceOutputName').textContent='Output: '+(workspaceEffectiveLabel||'Automatic');
+ el('workspaceOutputName').title=(message.workspaceName?'Workspace: '+message.workspaceName+'\n':'')+'Output folder name: '+(workspaceEffectiveLabel||'Automatic');
+ if(typeof message.combinedAvailable==='boolean')combinedAvailable=message.combinedAvailable;
+ if(Number.isInteger(message.pageCount))combinedPageCount=message.pageCount;
  const active=document.activeElement,focusId=active?.dataset.itemId,focusAction=active?.dataset.workspaceAction,scrollTop=el('workspaceList').scrollTop;
  el('workspaceList').replaceChildren();el('workspaceCount').textContent=workspaceItems.length;
  el('workspaceDirty').hidden=!message.dirty;el('workspaceEmpty').hidden=workspaceItems.length>0;
@@ -159,7 +204,7 @@ document.addEventListener('drop',async event=>{
  event.preventDefault();clearDrag();
  if(locked())return;
  if(Array.from(transfer?.types||[]).includes('application/x-switchport-item'))return;
- if(el('deviceDialog').open||el('pasteDialog').open||el('updateDialog').open)return;
+ if(editorOpen()||el('updateDialog').open)return;
  if(!files.length){const text=transfer?.getData('text/plain');if(text)loadText(text,'Dropped configuration');return;}
  loading=true;batchLoading=files.length>1;controls();status('status',batchLoading?'Reading configurations...':'Reading configuration...');
  if(batchLoading){
@@ -195,8 +240,19 @@ window.chrome.webview.addEventListener('message',event=>{
   return;
  }
  if(m.type==='batchComplete'){
-  busy=false;loading=false;batchOutput=!!m.output;el('batchResult').hidden=false;
-  el('batchStatus').textContent=[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');controls();return;
+  busy=false;loading=false;batchOutput=!!m.output;combinedAvailable=!!m.combinedAvailable;combinedPageCount=Number.isInteger(m.pageCount)?m.pageCount:0;el('batchResult').hidden=false;
+  el('batchStatus').textContent=[m.message,combinedPageCount?combinedPageCount+' shared A4 sheet'+(combinedPageCount===1?'':'s')+'.':'',...(m.warnings||[]),m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');controls();return;
+ }
+ if(m.type==='combinedPreview'||m.type==='combinedPreviewError'){
+  if(m.requestId!==previewRequest||!el('combinedPreviewDialog').open)return;
+  previewLoading=false;
+  if(m.type==='combinedPreviewError'||typeof m.src!=='string'||!m.src.startsWith('data:image/png;base64,')||!Number.isInteger(m.index)||!Number.isInteger(m.count)||m.index<0||m.index>=m.count){
+   el('combinedPreviewStatus').textContent=m.message||'The combined preview could not be loaded. Open the PDF or build the sheets again.';el('combinedPreviewImage').hidden=true;
+  }else{
+   previewIndex=m.index;combinedPageCount=m.count;el('combinedPreviewName').textContent=m.name||workspaceEffectiveLabel;el('combinedPreviewPage').textContent='Sheet '+(m.index+1)+' of '+m.count;
+   el('combinedPreviewImage').src=m.src;el('combinedPreviewImage').alt='Combined switchport diagram, sheet '+(m.index+1)+' of '+m.count;el('combinedPreviewImage').hidden=false;el('combinedPreviewStatus').textContent='';
+  }
+  controls();return;
  }
  if(['devices','devicesSaved','deviceError'].includes(m.type)){
   if(m.requestId!==deviceRequest)return;deviceLoading=false;deviceSaving=false;
@@ -245,7 +301,7 @@ function renderUpdate(m){
  el('downloadUpdate').hidden=!m.availableVersion||!!m.downloaded;
  el('downloadUpdate').disabled=!m.canDownload;
  el('installUpdate').hidden=!m.downloaded&&!m.installing;
- el('installUpdate').disabled=!m.canInstall||locked()||el('deviceDialog').open||el('pasteDialog').open;
+ el('installUpdate').disabled=!m.canInstall||locked()||editorOpen();
  el('reviewUpdate').hidden=!m.releaseUrl;el('reviewUpdate').disabled=updating;
  el('laterUpdate').hidden=!m.availableVersion;el('laterUpdate').disabled=updating;
  el('closeUpdates').disabled=updating;
@@ -255,7 +311,7 @@ function renderUpdate(m){
  if(!m.availableVersion)el('updateReminder').hidden=true;
 }
 function showUpdates(){
- if(el('deviceDialog').open||el('pasteDialog').open||el('updateDialog').open)return;
+ if(editorOpen()||el('updateDialog').open)return;
  el('updateDialog').showModal();post({action:'updateState'});
 }
 el('updates').onclick=showUpdates;
@@ -265,7 +321,7 @@ el('closeUpdates').onclick=()=>{if(!updating)el('updateDialog').close();};
 el('updateDialog').addEventListener('cancel',event=>{if(updating)event.preventDefault();});
 el('checkUpdate').onclick=()=>post({action:'updateCheck'});
 el('downloadUpdate').onclick=()=>{if(updateState.canDownload)post({action:'updateDownload'});};
-el('installUpdate').onclick=()=>{if(updateState.canInstall&&!locked()&&!el('deviceDialog').open&&!el('pasteDialog').open)post({action:'updateInstall'});};
+el('installUpdate').onclick=()=>{if(updateState.canInstall&&!locked()&&!editorOpen())post({action:'updateInstall'});};
 el('reviewUpdate').onclick=()=>post({action:'updateReview'});
 el('autoUpdates').onchange=()=>post({action:'updatePreference',enabled:el('autoUpdates').checked});
 el('laterUpdate').onclick=()=>{el('updateReminder').hidden=true;el('updateDialog').close();post({action:'updateLater'});};

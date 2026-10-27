@@ -24,14 +24,16 @@ static class WorkspaceChecks
     }
     static void Run(string root)
     {
+        CheckNaming(root);
         var workspace = new ConfigurationWorkspace();
         var first = workspace.AddText(Aruba, "switch.cfg", "/no-longer-present/switch.cfg");
         var duplicate = workspace.AddText(Aruba, "switch.cfg");
         var router = workspace.AddText(RouterOs, "fiber.rsc");
-        var invalid = workspace.AddText("this is not a supported configuration", "invalid.txt");
+        var invalid = workspace.AddText("; Aruba Configuration Editor\nhostname BLOCKED-HEAVY\n"+string.Join('\n',Enumerable.Range(1,4094).Select(id=>$"vlan {id}\n name Invalid-{id}\n exit")), "invalid.txt");
         Check(workspace.Items.Count == 4 && first.Id != duplicate.Id, "Duplicate imports must be additive with distinct stable identities.");
         Check(!ReferenceEquals(first.Inventory, duplicate.Inventory), "Each item owns a distinct parsed inventory.");
         Check(first.Inventory.Blockers.Count == 0 && router.Inventory.Blockers.Count == 0 && invalid.Inventory.Blockers.Count > 0, "Mixed vendor inputs and invalid input retain independent validation.");
+        Check(invalid.Inventory.Vlans.Count==4094,"Invalid fixture retains a large VLAN set to prove it cannot poison the valid workspace palette.");
         Check(first.Inventory.Ports.Any(port => port.Aggregate.Length > 0) && first.Inventory.Vlans.Any(vlan => vlan.Voice), "Existing VLAN, voice and aggregation semantics survive workspace parsing.");
         Reject(() => workspace.AddText("  ", "empty.cfg"), "Empty import must fail without replacing existing items.");
         Reject(() => workspace.AddText("a\0b", "binary.bin"), "Unsupported binary input must be rejected independently.");
@@ -101,7 +103,10 @@ static class WorkspaceChecks
         Check(firstInventory.Devices[0].SerialNumber == "FIRST-ONLY" && duplicateInventory.Devices[0].SerialNumber == "", "Saved reports do not leak manual details between duplicates.");
         Check(exported.CombinedError.Length == 0 && File.Exists(exported.CombinedDiagramsPath) && File.Exists(exported.CombinedBookletPath), "Combined diagram and booklet PDFs must be produced for successful items.");
         string pdf = File.ReadAllText(exported.CombinedDiagramsPath!, System.Text.Encoding.Latin1);
-        Check(Regex.Matches(pdf, @"/Type /Page\b").Count == 3, "Combined diagram PDF has exactly one separate A4 page per successful configuration.");
+        Check(Regex.Matches(pdf, @"/Type /Page\b").Count == exported.PageCount && exported.PageCount < 3, "Multiple configurations must share A4 sheets, not one diagram per page.");
+        Check(exported.CombinedImages.Count==exported.PageCount && exported.CombinedImages.All(File.Exists), "Every PDF sheet has an exact-scene PNG preview/export.");
+        Check(Path.GetFileName(exported.OutputDirectory)=="roundtrip", "Saved workspace filename supplies the default output folder label.");
+        Check(firstInventory.VlanColorOverrides![10]==duplicateInventory.VlanColorOverrides![10] && firstInventory.AggregateColorOverrides!.Single(pair=>pair.Key.Equals("trk1",StringComparison.OrdinalIgnoreCase)).Value==duplicateInventory.AggregateColorOverrides!.Single(pair=>pair.Key.Equals("trk1",StringComparison.OrdinalIgnoreCase)).Value, "Matching VLAN identity and LAG labels use shared colors in individual reports.");
         Check(File.ReadAllText(Path.Combine(exported.OutputDirectory, "workspace-export.json")).Contains("\"FailureCount\": 1"), "Partial failure remains explicit in the batch manifest.");
 
         var small = new ConfigurationWorkspace(); small.AddText(RouterOs, "same.rsc");
@@ -115,11 +120,41 @@ static class WorkspaceChecks
         Check(workspace.Selected == null && workspace.Items.Count == 0, "Removing all items leaves a coherent empty workspace.");
     }
 
+    static void CheckNaming(string root)
+    {
+        var named=new ConfigurationWorkspace();named.AddText(RouterOs,"router.rsc");
+        Check(WorkspaceNaming.Effective(named).Contains("FIBER-LAB"),"Unsaved workspace names derive from switch identities.");
+        string path=Path.Combine(root,"Campus West.spworkspace.json");named.Save(path);
+        Check(WorkspaceNaming.Effective(named)=="Campus West","Saved workspace basename is the automatic output name.");
+        string renamed=Path.Combine(root,"Renamed Site.spworkspace.json");File.Copy(path,renamed,true);
+        var loaded=ConfigurationWorkspace.Load(renamed);
+        Check(WorkspaceNaming.Effective(loaded)=="Renamed Site","Renamed saved workspace picks up the actual filename on reopen.");
+        loaded.OutputLabel="Custom / Site: West";loaded.Save(renamed);
+        var custom=ConfigurationWorkspace.Load(renamed);
+        Check(custom.OutputLabel==loaded.OutputLabel&&WorkspaceNaming.Effective(custom)=="Custom _ Site_ West","Custom labels persist; unsafe filename characters are sanitized.");
+        custom.OutputLabel="";Check(WorkspaceNaming.Effective(custom)=="Renamed Site","Clearing the override restores the saved filename default.");
+        string parent=Path.Combine(root,"naming");Directory.CreateDirectory(parent);
+        string first=WorkspaceNaming.CreateOutputDirectory(parent,"Site West");File.WriteAllText(Path.Combine(first,"keep.txt"),"retained");
+        string second=WorkspaceNaming.CreateOutputDirectory(parent,"site west");
+        Check(Path.GetFileName(second)=="site west (2)"&&File.ReadAllText(Path.Combine(first,"keep.txt"))=="retained","Output collisions are case-insensitive and never overwrite earlier results.");
+        File.WriteAllText(Path.Combine(parent,"FileLabel"),"keep");
+        Check(Path.GetFileName(WorkspaceNaming.CreateOutputDirectory(parent,"FileLabel"))=="FileLabel (2)","Existing files also reserve output names.");
+        foreach(string label in new[]{"../../outside","CON","NUL.txt","...","trailing. ",new string('x',200)})
+        {
+            string output=WorkspaceNaming.CreateOutputDirectory(parent,label);
+            Check(Path.GetDirectoryName(output)==Path.GetFullPath(parent)&&Path.GetFileName(output).Length<=104,"Output name sanitization cannot escape its base directory.");
+        }
+        Reject(()=>WorkspaceNaming.CleanLabel("line\nname"),"Multiline labels are rejected explicitly.");
+        Reject(()=>WorkspaceNaming.CleanLabel(new string('x',101)),"Oversized custom labels are rejected explicitly.");
+        var legacy=JsonNode.Parse(named.Serialize())!;legacy.AsObject().Remove("OutputLabel");legacy.AsObject().Remove("PaletteOverrides");
+        Check(ConfigurationWorkspace.Deserialize(legacy.ToJsonString()).OutputLabel=="","1.13 workspaces remain compatible without optional naming/palette fields.");
+    }
+
     static void CheckRestartState(ConfigurationWorkspace original)
     {
         // Work on a clone so this handoff test cannot change the batch fixtures below.
         var workspace = ConfigurationWorkspace.Deserialize(original.Serialize());
-        workspace.Dirty = true;
+        workspace.Dirty = true;workspace.SavedWorkspaceName="Saved restart workspace";workspace.OutputLabel="Restart label";
         foreach (var item in workspace.Items)
         {
             item.LastOutput = "output/" + item.Id;
@@ -130,6 +165,7 @@ static class WorkspaceChecks
         }
         string json = JsonSerializer.Serialize(WorkspaceRestartState.Capture(workspace));
         var restored = WorkspaceRestartState.Restore(json, _ => true, _ => true);
+        Check(restored.SavedWorkspaceName==workspace.SavedWorkspaceName&&restored.OutputLabel==workspace.OutputLabel,"Update restart retains saved naming context and the custom label.");
         Check(restored.Items.Select(item => item.Id).SequenceEqual(workspace.Items.Select(item => item.Id)) && restored.SelectedId == workspace.SelectedId,
             "Updater handoff must restore every configuration in order and preserve selection.");
         Check(restored.Selected!.Devices[0].ModelSelection == "Custom report label" && restored.Selected.Devices[0].SerialNumber == "FIRST-ONLY",

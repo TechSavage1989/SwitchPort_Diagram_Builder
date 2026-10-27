@@ -140,6 +140,12 @@ public static class VlanPalette
     public static Dictionary<int,string> Assign(Inventory inv)
     {
         var ids=inv.Vlans.Select(v=>v.Id).Concat(inv.Ports.SelectMany(p=>p.TaggedVlans.Concat(p.UntaggedVlan.HasValue?new[]{p.UntaggedVlan.Value}:Array.Empty<int>()).Concat(p.VoiceVlan.HasValue?new[]{p.VoiceVlan.Value}:Array.Empty<int>()))).Distinct().Order().ToList();
+        var pinned=inv.VlanColorOverrides??new Dictionary<int,string>();
+        if(pinned.Keys.Any(id=>!ids.Contains(id)))throw new InvalidOperationException("VLAN palette contains an identity absent from this configuration.");
+        foreach(string color in pinned.Values)RenderPalette.ValidateVlanColor(color);
+        if(pinned.Values.Select(color=>color.ToLowerInvariant()).Distinct().Count()!=pinned.Count)
+            throw new InvalidOperationException("Distinct VLAN identities cannot share an overridden color.");
+        if(pinned.Count==ids.Count)return ids.ToDictionary(id=>id,id=>pinned[id].ToLowerInvariant());
         var result=new Dictionary<int,string>();bool defaultVlan=ids.Contains(1);if(defaultVlan)result.Add(1,"#9faab5");
         int size=ids.Count-result.Count;
         var available=Palettes.GetOrAdd((size,defaultVlan),key=>new(()=>Search(key.Count,key.DefaultVlan))).Value.ToList();
@@ -155,7 +161,23 @@ public static class VlanPalette
             int chosen=available.OrderBy(c=>PerceptualColor.Difference(Candidates[c].Lab,target)).ThenBy(c=>Candidates[c].Hex,StringComparer.Ordinal).First();
             result.Add(id,Candidates[chosen].Hex);available.Remove(chosen);
         }
-        ImproveMapping(inv,ids,result);return result;
+        ImproveMapping(inv,ids,result);
+        if(pinned.Count>0)
+        {
+            foreach(var pair in pinned)result[pair.Key]=pair.Value.ToLowerInvariant();
+            var used=pinned.Values.Select(color=>color.ToLowerInvariant()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // Keep pinned choices exact. Reassign remaining identities against all pinned
+            // colors with the same perceptual candidates instead of permitting collisions.
+            foreach(int id in ids.Where(id=>!pinned.ContainsKey(id)))
+            {
+                string chosen=used.Count==0?result[id]:Candidates.Where(candidate=>!used.Contains(candidate.Hex)
+                    &&References.Take(3).All(reference=>PerceptualColor.Difference(candidate.Lab,reference)>=10))
+                    .OrderByDescending(candidate=>used.Min(color=>PerceptualColor.Difference(candidate.Hex,color)))
+                    .ThenBy(candidate=>candidate.Hex,StringComparer.Ordinal).First().Hex;
+                result[id]=chosen;used.Add(chosen);
+            }
+        }
+        return result;
     }
     static void ImproveMapping(Inventory inv,List<int> ids,Dictionary<int,string> colors)
     {

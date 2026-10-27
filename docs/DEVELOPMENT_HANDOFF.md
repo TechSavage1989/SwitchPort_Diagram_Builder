@@ -1,91 +1,112 @@
-# Multi-configuration workspace — 1.13.0
+# Shared multi-switch workspace sheets — 1.14.0
 
-## Implementation and compatibility
+## Corrected intent
 
-The Windows/WebView2 host remains in `Source/SwitchportDiagramBuilder`; the existing
-parsers and A4 renderer are unchanged. `ConfigurationWorkspace.cs` owns ordered
-source snapshots with stable IDs, independent cached inventories and operator
-`DeviceIdentity` details (including manual models). `WorkspaceExport.cs` orchestrates
-the existing eight-deliverable generator, then creates combined PDFs from the same
-validated inventories. Every complete diagram keeps its own A4 page; no cross-item
-squeezing or parser/validation bypass is introduced.
+Version 1.14.0 corrects the 1.13.0 interpretation: switches from different
+configurations must share a report sheet, not automatically receive separate
+pages. Selected/individual eight-file exports remain available. Existing vendor
+parsers and standalone layout rules are retained.
 
-Imports are additive, including duplicate files/names/content. Per-file read/size/
-empty/binary errors do not discard other valid items. Parsed configurations with
-validation blockers stay in the list so missing hardware can be supplied through
-Device details. Reordering moves identities, not copies; selected output state
-stays attached to the item. Changing one item's details invalidates only its outputs.
-Output folder and report logo retain their existing application-wide meaning and
-invalidate all cached output links when changed. Update preferences remain global.
+`QuickSheet.BuildCompact` reuses the same hardware/socket/key renderer at readable
+reference geometry, removing only unused bottom space and duplicate footer.
+`WorkspaceSheet.Build` stacks complete labeled switch sections in workspace order,
+using a common physical scale and marker size. Another A4 page starts only when the
+next complete section cannot fit. Dense/chassis/stack configurations that need the
+original standalone solver retain their own page with an explicit warning; none are
+silently shrunk below readability or omitted. Shared page plans record placements,
+scale/fallback decisions and warnings in `workspace-layout.json`.
 
-## Explicit-save format
+The combined diagram PDF and every `workspace-sheet-NNN.png` use the same scenes.
+The preview modal reads those actual PNGs, not a separate approximation. The
+combined booklet starts with shared sheets and then retains every item's original
+inventory/device/module appendix pages without duplicating standalone diagrams.
+Per-item PNGs, PDFs, CSV, JSON, summary and validation reports remain intact.
 
-No workspace format existed before this change. The separate `.spworkspace.json`
-format uses `Format: SwitchportDiagramBuilder.Workspace`, `Version: 1`, `SelectedId`
-and ordered `Items`. Each item holds `Id`, `Name`, `SourcePath` (display provenance),
-`Text` (snapshot), and `Devices`. Existing configuration, inventory JSON and export
-formats are unchanged. Sources are not reread from provenance paths on reopen.
-Derived inventories, output/chart paths and runtime status are not loaded from a
-workspace file. Only explicit Save writes this file; Save resets dirty state after
-atomic replacement. Limits: 20 MB/configuration, 100 items and 100 MB serialized
-workspace. Workspace files can contain credentials: do not commit/upload them, and
-protect them like original backups. `.gitignore` excludes their usual extension.
+## Names and persistence
 
-`WorkspaceRestartState.cs` provides the pure, regression-tested handoff capture/restore
-and legacy migration used by the host. The update restart handoff now retains the complete ordered workspace plus runtime
-output/status/dirty state. The old single-selection handoff is still accepted for
-upgrades. The original updater's protected session-path checks, hashes, extraction,
-replacement and health/rollback logic are unchanged. This handoff is the existing
-explicit update-install preservation mechanism, not new automatic workspace saving.
+`WorkspaceNaming` chooses the custom `OutputLabel` if supplied; otherwise it uses
+the actual saved workspace filename minus `.spworkspace.json`/`.json`. Unsaved
+workspaces derive a compact name from switch display names/hostnames/models.
+Filesystem separators, reserved Windows names, trailing dots and length are handled
+by the existing safe naming rules. The **base output directory** is not renamed.
+Fresh generated directories are atomically renamed into the selected label;
+existing files/directories (case-insensitive names) cause ` (2)`, ` (3)` suffixes,
+never silent replacement.
 
-## Host/UI behavior
+Optional `OutputLabel` and `PaletteOverrides` extend the existing version-1
+`.spworkspace.json` document compatibly. Old workspaces need neither field.
+`SavedWorkspaceName` is runtime provenance derived from the path on explicit
+Save/Open, so externally renaming a file produces the right default when reopened.
+The update handoff also preserves this naming context. Save remains explicit,
+atomic, and local. Saved workspaces contain original configuration snapshots and
+can contain credentials: protect them like original backups; never commit/upload
+private workspaces or client reports. The usual extension remains gitignored.
 
-`workspace` events publish ordered metadata and selection. `selected` restores its
-hostname, file, chart availability and status. `selectItem`, `moveItem`, `removeItem`,
-`saveWorkspace`, `openWorkspace`, `loadFiles` and `runAll` extend the existing bridge.
-Legacy `loadText`, `loadBackup`, `run`, copy/open and updater actions remain.
-Batch results use a separate summary and folder action; selected Output/Copy and
-Open chart/folder never silently switch to the batch root. Native file picker uses
-multiselect; browser drop decoding preserves UTF-16 and RouterOS binary handling.
-Opening a workspace validates before confirming replacement. Unsaved removal/close
-and workspace replacement ask before discarding. Report generation locks mutation.
+## Shared palette policy
 
-Batch directories have fresh identities; ordinal hostname/model child directories
-preserve list order and avoid duplicate/case-insensitive collisions. Each item has
-an independent success/failure result. Optional combined diagrams/booklets contain
-successful items only, in the same order, with failures recorded in
-`workspace-export.json`. Individual reports remain available if combining fails.
+`WorkspacePalette.Create` constructs one semantic palette across the full
+renderable workspace, then gives each valid item a complete `RenderPalette` context. Already-blocked inventories do not poison valid-item color planning; their normal validation reports are retained. Native selected
+builds send this context to the child generator using `--palette`; batch builds
+call the same generator with it directly. Inventory JSON includes optional rendering
+overlay maps only when supplied. Combined regeneration therefore retains exactly
+the same colors. `workspace-palette.json` records per-item maps and policy warnings.
 
-## Checks and release evidence
+- VLAN identity: numeric ID plus exact **trimmed, NFC-normalized, case-sensitive
+  name**. Equal pairs share color across configurations.
+- Different names for one ID remain separate colors and produce an explicit
+  conflict warning. An unnamed or internally ambiguous ID stays scoped to the
+  stable configuration ID; it is not silently merged with a named network or
+  another unnamed configuration. Colors do not establish network connectivity.
+- LAG identity: trimmed/NFC label matched case-insensitively. Matching labels share
+  a contrast-checked outline across every member fill. Matching numeric suffixes
+  with different labels are not guessed to match. **Matching LAG colors do not
+  establish a physical link or common port channel between switches.**
+- Identity/context sorting—not list order or selection—drives assignment, keeping
+  colors stable through reordering, selection, save/open and update restoration.
+- Optional explicit saved overrides use canonical identity keys. Valid choices
+  are pinned; removing an item prunes only its orphaned keys, while shared keys survive. Unknown identities, duplicate meanings/colors, unsafe reserved-state
+  colors or poor LAG contrast are rejected clearly rather than silently changed.
 
-- Local Python packaging/publication/branding/root-layout checks: 34 passed.
-- Local JavaScript syntax checks are run before branch publication.
-- New `WorkspaceChecks` and `verify-pdfs.py` cover ordered mixed-vendor/invalid and
-  duplicate imports, state isolation, model recovery, save/open validation, batch
-  collisions, all eight existing formats, combined page order, A4 and 300 DPI.
-  Restart-state tests verify order/selection/models, unsaved flags, runtime outputs,
-  missing paths, malformed handoffs and migration from the old single-item shape.
-- New browser workspace checks cover additive imports, selection/restore, movement,
-  deletion, independent editing bridge, batch vs selected output, generation locks,
-  normal/small windows and accessible controls. Existing CI UI checks are retained.
-- Hosted CI also runs existing parser/report/geometry/adaptive/layout/inventory and
-  updater checks, supplemental device/palette/RouterOS/logo regressions, the Windows
-  self-contained build, compiled icon/display metadata and real updater helper tests.
-- Local .NET execution is unavailable: runtime startup fails creating its NuGet
-  mutex; authorized execution escalation also failed at environment bootstrap. No
-  sandbox workaround was used. Compilation and .NET execution use hosted CI.
-- Interactive native Windows/WebView2 dialogs, a real user update/restart and
-  fixture-specific historical private client input scripts cannot be fully exercised
-  in this cloud workspace. Do not claim those as tested.
+No parser semantics or memberships are changed. Voice diamonds, tagged circles,
+native fills, stack flags, LAG outlines, port labels, per-switch legends and logos
+are retained. Adding/removing configs or editing device/model details invalidates
+cached render links because it can change the shared palette; reordering only
+invalidates combined output. Old generated files are never deleted by these edits.
 
-The first isolated branch run (9d07194) passed all browser checks, including new
-workspace coverage. Downloaded screenshot artifact SHA-256:
-`239560de489e4bcbfe9d9d11351e62db056ddf85b01bdba89b1d5e935bb9a37a`.
-Normal and small-window screenshots were visually inspected; the selected item now
-automatically scrolls into view. Final hosted checks still apply to the final commit.
+## Bridge and UI
 
-Release procedure: isolated feature branch first; inspect every CI result, download
-and verify packaged assets and interface screenshots, then non-force fast-forward
-main only if its head is unchanged. Main's existing release gate requires all three
-jobs. Confirm the stable tag, exact commit, latest release/feed and downloaded asset
-hashes before delivery. Do not replace old tags/assets or change repository access.
+Existing workspace selection/order/import/delete/Save/Open and updater actions
+remain. New `setWorkspaceLabel` applies a custom label (empty means automatic).
+`workspace` publishes `outputLabel`, `suggestedLabel`, `effectiveLabel`,
+`workspaceName`, `combinedAvailable` and `pageCount`. Shared sheets are enabled by
+default. Batch status keeps policy/capacity warnings separate from selected output.
+`previewCombined {index,requestId}` returns the actual exported image plus page
+metadata; request IDs reject stale modal responses. `openCombined` opens the vector
+PDF. Label/preview modals use existing update-editing deferral. Small-window layout
+and selected-item scroll visibility remain regression-tested.
+
+## Validation and release procedure
+
+Local Python packaging/branding/publication/root checks and JavaScript syntax run
+before publication. Local .NET execution remains blocked by the executor's NuGet
+mutex/runtime bootstrap restriction; do not retry sandbox bypasses. Actual .NET
+and Windows tests run in hosted CI on an isolated branch before main promotion.
+
+Added/extended checks cover meaningful saved/renamed/custom/unsaved names, reserved
+paths and collision isolation; shared/mismatched/unnamed VLANs, LAG context and
+reorder/save/load/override stability; real two-switch one-page output, 3–5-switch
+capacity pagination, mixed vendors, dense/tall fallback, port/marker preservation,
+fonts/bounds/logo, matching PNG/PDF geometry, preview navigation and stale responses.
+All existing CI parser/report/hardware/adaptive/inventory/updater checks remain.
+Generated synthetic sheet fixtures and UI screenshots are uploaded for visual QA.
+
+Do not claim interactive native Windows dialogs or a real user update/restart were
+run here; hosted Windows helper tests and pure restart-migration checks supplement
+but do not replace workstation testing. Historical private-client-only fixture
+scripts remain unrun unless their inputs are explicitly supplied.
+
+Promote only the exact green reviewed commit by non-force fast-forward after
+checking concurrent main changes. Existing main release gates verify all jobs,
+package assets and publish a new immutable version. After release, confirm tag/main
+commit, latest feed, all downloaded public asset digests, package contents and
+Windows executable identity. Do not replace old releases or change access.

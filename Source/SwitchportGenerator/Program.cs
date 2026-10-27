@@ -8,9 +8,9 @@ public static class GeneratorEntry
     static readonly JsonSerializerOptions JsonOptions=new(){WriteIndented=true};
     static string Hash(byte[] bytes)=>Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
     static int Main(string[] args)=>Run(args);
-    public static int Run(string[] args)
+    public static int Run(string[] args,RenderPalette? renderPalette=null)
     {
-        string? input=null,output=null,models=null,modelName=null,logo=null,deviceDetails=null;bool namedFolder=false;
+        string? input=null,output=null,models=null,modelName=null,logo=null,deviceDetails=null,paletteFile=null;bool namedFolder=false;
         for(int i=0;i<args.Length;i++)
         {
             if(args[i]=="--input"&&i+1<args.Length)input=args[++i];
@@ -19,6 +19,7 @@ public static class GeneratorEntry
             else if(args[i]=="--model-name"&&i+1<args.Length)modelName=args[++i];
             else if(args[i]=="--logo"&&i+1<args.Length)logo=args[++i];
             else if(args[i]=="--device-details"&&i+1<args.Length)deviceDetails=args[++i];
+            else if(args[i]=="--palette"&&i+1<args.Length)paletteFile=args[++i];
             else if(args[i]=="--named-folder")namedFolder=true;
             else {Console.Error.WriteLine("Usage: SwitchportGenerator.exe --input <configuration-file> --output <output-directory> [--models <SKU or member=SKU pairs>] [--model-name <printed model name>] [--logo <image-file>] [--device-details <JSON-file>]");return 2;}
         }
@@ -57,6 +58,12 @@ public static class GeneratorEntry
                 output=ReportNaming.AvailableDirectory(output,inv);Directory.CreateDirectory(output);
                 Console.WriteLine("OUTPUT_DIRECTORY="+output);
             }
+            if(paletteFile!=null)
+            {
+                if(new FileInfo(paletteFile).Length>4_000_000)throw new InvalidOperationException("Workspace palette exceeds the supported size.");
+                renderPalette=RenderPalette.Deserialize(File.ReadAllText(paletteFile));
+            }
+            renderPalette?.Apply(inv);
             var placements=Charts.Layout(inv);inv.Blockers.AddRange(Charts.Validate(inv,placements));inv.Blockers=inv.Blockers.Distinct().ToList();
             string json=JsonSerializer.Serialize(inv,JsonOptions);byte[] jsonBytes=new UTF8Encoding(false).GetBytes(json);string hash=Hash(jsonBytes);
             File.WriteAllBytes(Path.Combine(output,"inventory.json"),jsonBytes);

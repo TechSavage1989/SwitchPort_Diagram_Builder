@@ -7,12 +7,12 @@ namespace SwitchportGenerator;
 public static class WorkspaceRestartState
 {
     public const int MaxBytes = 256_000_000;
-    public sealed record Snapshot(string Workspace, bool Dirty, ItemState[] Items);
+    public sealed record Snapshot(string Workspace, bool Dirty, ItemState[] Items, string SavedWorkspaceName="");
     public sealed record ItemState(string Id, string? LastOutput, string? LastChart, string Status, string StatusType, bool Dirty);
     public sealed record LegacySession(string Text, string Name, DeviceIdentity[]? Devices, string? LastOutput, string? LastChart);
 
     public static Snapshot Capture(ConfigurationWorkspace workspace) => new(workspace.Serialize(), workspace.Dirty,
-        workspace.Items.Select(item => new ItemState(item.Id, item.LastOutput, item.LastChart, item.Status, item.StatusType, item.Dirty)).ToArray());
+        workspace.Items.Select(item => new ItemState(item.Id, item.LastOutput, item.LastChart, item.Status, item.StatusType, item.Dirty)).ToArray(),workspace.SavedWorkspaceName);
 
     public static ConfigurationWorkspace Restore(string json, Func<string, bool> directoryExists, Func<string, bool> fileExists)
     {
@@ -38,6 +38,8 @@ public static class WorkspaceRestartState
                     RestorePaths(item, saved.LastOutput, saved.LastChart, directoryExists, fileExists);
                     item.Status = saved.Status ?? ""; item.StatusType = saved.StatusType ?? ""; item.Dirty = saved.Dirty;
                 }
+                workspace.SavedWorkspaceName=WorkspaceNaming.Safe(state.SavedWorkspaceName??"");
+                if(string.IsNullOrEmpty(state.SavedWorkspaceName))workspace.SavedWorkspaceName="";
                 workspace.Dirty = state.Dirty;
                 return workspace;
             }

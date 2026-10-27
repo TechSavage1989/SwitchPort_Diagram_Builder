@@ -14,6 +14,8 @@ public sealed partial class MainForm : Form
     string outputRoot="";
     ConfigurationWorkspace workspace=new();
     string? lastBatchOutput;
+    string? lastCombinedPdf;
+    List<string> lastCombinedImages=new();
     string? lastOutput { get=>workspace.Selected?.LastOutput; set { if(workspace.Selected is {} item)item.LastOutput=value; } }
     string? lastChart { get=>workspace.Selected?.LastChart; set { if(workspace.Selected is {} item)item.LastChart=value; } }
     string? selectedPath=>workspace.Selected?.SourcePath;
@@ -105,11 +107,14 @@ public sealed partial class MainForm : Form
             else if (message?.action == "loadBackup" && !busy) SelectText(ConfigInput.Decode(Convert.FromBase64String(message.text??"")),message.name??"RouterOS backup");
             else if (message?.action == "loadFiles" && !busy) ImportFiles(message.files??Array.Empty<IncomingFile>());
             else if (message?.action == "selectItem" && !busy) { workspace.Select(message.id??"");SendSelection(); }
-            else if (message?.action == "moveItem" && !busy) { workspace.Move(message.id??"",message.index??0);SendWorkspace(); }
+            else if (message?.action == "moveItem" && !busy) { workspace.Move(message.id??"",message.index??0);InvalidateBatch();SendWorkspace(); }
             else if (message?.action == "removeItem" && !busy) RemoveItem(message.id??"");
+            else if (message?.action == "setWorkspaceLabel" && !busy) { workspace.OutputLabel=WorkspaceNaming.CleanLabel(message.text);workspace.Dirty=true;InvalidateBatch();SendWorkspace(); }
+            else if (message?.action == "previewCombined" && !busy) PreviewCombined(message.index??0,message.requestId);
+            else if (message?.action == "openCombined" && !busy) OpenCombined();
             else if (message?.action == "saveWorkspace" && !busy) SaveWorkspace();
             else if (message?.action == "openWorkspace" && !busy) OpenWorkspace();
-            else if (message?.action == "runAll" && !busy) await RunAll(message.combined??false);
+            else if (message?.action == "runAll" && !busy) await RunAll(message.combined??true);
             else if (message?.action == "openBatch") OpenBatch();
             else if (message?.action == "chooseOutput" && !busy) ChooseOutput();
             else if (message?.action == "chooseLogo" && !busy) ChooseLogo();
@@ -147,12 +152,13 @@ public sealed partial class MainForm : Form
             catch(Exception ex) when(ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
             { errors.Add(Path.GetFileName(path)+": "+ex.Message); }
         }
+        if(added>0)InvalidateOutputs();
         SendSelection();SendImportResult(added,errors);
     }
     void SelectText(string text,string name)
     {
         workspace.AddText(text,string.IsNullOrWhiteSpace(name)?"Pasted configuration":name);
-        SendSelection();
+        InvalidateOutputs();SendSelection();
     }
     string SelectedSource()
     {
@@ -167,7 +173,7 @@ public sealed partial class MainForm : Form
             if(message.action=="saveDevices")
             {
                 workspace.SetDevices(workspace.SelectedId!,inv.Devices.Where(d=>d.HasDetails));
-                lastOutput=null;lastChart=null;
+                InvalidateOutputs();
                 if(workspace.Selected is {} selected){selected.Status="Device details saved. Build reports to apply them.";selected.StatusType="status";}
                 SendWorkspace();
                 Send(new {type="devicesSaved",count=deviceDetails.Count,requestId=message.requestId});
@@ -239,6 +245,7 @@ public sealed partial class MainForm : Form
         if(workspace.Selected is {} current){current.Status="";current.StatusType="";}
         string? temporaryInput=null;
         string? temporaryDetails=null;
+        string? temporaryPalette=null;
         try
         {
             string input=selectedPath??"";
@@ -259,6 +266,14 @@ public sealed partial class MainForm : Form
                 temporaryDetails=Path.Combine(inputs,Guid.NewGuid().ToString("N")+"-devices.json");
                 await File.WriteAllTextAsync(temporaryDetails,JsonSerializer.Serialize(deviceDetails));
                 start.ArgumentList.Add("--device-details");start.ArgumentList.Add(temporaryDetails);
+            }
+            if(workspace.Selected?.Inventory.Blockers.Count==0)
+            {
+                var palette=await Task.Run(()=>WorkspacePalette.Create(workspace,workspace.PaletteOverrides).ForItem(workspace.SelectedId!));
+                string paletteDirectory=Path.Combine(data,"Input");Directory.CreateDirectory(paletteDirectory);
+                temporaryPalette=Path.Combine(paletteDirectory,Guid.NewGuid().ToString("N")+"-palette.json");
+                await File.WriteAllTextAsync(temporaryPalette,palette.Serialize());
+                start.ArgumentList.Add("--palette");start.ArgumentList.Add(temporaryPalette);
             }
             using var process = Process.Start(start) ?? throw new InvalidOperationException("The generator could not start.");
             // Drain both streams concurrently, avoiding a full stderr pipe blocking the child.
@@ -298,6 +313,7 @@ public sealed partial class MainForm : Form
         {
             if(temporaryInput!=null)try{File.Delete(temporaryInput);}catch(IOException){}catch(UnauthorizedAccessException){}
             if(temporaryDetails!=null)try{File.Delete(temporaryDetails);}catch(IOException){}catch(UnauthorizedAccessException){}
+            if(temporaryPalette!=null)try{File.Delete(temporaryPalette);}catch(IOException){}catch(UnauthorizedAccessException){}
             busy = false;
             updater?.Publish();
         }

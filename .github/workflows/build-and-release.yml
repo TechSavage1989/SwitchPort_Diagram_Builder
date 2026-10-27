@@ -73,6 +73,11 @@ jobs:
         run: |
           dotnet run --project Source/tests/WorkspaceChecks/WorkspaceChecks.csproj --configuration Release -- build/workspace-fixtures
           python3 Source/tests/WorkspaceChecks/verify-pdfs.py build/workspace-fixtures
+      - name: Check shared workspace palettes and multi-switch A4 geometry
+        run: |
+          dotnet run --project Source/tests/WorkspacePaletteChecks/WorkspacePaletteChecks.csproj --configuration Release
+          dotnet run --project Source/tests/WorkspaceSheetChecks/WorkspaceSheetChecks.csproj --configuration Release -- build/shared-sheet-fixtures
+          python3 Source/tests/WorkspaceSheetChecks/verify-sheets.py build/shared-sheet-fixtures
       - name: Check device, palette, logo and RouterOS regressions
         run: |
           dotnet run --project Source/tests/DeviceIdentityChecks.csproj --configuration Release
@@ -94,6 +99,15 @@ jobs:
         run: python3 Source/tests/verify.py --generator Source/SwitchportGenerator/bin/Release/net8.0/SwitchportGenerator.dll --dotnet dotnet --report build/parser-checks.txt
       - name: Check device and module report metadata
         run: python3 Source/tests/verify-device-reports.py --generator Source/SwitchportGenerator/bin/Release/net8.0/SwitchportGenerator.dll --dotnet dotnet --report build/device-report-checks.txt
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: shared-sheet-preview
+          path: |
+            build/shared-sheet-fixtures
+            build/workspace-fixtures
+          if-no-files-found: error
+          retention-days: 14
 
   windows-build:
     name: Windows build and real updater process checks

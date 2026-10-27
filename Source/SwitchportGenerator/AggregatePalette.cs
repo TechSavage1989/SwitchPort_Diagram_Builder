@@ -42,6 +42,10 @@ public static class AggregatePalette
     }
     public static Dictionary<string,string> Assign(Inventory inv,Func<Port,string>? fill=null,IEnumerable<string>? referenceColors=null)
     {
+        if(fill==null&&inv.VlanColorOverrides!=null)
+        {
+            var palette=VlanPalette.Assign(inv);fill=port=>VlanPalette.NativeFill(port,palette);
+        }
         fill??=Charts.Color;
         var references=(referenceColors??Array.Empty<string>()).ToList();
         try{return Assign(inv,fill,references,Candidates);}
@@ -52,7 +56,21 @@ public static class AggregatePalette
         var result=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
         var native=inv.Ports.Select(fill).Concat(referenceColors??Array.Empty<string>()).Distinct().Select(Lab).ToList();
         var selected=new List<(double L,double A,double B)>();
-        foreach(var group in inv.Ports.Where(p=>p.Aggregate.Length>0).GroupBy(p=>p.Aggregate,StringComparer.OrdinalIgnoreCase).OrderBy(g=>g.Key.Length).ThenBy(g=>g.Key,StringComparer.OrdinalIgnoreCase))
+        var groups=inv.Ports.Where(p=>p.Aggregate.Length>0).GroupBy(p=>p.Aggregate,StringComparer.OrdinalIgnoreCase).OrderBy(g=>g.Key.Length).ThenBy(g=>g.Key,StringComparer.OrdinalIgnoreCase).ToList();
+        var pinned=inv.AggregateColorOverrides??new Dictionary<string,string>();
+        foreach(var pair in pinned)
+        {
+            RenderPalette.ValidateColor(pair.Value);
+            var group=groups.FirstOrDefault(candidate=>candidate.Key.Equals(pair.Key,StringComparison.OrdinalIgnoreCase))
+                ??throw new InvalidOperationException("LAG palette contains a label absent from this configuration.");
+            string color=pair.Value.ToLowerInvariant();var lab=Lab(color);
+            if(group.Any(port=>Distance(lab,Lab(fill(port)))<MinimumMemberDistance)||native.Any(reference=>Distance(lab,reference)<18)||1.05/(Luminance(color)+.05)<3)
+                throw new InvalidOperationException("Saved LAG color for "+pair.Key+" does not have sufficient contrast against its member fills and workspace palette.");
+            if(result.Any(existing=>WorkspacePalette.AggregateKey(existing.Key)!=WorkspacePalette.AggregateKey(pair.Key)&&Distance(Lab(existing.Value),lab)<22))
+                throw new InvalidOperationException("Distinct saved LAG colors are not sufficiently separated.");
+            result.Add(group.Key,color);selected.Add(lab);
+        }
+        foreach(var group in groups.Where(group=>!result.ContainsKey(group.Key)))
         {
             var member=group.Select(fill).Distinct().Select(Lab).ToList();
             var chromatic=member.Where(c=>Math.Sqrt(c.A*c.A+c.B*c.B)>=18).ToList();

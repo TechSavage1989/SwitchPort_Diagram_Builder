@@ -1,4 +1,4 @@
-Source files for 1.13.0
+Source files for 1.14.0
 
 Branding/Palette.txt
 Branding/README.txt
@@ -55,7 +55,10 @@ SwitchportGenerator/ReportText.cs
 SwitchportGenerator/SwitchportGenerator.csproj
 SwitchportGenerator/VlanPalette.cs
 SwitchportGenerator/WorkspaceExport.cs
+SwitchportGenerator/WorkspaceNaming.cs
+SwitchportGenerator/WorkspacePalette.cs
 SwitchportGenerator/WorkspaceRestartState.cs
+SwitchportGenerator/WorkspaceSheet.cs
 SwitchportUpdater/FileInstallTransaction.cs
 SwitchportUpdater/PackageValidator.cs
 SwitchportUpdater/PortableVersionInfo.cs
@@ -89,6 +92,11 @@ tests/UpdaterChecks/UpdaterChecks.csproj
 tests/WorkspaceChecks/Program.cs
 tests/WorkspaceChecks/WorkspaceChecks.csproj
 tests/WorkspaceChecks/verify-pdfs.py
+tests/WorkspacePaletteChecks/Program.cs
+tests/WorkspacePaletteChecks/WorkspacePaletteChecks.csproj
+tests/WorkspaceSheetChecks/Program.cs
+tests/WorkspaceSheetChecks/WorkspaceSheetChecks.csproj
+tests/WorkspaceSheetChecks/verify-sheets.py
 tests/create-logo-fixtures.py
 tests/verify-additional-configs.py
 tests/verify-device-details-ui.cjs

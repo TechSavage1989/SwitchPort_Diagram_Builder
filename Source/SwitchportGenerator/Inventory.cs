@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
 namespace SwitchportGenerator;
 public sealed class Inventory
 {
@@ -23,6 +24,12 @@ public sealed class Inventory
     public List<string> Mirrors { get; set; } = new();
     public List<string> Assumptions { get; set; } = new();
     public List<string> Blockers { get; set; } = new();
+    // Optional render context is retained in exported inventory so combined reports
+    // reproduce exactly the same workspace colors as their individual diagrams.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<int,string>? VlanColorOverrides { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string,string>? AggregateColorOverrides { get; set; }
 }
 public sealed class Group
 {

@@ -135,7 +135,7 @@ internal sealed class AppUpdateController : IDisposable
             if(isBusy()){status="Finish the report build or save and close the open edit dialog before installing.";return;}
             Installing=true;Publish();
             var verified=staged;
-            if(MessageBox.Show(owner,"Install version "+verified.Offer.VersionText+" and restart now?\n\nThe loaded configuration, saved device details, report logo, output folder and existing reports will be retained.","Install update",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
+            if(MessageBox.Show(owner,"Install version "+verified.Offer.VersionText+" and restart now?\n\nWorkspace configurations, order, saved device details, naming, report logo, output folder and existing reports will be retained.","Install update",MessageBoxButtons.YesNo,MessageBoxIcon.Question)!=DialogResult.Yes)return;
             if(isBusy()){status="A report build or edit dialog is open. Finish it before installing.";return;}
             status="Preparing the verified update and restart...";Publish();
             ExecutableValidator.Validate(verified.ExecutablePath,verified.Offer.Version,verified.Offer.ExecutableSha256,verified.Offer.ExecutableSize);

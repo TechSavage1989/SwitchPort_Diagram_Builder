@@ -58,5 +58,5 @@ Do not describe a process spawn as a successful application startup.
 
 ## Multi-configuration workspace
 
-Read [the 1.13.0 development handoff](docs/DEVELOPMENT_HANDOFF.md) for the explicit-save
+Read [the current development handoff](docs/DEVELOPMENT_HANDOFF.md) for the explicit-save
 workspace schema, host/UI protocol, regression checks and release evidence.

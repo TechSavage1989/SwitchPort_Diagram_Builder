@@ -14,7 +14,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   const workspace=async(selected='two',dirty=true)=>deliver({type:'workspace',items,selectedId:selected,dirty});
   const selected=async(id='two',chartAvailable=false,statusText='')=>{const i=items.find(i=>i.id===id);await deliver({type:'selected',id,name:i?.name||'',hostname:i?.hostname||'',chartAvailable,statusType:statusText?'complete':'',statusText});};
   const button=(id,action)=>page.locator(`button[data-item-id="${id}"][data-workspace-action="${action}"]`);
-  assert(await page.locator('#runAll').isDisabled());assert(await page.locator('#saveWorkspace').isDisabled());
+  assert(await page.locator('#runAll').isDisabled());assert(await page.locator('#saveWorkspace').isDisabled());assert(await page.locator('#combinePdf').isChecked(),'shared A4 sheets are enabled by default');
   await page.click('#openWorkspace');assert.deepEqual(await last(),{action:'openWorkspace'});
   await workspace();await selected();
   assert.equal(await page.locator('.workspace-row').count(),3);assert.equal(await page.locator('#workspaceList b').count(),0);
@@ -44,6 +44,22 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await deliver({type:'workspaceSaved',message:'Workspace saved securely.'});assert.equal(await page.locator('#status').innerText(),'A saved output\nOutput: A-folder');assert.equal(await page.locator('#importResult').innerText(),'Workspace saved securely.');
   console.log('PASS independent selection/output restoration, safe literal labels, duplicate filenames, reorder by keyboard and drag, host-confirmed removal and explicit save/open.');
 
+  await deliver({type:'workspace',items,selectedId:'one',dirty:false,outputLabel:'',suggestedLabel:'Campus access',effectiveLabel:'Campus access',workspaceName:'Campus access.spworkspace.json'});
+  assert.equal(await page.locator('#workspaceOutputName').innerText(),'Output: Campus access');
+  await page.click('#editWorkspaceLabel');assert.equal(await page.locator('#workspaceLabelInput').inputValue(),'');assert.equal(await page.locator('#workspaceLabelInput').getAttribute('placeholder'),'Campus access');
+  await page.locator('#workspaceLabelInput').fill('Unused label');await page.click('#cancelWorkspaceLabel');
+  assert.equal(await page.evaluate(()=>window.__messages.filter(m=>m.action==='setWorkspaceLabel').length),0);
+  await page.click('#editWorkspaceLabel');await page.locator('#workspaceLabelInput').fill('  North campus <b>literal</b>  ');await page.click('#applyWorkspaceLabel');
+  assert.deepEqual(await page.evaluate(()=>window.__messages.findLast(m=>m.action==='setWorkspaceLabel')),{action:'setWorkspaceLabel',text:'North campus <b>literal</b>'});
+  await deliver({type:'workspace',items,selectedId:'one',dirty:true,outputLabel:'North campus <b>literal</b>',suggestedLabel:'Campus access',effectiveLabel:'North campus <b>literal</b>',workspaceName:'Campus access.spworkspace.json'});
+  assert.equal(await page.locator('#workspaceOutputName b').count(),0);assert.equal(await page.locator('#status').innerText(),'A saved output\nOutput: A-folder');
+  await page.click('#editWorkspaceLabel');assert.equal(await page.locator('#workspaceLabelInput').inputValue(),'North campus <b>literal</b>');await page.locator('#workspaceLabelInput').fill('');await page.keyboard.press('Enter');
+  assert.deepEqual(await page.evaluate(()=>window.__messages.findLast(m=>m.action==='setWorkspaceLabel')),{action:'setWorkspaceLabel',text:''});
+  await deliver({type:'workspace',items,selectedId:'one',dirty:true,outputLabel:'',suggestedLabel:'Access-A + Core',effectiveLabel:'Access-A + Core',workspaceName:''});
+  assert.equal(await page.locator('#workspaceOutputName').innerText(),'Output: Access-A + Core');
+  console.log('PASS optional workspace/output label, explicit Apply/Cancel, automatic saved-workspace/switch naming display and literal text without altering selected output.');
+
+
   await page.evaluate(()=>{const dt=new DataTransfer();for(const [name,text] of [['first.cfg','hostname First'],['empty.cfg',''],['first.cfg','hostname Duplicate']])dt.items.add(new File([text],name));document.body.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));});
   await page.waitForFunction(()=>window.__messages.at(-1)?.action==='loadFiles');let message=await last();
   assert.deepEqual(message.files.map(f=>f.name),['first.cfg','empty.cfg','first.cfg']);assert.equal(message.files[0].text,'hostname First');assert(message.files[1].error.includes('empty'));assert.equal(message.files[2].text,'hostname Duplicate');
@@ -61,12 +77,37 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
 
   await selected('six',true,'Selected report result');await page.locator('#combinePdf').check();await page.click('#runAll');assert.deepEqual(await last(),{action:'runAll',combined:true});
   assert(await button('one','select').isDisabled());assert(await page.locator('#openWorkspace').isDisabled());assert(await page.locator('#saveWorkspace').isDisabled());
-  await deliver({type:'batchComplete',message:'Built 5 configurations.',details:'1. Core\n2. Access-A\n3. First\n4. Duplicate\n5. Pasted',output:'Batch-folder'});
+  await deliver({type:'batchComplete',message:'Built 5 configurations.',details:'1. Core\n2. Access-A\n3. First\n4. Duplicate\n5. Pasted',output:'Batch-folder',combinedAvailable:true,pageCount:2,warnings:['VLAN 10 uses different names across configurations.']});
   assert.equal(await page.locator('#status').innerText(),'Selected report result');assert(!(await page.locator('#openBatch').isDisabled()));
   await page.click('#openBatch');assert.deepEqual(await last(),{action:'openBatch'});
+
+  assert((await page.locator('#batchStatus').innerText()).includes('2 shared A4 sheets.'));assert((await page.locator('#batchStatus').innerText()).includes('VLAN 10 uses different names'));
+  assert(await page.locator('#previewCombined').isVisible());await page.click('#previewCombined');let preview=await last();
+  assert.equal(preview.action,'previewCombined');assert.equal(preview.index,0);assert(await page.locator('#previousCombined').isDisabled());assert(await page.locator('#nextCombined').isDisabled());
+  const previewSrc='data:image/png;base64,'+fs.readFileSync(path.resolve(__dirname,'../Branding/Switchport_Diagram_Builder_Icon.png')).toString('base64');
+  await deliver({type:'combinedPreview',requestId:preview.requestId,index:0,count:2,name:'Campus shared sheets',src:previewSrc});
+  assert.equal(await page.locator('#combinedPreviewImage').getAttribute('src'),previewSrc);assert.equal(await page.locator('#combinedPreviewPage').innerText(),'Sheet 1 of 2');assert(!(await page.locator('#nextCombined').isDisabled()));
+  await page.click('#nextCombined');preview=await last();assert.equal(preview.index,1);
+  await deliver({type:'combinedPreview',requestId:preview.requestId,index:1,count:2,name:'Campus shared sheets',src:previewSrc});
+  assert.equal(await page.locator('#combinedPreviewPage').innerText(),'Sheet 2 of 2');assert(await page.locator('#nextCombined').isDisabled());assert(!(await page.locator('#previousCombined').isDisabled()));
+  await page.click('#openCombined');assert.deepEqual(await last(),{action:'openCombined'});
+  for(const viewport of [{width:900,height:650},{width:600,height:430}]){
+   await page.setViewportSize(viewport);
+   const box=await page.locator('#combinedPreviewDialog').boundingBox();assert(box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width+.5&&box.y+box.height<=viewport.height+.5);
+   for(const id of ['previousCombined','nextCombined','openCombined','closeCombinedPreview'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits compact preview');
+  }
+  await page.click('#previousCombined');preview=await last();await page.click('#closeCombinedPreview');
+  await deliver({type:'combinedPreview',requestId:preview.requestId,index:0,count:2,name:'Late result',src:previewSrc});assert(await page.locator('#combinedPreviewDialog').isHidden());assert.equal(await page.locator('#combinedPreviewImage').getAttribute('src'),null);
+  await page.setViewportSize({width:1180,height:760});await page.click('#previewCombined');preview=await last();
+  await deliver({type:'combinedPreviewError',requestId:preview.requestId,message:'Saved preview is unavailable. Build shared sheets again.'});assert((await page.locator('#combinedPreviewStatus').innerText()).includes('unavailable'));
+  await page.click('#closeCombinedPreview');await page.click('#previewCombined');preview=await last();
+  await deliver({type:'combinedPreview',requestId:preview.requestId,index:0,count:2,name:'External image must be rejected',src:'https://example.invalid/remote.png'});assert(await page.locator('#combinedPreviewImage').isHidden());
+  await page.keyboard.press('Escape');assert(await page.locator('#combinedPreviewDialog').isHidden());
+  console.log('PASS shared-sheet default, page-count/palette warnings, exact PNG preview payload, page navigation, PDF opening, compact modal, error recovery and stale/external preview rejection.');
+
   await page.click('#copyOutput');assert.deepEqual(await last(),{action:'copyOutput',text:'Selected report result'});await deliver({type:'outputCopied',message:'Copied.'});
   await page.locator('#combinePdf').uncheck();await page.click('#runAll');assert.deepEqual(await last(),{action:'runAll',combined:false});await deliver({type:'batchComplete',message:'Built all.',output:'Next-batch'});
-  console.log('PASS batch and selected output separation, combined-PDF opt-in, ordered summary and generation locks.');
+  console.log('PASS batch and selected output separation, shared-sheet opt-out, ordered summary and generation locks.');
 
   fs.mkdirSync('build',{recursive:true});
   await deliver({type:'importComplete',message:'',errors:[]});
@@ -75,12 +116,13 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
    await page.waitForFunction(()=>{const selected=document.querySelector('.workspace-row.selected'),list=document.getElementById('workspaceList');if(!selected)return false;const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();return row.top>=bounds.top&&row.bottom<=bounds.bottom;});
    const bounds=await page.evaluate(()=>({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,listScroll:document.getElementById('workspaceList').scrollHeight,listClient:document.getElementById('workspaceList').clientHeight}));
    assert(bounds.scrollWidth<=bounds.width+1,JSON.stringify(bounds));
-   for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
+   for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace','editWorkspaceLabel'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
    assert(bounds.listScroll>bounds.listClient,'long configuration list scrolls inside its panel');
    await page.screenshot({path:'build/workspace-'+viewport.width+'x'+viewport.height+'.png',fullPage:true});
   }
   await deliver({type:'workspace',items,selectedId:'six',dirty:false,batchAvailable:false});assert(await page.locator('#batchResult').isHidden());assert(await page.locator('#openBatch').isDisabled());
   items=[];await workspace(null,false);await deliver({type:'selected',id:null,name:''});assert(await page.locator('#run').isDisabled());assert(await page.locator('#runAll').isDisabled());assert(await page.locator('#workspaceEmpty').isVisible());
+  await workspace(null,true);assert(!(await page.locator('#saveWorkspace').isDisabled()),'a cleared or named empty workspace can be saved');await page.click('#saveWorkspace');assert.deepEqual(await last(),{action:'saveWorkspace'});
   assert.deepEqual(errors,[]);console.log('PASS normal/small-window controls, bounded ordered-list scrolling, empty workspace and no browser errors.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1)});

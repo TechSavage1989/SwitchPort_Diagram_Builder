@@ -42,6 +42,9 @@ public sealed class ConfigurationWorkspace
     public string? SelectedId { get; set; }
     public ConfigurationItem? Selected => Items.FirstOrDefault(item => item.Id == SelectedId);
     public bool Dirty { get; set; }
+    public string OutputLabel { get; set; } = "";
+    public string SavedWorkspaceName { get; set; } = "";
+    public WorkspacePaletteOverrides PaletteOverrides { get; set; } = new();
 
     public ConfigurationItem AddText(string text, string name, string sourcePath = "")
     {
@@ -74,8 +77,16 @@ public sealed class ConfigurationWorkspace
     public void Remove(string id)
     {
         var item = Find(id); int index = Items.IndexOf(item);
+        var removedVlans=WorkspacePalette.VlanIds(item.Inventory).Select(vlan=>WorkspacePalette.VlanKey(item.Id,item.Inventory,vlan)).ToArray();
+        var removedAggregates=item.Inventory.Ports.Where(port=>port.Aggregate.Length>0).Select(port=>WorkspacePalette.AggregateKey(port.Aggregate)).Distinct().ToArray();
         Items.RemoveAt(index);
         if (SelectedId == id) SelectedId = Items.Count == 0 ? null : Items[Math.Min(index, Items.Count - 1)].Id;
+        // Prune only identities owned by the removed item. Shared named VLAN/LAG
+        // overrides survive while any remaining configuration still uses their key.
+        var liveVlans=Items.SelectMany(remaining=>WorkspacePalette.VlanIds(remaining.Inventory).Select(vlan=>WorkspacePalette.VlanKey(remaining.Id,remaining.Inventory,vlan))).ToHashSet(StringComparer.Ordinal);
+        var liveAggregates=Items.SelectMany(remaining=>remaining.Inventory.Ports.Where(port=>port.Aggregate.Length>0).Select(port=>WorkspacePalette.AggregateKey(port.Aggregate))).ToHashSet(StringComparer.Ordinal);
+        if(PaletteOverrides?.Vlans is {} vlanOverrides)foreach(string key in removedVlans)if(!liveVlans.Contains(key))vlanOverrides.Remove(key);
+        if(PaletteOverrides?.Aggregates is {} aggregateOverrides)foreach(string key in removedAggregates)if(!liveAggregates.Contains(key))aggregateOverrides.Remove(key);
         Dirty = true;
     }
 
@@ -93,7 +104,7 @@ public sealed class ConfigurationWorkspace
 
     public string Serialize()
     {
-        var document = new WorkspaceDocument { Format = FormatName, Version = FormatVersion, Items = Items, SelectedId = SelectedId };
+        var document = new WorkspaceDocument { Format = FormatName, Version = FormatVersion, Items = Items, SelectedId = SelectedId, OutputLabel = WorkspaceNaming.CleanLabel(OutputLabel), PaletteOverrides = PaletteOverrides };
         string json = JsonSerializer.Serialize(document, JsonOptions);
         if (Encoding.UTF8.GetByteCount(json) > MaxWorkspaceBytes)
             throw new InvalidOperationException("The saved workspace exceeds the 100 MB limit.");
@@ -109,6 +120,7 @@ public sealed class ConfigurationWorkspace
         {
             File.WriteAllText(temporary, json, new UTF8Encoding(false));
             File.Move(temporary, fullPath, true);
+            SavedWorkspaceName=WorkspaceNaming.FromFile(fullPath);
             Dirty = false; foreach (var item in Items) item.Dirty = false;
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
@@ -118,7 +130,8 @@ public sealed class ConfigurationWorkspace
     {
         if (!File.Exists(path) || new FileInfo(path).Length > MaxWorkspaceBytes)
             throw new InvalidOperationException("Choose a workspace file under 100 MB.");
-        return Deserialize(File.ReadAllText(path));
+        var workspace=Deserialize(File.ReadAllText(path));
+        workspace.SavedWorkspaceName=WorkspaceNaming.FromFile(path);return workspace;
     }
 
     public static ConfigurationWorkspace Deserialize(string json)
@@ -149,6 +162,11 @@ public sealed class ConfigurationWorkspace
         if (document.SelectedId != null && !ids.Contains(document.SelectedId))
             throw new InvalidOperationException("The selected configuration is not in this workspace.");
         workspace.SelectedId = document.SelectedId ?? workspace.Items.FirstOrDefault()?.Id;
+        workspace.OutputLabel=WorkspaceNaming.CleanLabel(document.OutputLabel);
+        workspace.PaletteOverrides=document.PaletteOverrides??new();
+        // Palette overrides are explicit workspace metadata, not independent per-item colors.
+        if(workspace.PaletteOverrides.Vlans==null||workspace.PaletteOverrides.Aggregates==null||workspace.PaletteOverrides.Vlans.Count>0||workspace.PaletteOverrides.Aggregates.Count>0)
+            WorkspacePalette.Create(workspace,workspace.PaletteOverrides);
         return workspace;
     }
 
@@ -174,5 +192,7 @@ public sealed class ConfigurationWorkspace
         public int Version { get; set; }
         public string? SelectedId { get; set; }
         public List<ConfigurationItem> Items { get; set; } = new();
+        public string OutputLabel { get; set; } = "";
+        public WorkspacePaletteOverrides? PaletteOverrides { get; set; }
     }
 }

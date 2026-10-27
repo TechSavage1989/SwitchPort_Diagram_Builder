@@ -1,3 +1,23 @@
+SWITCHPORT DIAGRAM BUILDER 1.14.0 - TEST NOTES
+
+Correction: real shared multi-switch A4 sheets, meaningful workspace output names,
+and one semantic VLAN/LAG palette across combined and selected workspace reports.
+
+Local packaging/publication/branding/root checks: 34 passed.
+JavaScript syntax and static integration review precede isolated-branch CI.
+Actual .NET/Windows checks use hosted CI because local runtime startup is blocked.
+New WorkspacePaletteChecks and WorkspaceSheetChecks plus extended WorkspaceChecks
+and browser tests cover matching/conflicting/unnamed color identities, LAG contrast,
+overrides/reorder/save/load, saved/custom/renamed/collision-safe folder labels,
+multiple switches on one actual A4 page, readable pagination/dense fallback,
+port/marker preservation, PNG/PDF placement parity and paged combined preview.
+All earlier required parser/render/report/updater checks remain release gates.
+Synthetic visual fixtures are downloaded for pixel review before promotion.
+See ../docs/DEVELOPMENT_HANDOFF.md for exact policy, commands and unrun boundaries.
+
+Historical 1.13.0 test notes (unchanged below)
+===========================================
+
 SWITCHPORT DIAGRAM BUILDER 1.13.0 - TEST NOTES
 
 Scope: ordered multi-configuration workspaces, independent device/model details,

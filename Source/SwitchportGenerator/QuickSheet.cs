@@ -337,6 +337,59 @@ public static class QuickSheet
         if(fallback!=null)return AddMarkers(fallback,inv,largest);
         throw last??new OnePageCapacityException("the markers cannot fit with readable fonts and proportional interface faces");
     }
+    // Reusable reference-scale component for a multi-configuration sheet. Unlike
+    // Build(), this does not enlarge a single switch to consume the entire A4 page.
+    // All symbol geometry, labels, keys and capacity guards use the same renderer.
+    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null)
+    {
+        if(markerRadius is {} requested&&(requested<MinimumDotRadius||requested>DotRadius))
+            throw new ArgumentOutOfRangeException(nameof(markerRadius));
+        var palette=VlanPalette.Assign(inv);
+        var aggregate=AggregatePalette.Assign(inv,p=>Fill(p,palette),palette.Values);
+        var candidates=new List<Result>();OnePageCapacityException? last=null;
+        foreach(bool keyBelow in new[]{false,true})for(int compact=0;compact<=2;compact++)
+        foreach(bool wholeWords in new[]{true,false})foreach(bool narrow in new[]{true,false})
+        {
+            try
+            {
+                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow),palette,aggregate);
+                ApplyGeometry(candidate,1,compact);
+                double radius=markerRadius??DotRadius;
+                if(!MarkersFit(candidate,radius))
+                {
+                    if(markerRadius.HasValue||!MarkersFit(candidate,MinimumDotRadius))continue;
+                    double low=MinimumDotRadius,high=DotRadius;
+                    for(int i=0;i<18;i++){double middle=(low+high)/2;if(MarkersFit(candidate,middle))low=middle;else high=middle;}
+                    radius=low;
+                }
+                AddMarkers(candidate,inv,radius);
+                // Each sheet supplies one shared safety footer; remove only this
+                // duplicate footer, then retain the bounds of every visible primitive.
+                candidate.Scene.Labels.RemoveAll(label=>label.Text==ReportText.CableMoveDisclaimer&&label.Y==PageHeight-10);
+                candidate.Scene.Height=CompactBottom(candidate.Scene)+1;
+                var errors=Charts.ValidateScene(candidate.Scene);
+                if(errors.Count>0)throw new OnePageCapacityException(string.Join("; ",errors));
+                candidates.Add(candidate);
+            }
+            catch(OnePageCapacityException ex){last=ex;}
+        }
+        // Prefer full-size markers, then the shortest complete readable component.
+        // The standalone solver and its enlargement preference are unchanged.
+        var best=candidates.OrderByDescending(candidate=>Math.Round(candidate.MarkerRadius,5))
+            .ThenBy(candidate=>candidate.Scene.Height).ThenBy(candidate=>candidate.CompactionLevel).FirstOrDefault();
+        if(best!=null)return best;
+        throw last??new OnePageCapacityException("this configuration cannot fit at the workspace's consistent reference geometry; keep its individual report");
+    }
+    static double CompactBottom(Scene scene)
+    {
+        double bottom=0;
+        foreach(var box in scene.Boxes)bottom=Math.Max(bottom,box.Y+box.H+.4);
+        foreach(var label in scene.Labels)bottom=Math.Max(bottom,label.Y+ReportRenderer.Measure(label).Height);
+        foreach(var dot in scene.Dots)bottom=Math.Max(bottom,dot.Y+dot.Radius+Math.Max(dot.Halo,dot.Voice?dot.VoiceExtra+.2:0));
+        foreach(var shape in scene.Shapes)bottom=Math.Max(bottom,shape.Points.Max(point=>point.Y)+(shape.ClipInside?0:shape.StrokeWidth/2));
+        foreach(var image in scene.Images)bottom=Math.Max(bottom,image.Y+image.H);
+        return bottom;
+    }
     static Result BuildCore(Inventory inv,List<Placement> original,string hash,bool compact,LayoutPlan plan,Dictionary<int,string> palette,Dictionary<string,string> colors)
     {
         var output=new Result();var scene=output.Scene;var groups=inv.Groups.ToDictionary(g=>g.Id);
