@@ -48,7 +48,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
 
   await deliver({type:'workspace',items,selectedId:'one',dirty:false,outputLabel:'',suggestedLabel:'Campus access',effectiveLabel:'Campus access',workspaceName:'Campus access.spworkspace.json'});
   assert.equal(await page.locator('#workspaceOutputName').innerText(),'Project name: Campus access');
-  await page.click('#editWorkspaceLabel');assert.equal(await page.locator('#workspaceLabelInput').inputValue(),'');assert.equal(await page.locator('#workspaceLabelInput').getAttribute('placeholder'),'Campus access');
+  await page.click('#editWorkspaceLabel');assert.equal(await page.locator('#workspaceLabelInput').inputValue(),'');assert(!(await page.locator('#showWorkspaceTitle').isChecked()));assert.equal(await page.locator('#workspaceLabelInput').getAttribute('placeholder'),'Campus access');
   await page.locator('#workspaceLabelInput').fill('Unused label');await page.click('#cancelWorkspaceLabel');
   assert.equal(await page.evaluate(()=>window.__messages.filter(m=>m.action==='setWorkspaceLabel').length),0);
   await page.click('#editWorkspaceLabel');await page.locator('#workspaceLabelInput').fill('  North campus <b>literal</b>  ');await page.click('#applyWorkspaceLabel');
@@ -59,6 +59,12 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   assert.deepEqual(await page.evaluate(()=>window.__messages.findLast(m=>m.action==='setWorkspaceLabel')),{action:'setWorkspaceLabel',text:''});
   await deliver({type:'workspace',items,selectedId:'one',dirty:true,outputLabel:'',suggestedLabel:'Access-A + Core',effectiveLabel:'Access-A + Core',workspaceName:''});
   assert.equal(await page.locator('#workspaceOutputName').innerText(),'Project name: Access-A + Core');
+  await page.click('#editWorkspaceLabel');await page.locator('#showWorkspaceTitle').check();await page.click('#cancelWorkspaceLabel');
+  assert.equal(await page.evaluate(()=>window.__messages.filter(m=>m.action==='setWorkspaceTitle').length),0,'Cancel does not change title preference');
+  await page.click('#editWorkspaceLabel');await page.locator('#showWorkspaceTitle').check();await page.click('#applyWorkspaceLabel');
+  assert.deepEqual(await page.evaluate(()=>window.__messages.findLast(m=>m.action==='setWorkspaceTitle')),{action:'setWorkspaceTitle',enabled:true});
+  await deliver({type:'workspace',items,selectedId:'one',dirty:true,outputLabel:'Output label only',suggestedLabel:'West Closet',effectiveLabel:'Output label only',showWorkspaceTitle:true});
+  await page.click('#editWorkspaceLabel');assert(await page.locator('#showWorkspaceTitle').isChecked());assert((await page.locator('#workspaceTitlePreview').innerText()).includes('West Closet'));assert(!(await page.locator('#workspaceTitlePreview').innerText()).includes('Output label only'));await page.click('#cancelWorkspaceLabel');
   console.log('PASS optional workspace/output label, explicit Apply/Cancel, automatic saved-workspace/switch naming display and literal text without altering selected output.');
 
 

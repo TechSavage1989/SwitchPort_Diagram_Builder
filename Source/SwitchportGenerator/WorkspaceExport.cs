@@ -64,7 +64,7 @@ public static class WorkspaceExport
                     result.Items.Add(new(item.Id, item.Name, output, false, error));
                 }
             }
-            if (combinedPdf && result.SuccessCount > 0) WriteCombined(result, logoPath, WorkspaceNaming.Effective(workspace));
+            if (combinedPdf && result.SuccessCount > 0) WriteCombined(result, logoPath, WorkspaceNaming.DocumentTitle(workspace));
             File.WriteAllText(Path.Combine(batchDirectory, "workspace-export.json"), JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
             return result;
         }
@@ -92,7 +92,7 @@ public static class WorkspaceExport
         return blockers.Length > 0 ? string.Join("\n", blockers) : "Generation blocked. Review the validation report in this item's output folder.";
     }
 
-    static void WriteCombined(WorkspaceExportResult result, string? logoPath,string title)
+    static void WriteCombined(WorkspaceExportResult result, string? logoPath,string? title)
     {
         string diagramsPath = Path.Combine(result.OutputDirectory, "workspace-a4-diagrams.pdf");
         string bookletPath = Path.Combine(result.OutputDirectory, "workspace-a4-booklets.pdf");

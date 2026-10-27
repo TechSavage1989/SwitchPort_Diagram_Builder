@@ -43,6 +43,7 @@ public sealed class ConfigurationWorkspace
     public ConfigurationItem? Selected => Items.FirstOrDefault(item => item.Id == SelectedId);
     public bool Dirty { get; set; }
     public string OutputLabel { get; set; } = "";
+    public bool ShowWorkspaceTitle { get; set; }
     public string SavedWorkspaceName { get; set; } = "";
     public WorkspacePaletteOverrides PaletteOverrides { get; set; } = new();
 
@@ -104,7 +105,7 @@ public sealed class ConfigurationWorkspace
 
     public string Serialize()
     {
-        var document = new WorkspaceDocument { Format = FormatName, Version = FormatVersion, Items = Items, SelectedId = SelectedId, OutputLabel = WorkspaceNaming.CleanLabel(OutputLabel), PaletteOverrides = PaletteOverrides };
+        var document = new WorkspaceDocument { Format = FormatName, Version = FormatVersion, Items = Items, SelectedId = SelectedId, OutputLabel = WorkspaceNaming.CleanLabel(OutputLabel), ShowWorkspaceTitle = ShowWorkspaceTitle, PaletteOverrides = PaletteOverrides };
         string json = JsonSerializer.Serialize(document, JsonOptions);
         if (Encoding.UTF8.GetByteCount(json) > MaxWorkspaceBytes)
             throw new InvalidOperationException("The saved workspace exceeds the 100 MB limit.");
@@ -163,6 +164,7 @@ public sealed class ConfigurationWorkspace
             throw new InvalidOperationException("The selected configuration is not in this workspace.");
         workspace.SelectedId = document.SelectedId ?? workspace.Items.FirstOrDefault()?.Id;
         workspace.OutputLabel=WorkspaceNaming.CleanLabel(document.OutputLabel);
+        workspace.ShowWorkspaceTitle=document.ShowWorkspaceTitle;
         workspace.PaletteOverrides=WorkspacePalette.NormalizeOverrides(workspace.Items.Select(item=>(item.Id,item.Inventory)).ToArray(),document.PaletteOverrides??new());
         // Palette overrides are explicit workspace metadata, not independent per-item colors.
         if(workspace.PaletteOverrides.Vlans==null||workspace.PaletteOverrides.Aggregates==null||workspace.PaletteOverrides.Vlans.Count>0||workspace.PaletteOverrides.Aggregates.Count>0)
@@ -193,6 +195,7 @@ public sealed class ConfigurationWorkspace
         public string? SelectedId { get; set; }
         public List<ConfigurationItem> Items { get; set; } = new();
         public string OutputLabel { get; set; } = "";
+        public bool ShowWorkspaceTitle { get; set; }
         public WorkspacePaletteOverrides? PaletteOverrides { get; set; }
     }
 }

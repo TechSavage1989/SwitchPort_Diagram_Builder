@@ -595,9 +595,9 @@ public static class QuickSheet
         for(int i=0;i<scene.Dots.Count;i++){var d=scene.Dots[i];if(Body(d.Y))scene.Dots[i]=d with{X=X(d.X),Y=Y(d.Y),Radius=d.Radius*scale,Halo=d.Halo*scale,Outline=d.Outline*scale,VoiceExtra=d.VoiceExtra*scale};}
         for(int i=0;i<scene.Shapes.Count;i++){var shape=scene.Shapes[i];if(Body(shape.Points.Min(p=>p.Y)))scene.Shapes[i]=shape with{Points=shape.Points.Select(p=>(X(p.X),Y(p.Y))).ToArray(),StrokeWidth=shape.StrokeWidth*scale};}
     }
-    static void DrawVisualGuide(Scene scene,Inventory inv,IReadOnlyDictionary<int,string> palette,IReadOnlyDictionary<string,string> aggregates)
+    internal static void DrawVisualGuide(Scene scene,Inventory inv,IReadOnlyDictionary<int,string> palette,IReadOnlyDictionary<string,string> aggregates,double y=39)
     {
-        double x=0,y=39;
+        double x=0;
         string fill=palette.GetValueOrDefault(10,palette.Values.FirstOrDefault()??"#b9cfdf");
         string voice=palette.Where(p=>IsVoice(inv,p.Key)).Select(p=>p.Value).FirstOrDefault()??fill;
         void Item(string text,double symbolWidth,Action<double> symbol)

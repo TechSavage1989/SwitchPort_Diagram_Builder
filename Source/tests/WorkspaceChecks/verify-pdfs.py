@@ -20,6 +20,9 @@ for index, page in enumerate(diagrams.pages):
     text = page.extract_text()
     assert "WORKSPACE PORT MAPS" not in text
     assert text.count("VLAN key") == 1
+    for symbol in ("Native VLAN", "Tagged VLAN", "Voice VLAN", "LAG / trunk"):
+        assert text.count(symbol) == 1
+    assert ".cfg" not in text
     assert text.count("10 Data") == 1 and text.count("150 Voice (Voice)") == 1
     page_entries = [entry for entry in layout["LegendEntries"] if entry["PageNumber"] == index + 1]
     assert len({entry["Identity"] for entry in page_entries}) == len(page_entries)

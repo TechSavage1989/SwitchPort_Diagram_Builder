@@ -6,7 +6,7 @@ from PIL import Image, ImageChops
 from pypdf import PdfReader
 
 root = Path(sys.argv[1])
-for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
+for prefix in ['titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
     plan = json.loads((root / (prefix + '-plan.json')).read_text())
     pdf = PdfReader(root / (prefix + '.pdf'))
     assert len(pdf.pages) == plan['PageCount']
@@ -19,7 +19,7 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
         assert text.count('VLAN key') == 1
         assert text.count('10 Data') == 1
         assert 'WORKSPACE PORT MAPS' not in text
-        assert plan['Placements'][0]['Y'] == 0
+        assert plan['Placements'][0]['Y'] == 18
     if prefix == 'five-ordered':
         assert 1 < len(pdf.pages) < 5
         text = '\n'.join(page.extract_text() for page in pdf.pages)
@@ -38,11 +38,15 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
         assert 'Confirm live link, LLDP/CDP, and MAC address table' in text
         assert 'WORKSPACE PORT MAPS' not in text
         assert text.count('VLAN key') == 1
+        for symbol in ['Native VLAN', 'Tagged VLAN', 'Voice VLAN', 'LAG / trunk']:
+            assert text.count(symbol) == 1
+        assert '.cfg' not in text
+        assert ('West Closet' in text) == (prefix == 'titled-sheet')
         compact = ''.join(text.split())
         for entry in plan['LegendEntries']:
             if entry['PageNumber'] == index:
                 assert ''.join(entry['Label'].split()) in compact, (prefix, index, entry)
-        assert plan['SideKeys'][index - 1]['X'] > 580 and plan['SideKeys'][index - 1]['Y'] < 3
+        assert plan['SideKeys'][index - 1]['X'] > 580 and plan['SideKeys'][index - 1]['Y'] >= 18
         if prefix == 'many-wrapped-key':
             assert 'Key page ' in text
         if prefix == 'conflicting-key':

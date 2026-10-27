@@ -1,3 +1,15 @@
+SWITCHPORT DIAGRAM BUILDER 1.14.3 - TEST NOTES
+
+Focused checks cover the single top symbol key, retained switch identity without
+filenames, optional workspace title on/off/wrapping, saved-title preference,
+rename/update handoff and separate output labels. PNG/PDF share the same scene.
+All existing required CI remains enabled. Local Python/JS checks precede review;
+hosted runtime checks and representative rendered artifacts verify the change.
+No extra broad manual sweep. Interactive Windows UI/restart is not claimed run.
+
+Historical 1.14.2 notes follow
+=============================
+
 SWITCHPORT DIAGRAM BUILDER 1.14.2 - TEST NOTES
 
 Focused correction: ID-only shared VLAN colors/aliases, side legend with complete

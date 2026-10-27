@@ -2,7 +2,7 @@ const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[];
 let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null;
-let workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
+let workspaceShowTitle=false,workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
 let project={available:false,chartAvailable:false,folderAvailable:false,combined:false,pageCount:0,pdfAvailable:false,label:'',output:'',stale:false,summary:''},projectKnown=false;
 const post=message=>window.chrome.webview.postMessage(message);
 const locked=()=>updating||busy||loading||deviceLoading;
@@ -13,7 +13,7 @@ function controls(){
  el('saveWorkspace').disabled=locked()||(!workspaceItems.length&&!workspaceDirty);
  el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
  el('openChart').disabled=locked()||!project.chartAvailable;el('openPdf').disabled=locked()||!project.pdfAvailable;el('previewSheets').hidden=!project.combined;el('previewSheets').disabled=locked()||!combinedAvailable;el('openPreviewPng').disabled=locked()||previewLoading||el('combinedPreviewImage').hidden;el('open').disabled=updating||!project.folderAvailable;
- el('editWorkspaceLabel').disabled=locked();el('applyWorkspaceLabel').disabled=locked();el('workspaceLabelInput').disabled=locked();
+ el('editWorkspaceLabel').disabled=locked();el('applyWorkspaceLabel').disabled=locked();el('workspaceLabelInput').disabled=locked();el('showWorkspaceTitle').disabled=locked();
  el('previousCombined').disabled=previewLoading||previewIndex<=0;el('nextCombined').disabled=previewLoading||previewIndex>=combinedPageCount-1;el('openCombined').disabled=locked()||!project.pdfAvailable;
  el('workspaceList').querySelectorAll('button').forEach(button=>button.disabled=locked()||button.dataset.boundary==='true');
  el('workspaceList').querySelectorAll('li').forEach(row=>row.draggable=!locked());
@@ -81,6 +81,7 @@ el('saveWorkspace').onclick=()=>{if(!locked()&&(workspaceItems.length||workspace
 
 el('editWorkspaceLabel').onclick=()=>{
  if(locked()||editorOpen())return;
+ el('showWorkspaceTitle').checked=workspaceShowTitle;el('workspaceTitlePreview').textContent='Document title: '+(workspaceSuggestedLabel||'Switch names until the workspace is saved')+'. Save or rename the workspace to change it; the output folder label is separate.';
  el('workspaceLabelInput').value=workspaceOutputLabel;el('workspaceLabelInput').placeholder=workspaceSuggestedLabel||'Automatic';
  el('workspaceLabelAutomatic').textContent='Automatic: '+(workspaceSuggestedLabel||'Switch names, or the saved workspace filename');
  el('workspaceLabelDialog').showModal();post({action:'updateEditing',enabled:true});el('workspaceLabelInput').focus();
@@ -91,6 +92,7 @@ el('applyWorkspaceLabel').onclick=()=>{
  if(locked())return;
  const text=el('workspaceLabelInput').value.trim();
  if(text!==workspaceOutputLabel)post({action:'setWorkspaceLabel',text});
+ if(el('showWorkspaceTitle').checked!==workspaceShowTitle)post({action:'setWorkspaceTitle',enabled:el('showWorkspaceTitle').checked});
  el('workspaceLabelDialog').close();
 };
 el('workspaceLabelInput').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();el('applyWorkspaceLabel').click();}});
@@ -160,6 +162,7 @@ el('saveDevices').onclick=()=>{
 function renderWorkspace(message){
  const selectionChanged=selectedId!==(message.selectedId||null);
  workspaceItems=message.items||[];workspaceDirty=!!message.dirty;selectedId=message.selectedId||null;
+ if(typeof message.showWorkspaceTitle==='boolean')workspaceShowTitle=message.showWorkspaceTitle;
  if(typeof message.outputLabel==='string')workspaceOutputLabel=message.outputLabel;
  if(typeof message.suggestedLabel==='string')workspaceSuggestedLabel=message.suggestedLabel;
  if(typeof message.effectiveLabel==='string')workspaceEffectiveLabel=message.effectiveLabel;

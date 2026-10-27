@@ -26,15 +26,15 @@ public sealed class ReportLogo
         using var image=surface.Snapshot();using var data=image.Encode(SKEncodedImageFormat.Png,100);
         return new ReportLogo(data.ToArray(),width,height);
     }
-    public void Apply(Scene scene)
+    public void Apply(Scene scene,double headerY=0)
     {
-        var header=scene.Boxes.FirstOrDefault(b=>b.X==0&&b.Y==0&&b.Fill=="#13283d");
+        var header=scene.Boxes.FirstOrDefault(b=>b.X==0&&b.Y==headerY&&b.Fill=="#13283d");
         if(header==null)throw new InvalidOperationException("The report header is unavailable for a logo.");
-        double width=scene.Width*.14,height=header.H-12,x=scene.Width-width-8,y=6;
+        double width=scene.Width*.14,height=header.H-12,x=scene.Width-width-8,y=headerY+6;
         for(int i=0;i<scene.Labels.Count;i++)
         {
             var label=scene.Labels[i];
-            if(label.Y<header.H&&label.X<x&&(label.Width==0||label.X+label.Width>x-10))scene.Labels[i]=label with{Width=x-10-label.X};
+            if(label.Y>=headerY&&label.Y<headerY+header.H&&label.X<x&&(label.Width==0||label.X+label.Width>x-10))scene.Labels[i]=label with{Width=x-10-label.X};
         }
         scene.Rect(x,y,width,height,"#ffffff","#ffffff",2,"ReportLogo");
         double scale=Math.Min((width-8)/Width,(height-6)/Height);

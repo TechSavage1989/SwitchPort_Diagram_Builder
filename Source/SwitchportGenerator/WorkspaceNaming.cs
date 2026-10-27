@@ -28,6 +28,7 @@ public static class WorkspaceNaming
         if(names.Count==0)return "Switchport workspace";
         return Safe(string.Join(" + ",names.Take(3))+(names.Count>3?$" + {names.Count-3} more":""));
     }
+    public static string? DocumentTitle(ConfigurationWorkspace workspace)=>workspace.ShowWorkspaceTitle?Suggested(workspace):null;
     public static string Effective(ConfigurationWorkspace workspace)=>workspace.OutputLabel.Length>0?Safe(workspace.OutputLabel):Suggested(workspace);
     public static string Safe(string label)=>ReportNaming.FolderName(new Inventory{Hostname=string.IsNullOrWhiteSpace(label)?"Switchport workspace":label});
     public static string CreateOutputDirectory(string parent,string label)

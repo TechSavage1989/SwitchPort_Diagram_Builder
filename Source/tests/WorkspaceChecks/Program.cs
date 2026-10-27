@@ -124,6 +124,8 @@ static class WorkspaceChecks
     static void CheckNaming(string root)
     {
         var named=new ConfigurationWorkspace();named.AddText(RouterOs,"router.rsc");
+        Check(WorkspaceNaming.DocumentTitle(named)==null,"Workspace title starts disabled.");
+        named.ShowWorkspaceTitle=true;Check(WorkspaceNaming.DocumentTitle(named)!.Contains("FIBER-LAB"),"Unsaved title falls back to switch identity, not an output label.");
         Check(WorkspaceNaming.Effective(named).Contains("FIBER-LAB"),"Unsaved workspace names derive from switch identities.");
         string path=Path.Combine(root,"Campus West.spworkspace.json");named.Save(path);
         Check(WorkspaceNaming.Effective(named)=="Campus West","Saved workspace basename is the automatic output name.");
@@ -132,6 +134,9 @@ static class WorkspaceChecks
         Check(WorkspaceNaming.Effective(loaded)=="Renamed Site","Renamed saved workspace picks up the actual filename on reopen.");
         loaded.OutputLabel="Custom / Site: West";loaded.Save(renamed);
         var custom=ConfigurationWorkspace.Load(renamed);
+        Check(custom.ShowWorkspaceTitle&&WorkspaceNaming.DocumentTitle(custom)=="Renamed Site","Title setting persists and uses the reopened workspace filename, not the custom output folder label.");
+        var restoredTitle=WorkspaceRestartState.Restore(JsonSerializer.Serialize(WorkspaceRestartState.Capture(custom)),_=>true,_=>true);
+        Check(restoredTitle.ShowWorkspaceTitle&&WorkspaceNaming.DocumentTitle(restoredTitle)=="Renamed Site","Update handoff retains title preference and workspace name.");
         Check(custom.OutputLabel==loaded.OutputLabel&&WorkspaceNaming.Effective(custom)=="Custom _ Site_ West","Custom labels persist; unsafe filename characters are sanitized.");
         custom.OutputLabel="";Check(WorkspaceNaming.Effective(custom)=="Renamed Site","Clearing the override restores the saved filename default.");
         string parent=Path.Combine(root,"naming");Directory.CreateDirectory(parent);
@@ -147,7 +152,8 @@ static class WorkspaceChecks
         }
         Reject(()=>WorkspaceNaming.CleanLabel("line\nname"),"Multiline labels are rejected explicitly.");
         Reject(()=>WorkspaceNaming.CleanLabel(new string('x',101)),"Oversized custom labels are rejected explicitly.");
-        var legacy=JsonNode.Parse(named.Serialize())!;legacy.AsObject().Remove("OutputLabel");legacy.AsObject().Remove("PaletteOverrides");
+        var legacy=JsonNode.Parse(named.Serialize())!;legacy.AsObject().Remove("OutputLabel");legacy.AsObject().Remove("PaletteOverrides");legacy.AsObject().Remove("ShowWorkspaceTitle");
+        Check(!ConfigurationWorkspace.Deserialize(legacy.ToJsonString()).ShowWorkspaceTitle,"Legacy workspace titles remain opt-in, never enabled on migration.");
         Check(ConfigurationWorkspace.Deserialize(legacy.ToJsonString()).OutputLabel=="","1.13 workspaces remain compatible without optional naming/palette fields.");
     }
 

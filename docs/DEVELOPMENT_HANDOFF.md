@@ -1,4 +1,27 @@
-# VLAN-ID keys, side legends and PNG opening — 1.14.2
+# Shared top symbols and optional workspace title — 1.14.3
+
+## Current focused update
+
+Combined pages have one top symbol/appearance key, reused from the standalone
+renderer, including stack/disabled symbols when applicable. Per-switch copies and
+source filenames are removed. Switch hostnames/models/member identities remain.
+The shared side VLAN-ID key remains separate. The scene reserves top space before
+packing complete switch blocks; the same scene drives PNG and vector PDF.
+
+`ShowWorkspaceTitle` is an optional version-1 workspace boolean, default false.
+Name… exposes it with explicit Apply/Cancel. `WorkspaceNaming.DocumentTitle` uses
+`Suggested`, not the custom output `Effective` label: saved workspace basename,
+otherwise intelligible switch identities. Reopen after file rename and protected
+update handoff retain the intended name. Save-as invalidates a titled previous
+result even if a custom output label stayed unchanged. Optional titles wrap at
+readable size; no generic title is introduced. Logos stay in the first switch's
+header. Individual QuickSheet exports retain their existing key and header.
+
+Targeted coverage: one top symbol key/page, filename omission and switch identity,
+opt-in title on/off/wrapping, persistence/rename/update handoff, separate output
+label and actual PNG/PDF layout. Existing required CI remains intact; avoid extra
+manual sweeps. Local packaging/root/branding and JS checks precede review; hosted
+runtime and public asset verification remain release gates.
 
 ## Focused update
 

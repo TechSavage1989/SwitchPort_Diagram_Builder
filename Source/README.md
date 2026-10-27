@@ -1,4 +1,12 @@
-Switchport Diagram Builder 1.14.2 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.3 - Windows 10/11 x64
+
+1.14.3: Shared top symbol key and optional workspace title
+- Combined sheets show one native/tagged/voice/LAG appearance key at the top.
+- Switch headers retain switch identity/model, not source configuration filenames.
+- Name… offers an opt-in workspace-name document title. It is off by default,
+  persists in the workspace and is separate from a custom output folder label.
+- Side VLAN-ID key, PNG/PDF opening and individual-switch exports are unchanged.
+
 
 1.14.2: VLAN-ID matching, side key and explicit PNG/PDF opening
 - One shared key/color per VLAN ID regardless of name; aliases are retained.

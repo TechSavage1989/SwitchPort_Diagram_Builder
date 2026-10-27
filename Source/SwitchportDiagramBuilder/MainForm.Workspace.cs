@@ -14,7 +14,7 @@ public sealed partial class MainForm
       Send(new
       {
         type="workspace",selectedId=workspace.SelectedId,dirty=workspace.Dirty,
-        outputLabel=workspace.OutputLabel,effectiveLabel=WorkspaceNaming.Effective(workspace),suggestedLabel=WorkspaceNaming.Suggested(workspace),workspaceName=workspace.SavedWorkspaceName,
+        showWorkspaceTitle=workspace.ShowWorkspaceTitle,outputLabel=workspace.OutputLabel,effectiveLabel=WorkspaceNaming.Effective(workspace),suggestedLabel=WorkspaceNaming.Suggested(workspace),workspaceName=workspace.SavedWorkspaceName,
         items=workspace.Items.Select(item=>new
         {
             id=item.Id,name=item.Name,hostname=DisplayName(item),model=ReportText.SwitchModel(item.Inventory),
@@ -72,9 +72,9 @@ public sealed partial class MainForm
             FileName=(workspace.SavedWorkspaceName.Length>0?workspace.SavedWorkspaceName:"Switchport workspace")+".spworkspace.json",OverwritePrompt=true
         };
         if(dialog.ShowDialog(this)!=DialogResult.OK)return;
-        string previousLabel=WorkspaceNaming.Effective(workspace);
+        string previousLabel=WorkspaceNaming.Effective(workspace);string? previousTitle=WorkspaceNaming.DocumentTitle(workspace);
         workspace.Save(dialog.FileName);
-        if(previousLabel!=WorkspaceNaming.Effective(workspace))InvalidateBatch();
+        if(previousLabel!=WorkspaceNaming.Effective(workspace)||previousTitle!=WorkspaceNaming.DocumentTitle(workspace))InvalidateBatch();
         SendWorkspace();
         Send(new{type="workspaceSaved",message="Workspace saved. It contains configuration text; protect it like the original files."});
     }
