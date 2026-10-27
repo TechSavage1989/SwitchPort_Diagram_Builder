@@ -99,6 +99,7 @@ el('saveDevices').onclick=()=>{
 };
 
 function renderWorkspace(message){
+ const selectionChanged=selectedId!==(message.selectedId||null);
  workspaceItems=message.items||[];selectedId=message.selectedId||null;
  if(message.batchAvailable===false){batchOutput=false;el('batchResult').hidden=true;}
  const active=document.activeElement,focusId=active?.dataset.itemId,focusAction=active?.dataset.workspaceAction,scrollTop=el('workspaceList').scrollTop;
@@ -127,7 +128,8 @@ function renderWorkspace(message){
   el('workspaceList').append(row);
  });
  controls();el('workspaceList').scrollTop=scrollTop;
- if(focusId&&focusAction){const target=Array.from(el('workspaceList').querySelectorAll('button')).find(button=>button.dataset.itemId===focusId&&button.dataset.workspaceAction===focusAction);if(target&&!target.disabled)target.focus({preventScroll:true});}
+ if(selectionChanged)el('workspaceList').querySelector('.selected')?.scrollIntoView({block:'nearest'});
+ if(focusId&&focusAction){const target=Array.from(el('workspaceList').querySelectorAll('button')).find(button=>button.dataset.itemId===focusId&&button.dataset.workspaceAction===focusAction);if(target&&!target.disabled){target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}}
 }
 async function readDroppedFile(file){
  if(file.size>MAX_INPUT_BYTES)throw new Error('Configuration exceeds the 20 MB limit.');

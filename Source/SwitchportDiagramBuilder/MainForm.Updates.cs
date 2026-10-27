@@ -53,8 +53,7 @@ public sealed partial class MainForm
         if(workspace.Items.Count==0)return null;
         string directory=UpdatePaths.InstallRoot(Environment.ProcessPath!);
         string path=Path.Combine(directory,"session-"+Guid.NewGuid().ToString("N")+".json");
-        AppUpdateController.AtomicJson(path,new WorkspaceRestartSession(workspace.Serialize(),workspace.Dirty,
-            workspace.Items.Select(item=>new ItemRestartState(item.Id,item.LastOutput,item.LastChart,item.Status,item.StatusType,item.Dirty)).ToArray()));
+        AppUpdateController.AtomicJson(path,WorkspaceRestartState.Capture(workspace));
         return path;
     }
     void RestoreUpdateSession()
@@ -63,33 +62,9 @@ public sealed partial class MainForm
         try
         {
             string path=updateLaunch.SessionPath;
-            if(new FileInfo(path).Length>256_000_000)throw new InvalidDataException("Saved restart workspace is too large.");
-            string json=File.ReadAllText(path);
-            using var document=JsonDocument.Parse(json);
-            if(document.RootElement.TryGetProperty("Workspace",out _))
-            {
-                var state=JsonSerializer.Deserialize<WorkspaceRestartSession>(json)??throw new InvalidDataException("Saved restart workspace is empty.");
-                workspace=ConfigurationWorkspace.Deserialize(state.Workspace);workspace.Dirty=state.Dirty;
-                foreach(var saved in state.Items??Array.Empty<ItemRestartState>())
-                {
-                    var item=workspace.Items.FirstOrDefault(item=>item.Id==saved.Id);if(item==null)continue;
-                    item.LastOutput=saved.LastOutput!=null&&Directory.Exists(saved.LastOutput)?saved.LastOutput:null;
-                    item.LastChart=saved.LastChart!=null&&File.Exists(saved.LastChart)?saved.LastChart:null;
-                    item.Status=saved.Status;item.StatusType=saved.StatusType;item.Dirty=saved.Dirty;
-                }
-                SendSelection();
-            }
-            else
-            {
-                // Accept the previous single-configuration handoff during the first upgrade.
-                var state=JsonSerializer.Deserialize<RestartSession>(json)??throw new InvalidDataException("Saved restart selection is empty.");
-                var item=workspace.AddText(state.Text,state.Name);
-                workspace.SetDevices(item.Id,state.Devices??Array.Empty<DeviceIdentity>());
-                lastOutput=state.LastOutput!=null&&Directory.Exists(state.LastOutput)?state.LastOutput:null;
-                lastChart=state.LastChart!=null&&File.Exists(state.LastChart)?state.LastChart:null;
-                item.Status=lastOutput==null?"":"Configuration and saved device details restored after update.\n\nOutput: "+lastOutput;
-                item.StatusType=lastOutput==null?"":"complete";SendSelection();
-            }
+            if(new FileInfo(path).Length>WorkspaceRestartState.MaxBytes)throw new InvalidDataException("Saved restart workspace is too large.");
+            workspace=WorkspaceRestartState.Restore(File.ReadAllText(path),Directory.Exists,File.Exists);
+            SendSelection();
             // Keep the handoff until the helper commits healthy startup so rollback can restore it.
             if(updateLaunch.HealthPath.Length==0)File.Delete(path);
         }
@@ -98,9 +73,7 @@ public sealed partial class MainForm
             Send(new{type="error",message="The previous workspace could not be restored. Reopen a saved workspace or reload configurations. Existing reports and settings are retained.",details=ex.Message});
         }
     }
-    sealed record WorkspaceRestartSession(string Workspace,bool Dirty,ItemRestartState[] Items);
-    sealed record ItemRestartState(string Id,string? LastOutput,string? LastChart,string Status,string StatusType,bool Dirty);
-    sealed record RestartSession(string Text,string Name,DeviceIdentity[] Devices,string? LastOutput,string? LastChart);
+
 }
 
 internal sealed class UpdateLaunchOptions

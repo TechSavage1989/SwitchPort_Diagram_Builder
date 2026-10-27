@@ -31,7 +31,8 @@ atomic replacement. Limits: 20 MB/configuration, 100 items and 100 MB serialized
 workspace. Workspace files can contain credentials: do not commit/upload them, and
 protect them like original backups. `.gitignore` excludes their usual extension.
 
-The update restart handoff now retains the complete ordered workspace plus runtime
+`WorkspaceRestartState.cs` provides the pure, regression-tested handoff capture/restore
+and legacy migration used by the host. The update restart handoff now retains the complete ordered workspace plus runtime
 output/status/dirty state. The old single-selection handoff is still accepted for
 upgrades. The original updater's protected session-path checks, hashes, extraction,
 replacement and health/rollback logic are unchanged. This handoff is the existing
@@ -62,6 +63,8 @@ successful items only, in the same order, with failures recorded in
 - New `WorkspaceChecks` and `verify-pdfs.py` cover ordered mixed-vendor/invalid and
   duplicate imports, state isolation, model recovery, save/open validation, batch
   collisions, all eight existing formats, combined page order, A4 and 300 DPI.
+  Restart-state tests verify order/selection/models, unsaved flags, runtime outputs,
+  missing paths, malformed handoffs and migration from the old single-item shape.
 - New browser workspace checks cover additive imports, selection/restore, movement,
   deletion, independent editing bridge, batch vs selected output, generation locks,
   normal/small windows and accessible controls. Existing CI UI checks are retained.
@@ -74,6 +77,12 @@ successful items only, in the same order, with failures recorded in
 - Interactive native Windows/WebView2 dialogs, a real user update/restart and
   fixture-specific historical private client input scripts cannot be fully exercised
   in this cloud workspace. Do not claim those as tested.
+
+The first isolated branch run (9d07194) passed all browser checks, including new
+workspace coverage. Downloaded screenshot artifact SHA-256:
+`239560de489e4bcbfe9d9d11351e62db056ddf85b01bdba89b1d5e935bb9a37a`.
+Normal and small-window screenshots were visually inspected; the selected item now
+automatically scrolls into view. Final hosted checks still apply to the final commit.
 
 Release procedure: isolated feature branch first; inspect every CI result, download
 and verify packaged assets and interface screenshots, then non-force fast-forward

@@ -39,7 +39,7 @@ jobs:
 
       - name: Check ordered multi-configuration workspace
         run: node Source/tests/verify-workspace-ui.cjs
-      - name: Check launch, copy, logo and RouterOS controls
+      - name: Check launch, copy and logo controls
         run: |
           node Source/tests/verify-launch-layout.cjs
           node Source/tests/verify-output-copy.cjs

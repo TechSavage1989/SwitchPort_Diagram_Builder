@@ -56,6 +56,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await page.click('#paste');await page.locator('#pasteText').fill('hostname Pasted');await page.click('#usePaste');assert.deepEqual(await last(),{action:'loadText',text:'hostname Pasted',name:'Pasted configuration'});
   items.push(item('six','Pasted configuration','Pasted','JL256A'));await workspace('six');await selected('six');
   assert(await page.locator('#pasteDialog').isHidden());assert.equal(await page.locator('.workspace-row').count(),5);
+  assert(await button('six','select').evaluate(el=>{const row=el.getBoundingClientRect(),list=document.getElementById('workspaceList').getBoundingClientRect();return row.top>=list.top&&row.bottom<=list.bottom;}),'new selected item is visible inside the scrollable list');
   console.log('PASS additive mixed-validity multi-drop, per-file errors, duplicate retention, import lock, and paste as a new item.');
 
   await selected('six',true,'Selected report result');await page.locator('#combinePdf').check();await page.click('#runAll');assert.deepEqual(await last(),{action:'runAll',combined:true});

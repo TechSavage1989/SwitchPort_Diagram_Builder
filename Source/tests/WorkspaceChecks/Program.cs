@@ -82,6 +82,8 @@ static class WorkspaceChecks
         Reject(() => ConfigurationWorkspace.Deserialize(bad.ToJsonString()), "Null device identifiers must produce an actionable validation error.");
         Check(workspace.Items.Count == 4 && workspace.SelectedId == first.Id, "Failed workspace loads leave the original workspace intact.");
 
+        CheckRestartState(workspace);
+
         string oldSelection = workspace.SelectedId!;
         var exported = WorkspaceExport.Export(workspace, root);
         Check(exported.SuccessCount == 3 && exported.FailureCount == 1, "Batch continues after invalid items and exports every valid item.");
@@ -111,5 +113,54 @@ static class WorkspaceChecks
         Check(workspace.SelectedId == duplicate.Id && workspace.Dirty, "Removing selected item selects the nearest remaining item.");
         foreach (var item in workspace.Items.ToArray()) workspace.Remove(item.Id);
         Check(workspace.Selected == null && workspace.Items.Count == 0, "Removing all items leaves a coherent empty workspace.");
+    }
+
+    static void CheckRestartState(ConfigurationWorkspace original)
+    {
+        // Work on a clone so this handoff test cannot change the batch fixtures below.
+        var workspace = ConfigurationWorkspace.Deserialize(original.Serialize());
+        workspace.Dirty = true;
+        foreach (var item in workspace.Items)
+        {
+            item.LastOutput = "output/" + item.Id;
+            item.LastChart = item.LastOutput + "/wall-chart.png";
+            item.Status = "Saved report status for " + item.Id;
+            item.StatusType = "complete";
+            item.Dirty = item.Id == workspace.SelectedId;
+        }
+        string json = JsonSerializer.Serialize(WorkspaceRestartState.Capture(workspace));
+        var restored = WorkspaceRestartState.Restore(json, _ => true, _ => true);
+        Check(restored.Items.Select(item => item.Id).SequenceEqual(workspace.Items.Select(item => item.Id)) && restored.SelectedId == workspace.SelectedId,
+            "Updater handoff must restore every configuration in order and preserve selection.");
+        Check(restored.Selected!.Devices[0].ModelSelection == "Custom report label" && restored.Selected.Devices[0].SerialNumber == "FIRST-ONLY",
+            "Updater handoff retains independent manual model and device details.");
+        Check(restored.Dirty && restored.Items.Select(item => item.Dirty).SequenceEqual(workspace.Items.Select(item => item.Dirty)),
+            "Updater handoff must retain workspace and per-item unsaved flags exactly.");
+        Check(restored.Items.Zip(workspace.Items).All(pair => pair.First.LastOutput == pair.Second.LastOutput && pair.First.LastChart == pair.Second.LastChart
+            && pair.First.Status == pair.Second.Status && pair.First.StatusType == pair.Second.StatusType),
+            "Updater handoff retains item-specific output, chart and status state.");
+        var missing = WorkspaceRestartState.Restore(json, _ => false, _ => false);
+        Check(missing.Items.All(item => item.LastOutput == null && item.LastChart == null) && missing.Items.Count == workspace.Items.Count,
+            "Missing exported paths are dropped without losing configurations or selection.");
+        Check(missing.SelectedId == workspace.SelectedId && missing.Dirty && missing.Selected!.Dirty,
+            "Missing paths must not discard unsaved or selection state.");
+        var damaged = JsonNode.Parse(json)!;
+        damaged["Items"]![1]!["Id"] = damaged["Items"]![0]!["Id"]!.GetValue<string>();
+        Reject(() => WorkspaceRestartState.Restore(damaged.ToJsonString(), _ => true, _ => true), "Duplicate restart runtime identities must not alias configuration state.");
+        Reject(() => WorkspaceRestartState.Restore("[]", _ => true, _ => true), "Invalid restart handoff shape must fail clearly.");
+        var legacy = new { Text = Aruba, Name = "legacy.cfg", Devices = new[] { new DeviceIdentity { Id = "1", Name = "LEGACY-NAME", ModelSelection = "Legacy model label" } }, LastOutput = "legacy-output", LastChart = "legacy-output/wall-chart.png" };
+        string oldJson = JsonSerializer.Serialize(legacy);
+        var migrated = WorkspaceRestartState.Restore(oldJson, path => path == legacy.LastOutput, path => path == legacy.LastChart);
+        Check(migrated.Items.Count == 1 && migrated.Selected!.Name == "legacy.cfg" && migrated.Selected.Text == Aruba,
+            "The previous single-item restart format migrates into a selected workspace item.");
+        Check(migrated.Selected!.Devices[0].Name == "LEGACY-NAME" && migrated.Selected.Devices[0].ModelSelection == "Legacy model label",
+            "Old-format migration retains operator model and device detail overrides.");
+        Check(migrated.Selected.LastOutput == legacy.LastOutput && migrated.Selected.LastChart == legacy.LastChart && migrated.Selected.StatusType == "complete"
+            && migrated.Selected.Status.Contains(legacy.LastOutput) && migrated.Dirty && migrated.Selected.Dirty,
+            "Old-format migration restores available outputs and marks the new workspace unsaved.");
+        var missingLegacy = WorkspaceRestartState.Restore(oldJson, _ => false, _ => false);
+        Check(missingLegacy.Selected!.LastOutput == null && missingLegacy.Selected.LastChart == null && missingLegacy.Selected.StatusType == "",
+            "Old-format migration tolerates deleted output directories and charts.");
+        Check(!original.Dirty && original.Items.All(item => !item.Dirty), "Capturing and restoring handoffs must not mutate the original workspace.");
     }
 }

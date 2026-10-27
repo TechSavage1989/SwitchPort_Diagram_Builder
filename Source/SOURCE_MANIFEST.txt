@@ -55,6 +55,7 @@ SwitchportGenerator/ReportText.cs
 SwitchportGenerator/SwitchportGenerator.csproj
 SwitchportGenerator/VlanPalette.cs
 SwitchportGenerator/WorkspaceExport.cs
+SwitchportGenerator/WorkspaceRestartState.cs
 SwitchportUpdater/FileInstallTransaction.cs
 SwitchportUpdater/PackageValidator.cs
 SwitchportUpdater/PortableVersionInfo.cs
