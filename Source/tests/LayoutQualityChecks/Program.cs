@@ -60,7 +60,7 @@ static class LayoutQualityChecks
         {
             int id=result.VlanColors.Single(p=>p.Value==swatch.Fill).Key;actualIds.Add(id);
             double columnRight=columnXs.FirstOrDefault(x=>x>swatch.X+.01,band.X+band.W);
-            double nextY=swatches.Where(b=>Math.Abs(b.X-swatch.X)<.01&&b.Y>swatch.Y+.01).Select(b=>b.Y-result.GeometryScale).DefaultIfEmpty(scene.Height-12).Min();
+            double nextY=swatches.Where(b=>Math.Abs(b.X-swatch.X)<.01&&b.Y>swatch.Y+.01).Select(b=>b.Y-result.GeometryScale).DefaultIfEmpty(QuickSheet.IconKeyTop).Min();
             var labels=scene.Labels.Where(l=>l.Color=="#30465c"&&l.Owner.Length==0&&l.Y>=swatch.Y-result.GeometryScale-.05&&l.Y<nextY-.05&&l.X>swatch.X&&l.X<columnRight-.01).OrderBy(l=>l.Y).ToList();
             Check(labels.Count>0,name+": key text missing for VLAN "+id);
             bool voice=inv.Vlans.Any(v=>v.Id==id&&v.Voice)||inv.Ports.Any(p=>p.VoiceVlan==id);

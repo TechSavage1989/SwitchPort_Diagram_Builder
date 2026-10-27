@@ -11,6 +11,12 @@ WorkspaceSheet adds one common bottom key per page. Stack/disabled indicators ar
 preserved. Optional workspace titles, first-switch logos and side VLAN-ID keys
 remain. PNG and PDF share one scene. This supersedes the top-key placement below.
 
+Initial 1.14.4 review passed 111 workspace, 70 palette and 523 shared-sheet
+assertions plus actual PDF key-band checks and Windows/UI gates. The legacy
+complete-VLAN-label test now bounds its last row at `IconKeyTop`, excluding the
+separate symbol key without relaxing any label completeness assertion. Final CI
+must pass before promotion.
+
 Focused regressions verify single, combined and multi-page key position/count,
 physical geometry clearance, footer separation and actual PDF coordinates. All
 enforced CI stays enabled; no optional expanded testing sweep is added.
