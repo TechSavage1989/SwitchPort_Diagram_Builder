@@ -95,6 +95,18 @@ per-item render caches because it can change the shared palette; the latest succ
 
 ## Validation and release procedure
 
+Initial 1.14.1 review `bdc7a2e` passed the full Linux parser/render/report suite
+and Windows build/updater checks, including 102 workspace/project-state, 66 palette
+and 309 shared-sheet assertions:
+https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/actions/runs/40468197574
+Downloaded sheet artifacts matched their SHA-256 and were visually reviewed:
+header-free mixed-vendor sheets, one shared key, matching fills, conflict/unnamed
+labels and 40 long wrapped names. The unified-project UI flows passed; a final
+600×430 logo overflow was corrected with compact spacing, retaining and expanding
+the no-scroll/control-bounds regression. The exact final commit must pass all
+hosted jobs before promotion; no failure is waived.
+
+
 Historical 1.14.0 review commit `1bbbf55415502c9eba0492d2beded7e222bde05e` passed the complete
 hosted workflow on 2026-10-27:
 https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/actions/runs/40464057384

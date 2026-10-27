@@ -46,6 +46,7 @@ jobs:
           node Source/tests/verify-report-logo-ui.cjs
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: success() || failure()
         with:
           name: interface-preview
           path: build/*.png

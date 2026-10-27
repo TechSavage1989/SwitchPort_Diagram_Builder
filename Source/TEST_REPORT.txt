@@ -8,6 +8,10 @@ independently of selection, with stale-state and failed-build preservation.
 New regression checks cover common legend deduplication/conflicts/readability,
 PNG/PDF consistency, source immutability, latest single→combined→single output,
 failed/cancelled builds, selection/edits/reopen, and update handoff compatibility.
+Initial 1.14.1 Linux/Windows review passed: 102 project/workspace, 66 palette and
+309 shared-sheet assertions plus existing suites. Actual downloaded sheets were
+digest-verified and visually inspected. A compact-logo UI overflow was fixed;
+the final exact commit must pass the complete hosted gate, without exceptions.
 All existing CI suites remain required. Local .NET/browser execution restrictions
 remain; hosted CI and downloaded synthetic visuals provide runtime verification.
 See ../docs/DEVELOPMENT_HANDOFF.md for policy and exact unrun boundaries.

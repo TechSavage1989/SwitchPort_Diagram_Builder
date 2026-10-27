@@ -26,7 +26,10 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   assert(!(await page.locator('#logoPreview').isVisible()));assert(!(await page.locator('#removeLogo').isVisible()));assert(!(await page.locator('#openChart').isDisabled()),'logo edits preserve generated project history');
   await page.evaluate(preview=>window.__switchportDeliver({type:'logoSelected',name:'Saved logo.png',preview}),preview);
   await page.setViewportSize({width:600,height:430});
-  assert(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
+  const layout=await page.evaluate(()=>({height:innerHeight,width:innerWidth,scrollHeight:document.documentElement.scrollHeight,scrollWidth:document.documentElement.scrollWidth,controls:[...document.querySelectorAll('button,input')].filter(el=>el.getClientRects().length).map(el=>{const b=el.getBoundingClientRect();return{id:el.id,top:b.top,bottom:b.bottom,left:b.left,right:b.right};})}));
+  fs.mkdirSync('build',{recursive:true});await page.screenshot({path:'build/workspace-logo-compact.png',fullPage:true});
+  assert(layout.scrollHeight<=layout.height+1,JSON.stringify(layout));assert(layout.scrollWidth<=layout.width+1,JSON.stringify(layout));
+  for(const button of layout.controls)assert(button.top>=0&&button.bottom<=layout.height&&button.left>=0&&button.right<=layout.width,button.id+' fits generated-project/logo compact viewport');
   console.log('PASS app SVG display, logo selection/preview/removal, restored logo state, latest chart history retention, generation locks and compact layout.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1)});

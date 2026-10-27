@@ -185,12 +185,12 @@ static class WorkspacePaletteChecks
             "Palette planning must not mutate parsed source inventories or existing overlay dictionaries.");
         var mismatched=parsed.Select(item=>(item.Id,Inventory:Clone(item.Inventory))).ToArray();
         mismatched[1].Inventory.VlanColorOverrides![10]="#abcdef";
-        if(direct.ForItem(first.Id).Vlans[10]=="#abcdef")mismatched[1].Inventory.VlanColorOverrides[10]="#f5c9a3";
+        if(direct.ForItem(first.Id).Vlans[10]=="#abcdef")mismatched[1].Inventory.VlanColorOverrides![10]="#f5c9a3";
         Reject(()=>WorkspacePalette.Create(mismatched),"Contradicting applied colors for a matching VLAN identity must fail rather than silently recolor.");
         mismatched=parsed.Select(item=>(item.Id,Inventory:Clone(item.Inventory))).ToArray();
         string lag=mismatched[1].Inventory.Ports.First(port=>port.Aggregate.Length>0).Aggregate;
         mismatched[1].Inventory.AggregateColorOverrides![lag]="#123456";
-        if(direct.ForItem(first.Id).Aggregates.Values.Single()=="#123456")mismatched[1].Inventory.AggregateColorOverrides[lag]="#654321";
+        if(direct.ForItem(first.Id).Aggregates.Values.Single()=="#123456")mismatched[1].Inventory.AggregateColorOverrides![lag]="#654321";
         Reject(()=>WorkspacePalette.Create(mismatched),"Contradicting applied LAG colors must fail before rendering a shared legend.");
         Reject(()=>WorkspacePalette.Create(new[]{parsed[0],parsed[0]}),"Pre-parsed palette inputs require distinct stable identifiers.");
         Check(direct.ForItem(first.Id).Vlans[10]!=direct.ForItem(conflict.Id).Vlans[10]
