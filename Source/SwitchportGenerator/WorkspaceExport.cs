@@ -96,12 +96,14 @@ public static class WorkspaceExport
     {
         string diagramsPath = Path.Combine(result.OutputDirectory, "workspace-a4-diagrams.pdf");
         string bookletPath = Path.Combine(result.OutputDirectory, "workspace-a4-booklets.pdf");
+        string context="preparing shared report";
         try
         {
             ReportLogo? logo = logoPath == null ? null : ReportLogo.Load(logoPath);
             var inputs=new List<WorkspaceSheetItem>();var details = new List<Scene>();
             foreach (var item in result.Items.Where(item => item.Success))
             {
+                context="preparing details for "+item.Name;
                 byte[] bytes = File.ReadAllBytes(Path.Combine(item.OutputDirectory, "inventory.json"));
                 var inventory = JsonSerializer.Deserialize<Inventory>(bytes) ?? throw new InvalidOperationException("Generated inventory is missing.");
                 string hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
@@ -115,8 +117,10 @@ public static class WorkspaceExport
                 if (booklet.SelectMany(Charts.ValidateScene).Any()) throw new InvalidOperationException("A combined page failed layout validation.");
                 inputs.Add(new(item.Id,item.Name,inventory,hash));details.AddRange(booklet.Skip(1));
             }
+            context="laying out shared switches and keys";
             var sheets=WorkspaceSheet.Build(inputs,logo,title);
             result.Warnings.AddRange(sheets.Warnings);
+            context="writing shared report files";
             Pdf.Save(sheets.Pages,diagramsPath);Pdf.Save(sheets.Pages.Concat(details).ToList(),bookletPath);
             for(int index=0;index<sheets.Pages.Count;index++)
             {
@@ -132,7 +136,7 @@ public static class WorkspaceExport
             if (File.Exists(bookletPath)) File.Delete(bookletPath);
             foreach(string image in result.CombinedImages)if(File.Exists(image))File.Delete(image);
             result.CombinedImages.Clear();
-            result.CombinedError = "Shared sheets could not be created: " + ex.Message + " Individual report packages are retained.";
+            result.CombinedError = "Shared sheets could not be created (" + context + "): " + ex.Message + " Individual report packages are retained.";
         }
     }
 }

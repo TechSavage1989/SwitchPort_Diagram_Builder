@@ -1,3 +1,11 @@
+1.14.5 focused regression additions
+- Reproduce compact eight-member stack failure with 17 LAGs and full descriptions.
+- Preserve all description text/LAG modes across extra readable A4 detail sheets.
+- Split a single oversized description; reserve optional title and bottom key.
+- Validate scene bounds, actual PDF text, side key and matching PNG page counts.
+- Optional --workspace diagnostic runs original private inputs only on the consumer.
+Required CI and original-input runtime results remain pending until recorded in handoff.
+
 SWITCHPORT DIAGRAM BUILDER 1.14.4 - TEST NOTES
 
 Focused layout correction: one bottom icon key on single/combined/multi-page

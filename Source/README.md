@@ -1,4 +1,10 @@
-Switchport Diagram Builder 1.14.4 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.5 - Windows 10/11 x64
+
+1.14.5: Readable trunk and port-description continuation sheets
+- Tall stacks no longer fail shared generation just because their LAG/member or
+  port-description key exceeds one page. Complete details continue onto extra
+  sheets, preserving side VLAN keys, bottom icons and switch identity.
+- Physical geometry capacity remains validated; failure messages identify context.
 
 1.14.4: Bottom icon key on every diagram page
 - Native/tagged/voice/LAG appearance symbols now appear once at the bottom of

@@ -1,3 +1,32 @@
+# Detail-key continuation correction — 1.14.5
+
+## Current focused update
+
+The 1.14.4 shared-key pagination claim was incomplete: `BuildCompact` omitted
+only the individual VLAN list, but still required all trunk/LAG memberships and
+port descriptions to fit below a complete switch in one A4 block. A tall stack
+with many LAGs could export individually yet fail before shared pagination.
+
+Workspace-only fallback now validates the physical block separately, then keeps
+full LAG modes/member IDs, outline colors and port descriptions in readable
+7.5 pt rows. Overflow continues under a repeated switch-identity header, with
+section continuation labels; even one oversized entry splits by wrapped lines.
+Normal rows stay together. The side VLAN key and bottom symbol key are rendered
+on every shared page, using the existing palette and output scene. Optional title
+height is reserved before pagination. Original standalone export behavior remains.
+Genuine indivisible physical chassis/port-marker capacity is still enforced;
+configuration and generation-stage context improve remaining failure messages.
+
+Regression coverage adds a fully synthetic eight-member/17-LAG stack, complete
+port-description text, one exceptionally long entry, title clearance, scene bounds,
+actual PDF text and matching PNG page counts. No uploaded customer configuration
+or identifying content is included in repository fixtures or CI artifacts. A
+compiled public-code-only `workspace-local-checker` artifact supports local
+`WorkspaceSheetChecks.dll --workspace INPUT_DIRECTORY OUTPUT_DIRECTORY` validation
+without requiring a local SDK bootstrap. It is not a public application asset.
+Required review CI and consumer-local original-input results must be recorded
+before promotion; none are claimed in this draft handoff.
+
 # Bottom icon key on all diagrams — 1.14.4
 
 ## Current focused update

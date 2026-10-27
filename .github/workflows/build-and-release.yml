@@ -112,6 +112,16 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # A compiled, public-code-only harness permits private input validation on
+      # machines whose SDK bootstrap is unavailable. No user inputs are in CI.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: success() || failure()
+        with:
+          name: workspace-local-checker
+          path: Source/tests/WorkspaceSheetChecks/bin/Release/net8.0/
+          if-no-files-found: error
+          retention-days: 7
+
   windows-build:
     name: Windows build and real updater process checks
     runs-on: windows-latest

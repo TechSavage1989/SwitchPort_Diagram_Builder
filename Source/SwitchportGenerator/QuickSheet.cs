@@ -36,13 +36,14 @@ public static class QuickSheet
         public double MarkerRadius=>Scene.MarkerRadius;
         public int CompactionLevel=>Scene.CompactionLevel;
         public List<Socket> Sockets {get;}=new();
+        public List<Scene> DetailContinuations {get;}=new();
         public Dictionary<int,string> VlanColors {get;}=new();
         public Dictionary<string,string> AggregateColors {get;}=new(StringComparer.OrdinalIgnoreCase);
     }
-    sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null)
+    sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null,double? MaximumBottom=null)
     {
         public double Width=>(PageWidth-.8)/Scale;
-        public double Bottom=>DiagramTop+(DiagramBottom-DiagramTop)/Scale;
+        public double Bottom=>Math.Min(DiagramTop+(DiagramBottom-DiagramTop)/Scale,MaximumBottom??double.MaxValue);
         public double Gap=>Compact==0?PortGap:.65;
         public double Pitch=>PortWidth+Gap;
         public double RowPitch=>PortHeight+Gap;
@@ -342,7 +343,10 @@ public static class QuickSheet
     // Reusable reference-scale component for a multi-configuration sheet. Unlike
     // Build(), this does not enlarge a single switch to consume the entire A4 page.
     // All symbol geometry, labels, keys and capacity guards use the same renderer.
-    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null,bool includeVlanKey=true,double? maximumBodyWidth=null)
+    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null,bool includeVlanKey=true,double? maximumBodyWidth=null,bool paginateDetails=false,double? maximumHeight=null)
+        =>BuildCompactCore(inv,original,hash,markerRadius,includeVlanKey,maximumBodyWidth,paginateDetails,maximumHeight,true);
+
+    static Result BuildCompactCore(Inventory inv,List<Placement> original,string hash,double? markerRadius,bool includeVlanKey,double? maximumBodyWidth,bool paginateDetails,double? maximumHeight,bool includeDetails)
     {
         if(markerRadius is {} requested&&(requested<MinimumDotRadius||requested>DotRadius))
             throw new ArgumentOutOfRangeException(nameof(markerRadius));
@@ -355,7 +359,7 @@ public static class QuickSheet
         {
             try
             {
-                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow,maximumBodyWidth),palette,aggregate,includeVlanKey);
+                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow,maximumBodyWidth,maximumHeight),palette,aggregate,includeVlanKey,includeDetails);
                 ApplyGeometry(candidate,1,compact);
                 double radius=markerRadius??DotRadius;
                 if(!MarkersFit(candidate,radius))
@@ -370,6 +374,7 @@ public static class QuickSheet
                 // duplicate footer, then retain the bounds of every visible primitive.
                 candidate.Scene.Labels.RemoveAll(label=>label.Text==ReportText.CableMoveDisclaimer&&label.Y==PageHeight-10);
                 candidate.Scene.Height=CompactBottom(candidate.Scene)+1;
+                if(maximumHeight is {} limit&&candidate.Scene.Height>limit)throw new OnePageCapacityException("switch block exceeds the available workspace height");
                 var errors=Charts.ValidateScene(candidate.Scene);
                 if(errors.Count>0)throw new OnePageCapacityException(string.Join("; ",errors));
                 candidates.Add(candidate);
@@ -381,7 +386,94 @@ public static class QuickSheet
         var best=candidates.OrderByDescending(candidate=>Math.Round(candidate.MarkerRadius,5))
             .ThenBy(candidate=>candidate.Scene.Height).ThenBy(candidate=>candidate.CompactionLevel).FirstOrDefault();
         if(best!=null)return best;
+        // Only workspace components may continue detail keys. Render the physical
+        // switch independently first: genuine socket/chassis capacity still fails.
+        if(paginateDetails&&includeDetails&&!includeVlanKey)
+        {
+            var body=BuildCompactCore(inv,original,hash,markerRadius,false,maximumBodyWidth,false,maximumHeight,false);
+            AppendPagedDetails(body,inv,maximumHeight??DiagramBottom);
+            return body;
+        }
         throw last??new OnePageCapacityException("this configuration cannot fit at the workspace's consistent reference geometry; keep its individual report");
+    }
+    static List<Section> DetailSections(Inventory inv,Dictionary<string,string> colors)
+    {
+        var sections=new List<Section>();
+        var aggregates=new Section{Title="Trunks / LAGs",Columns=3};
+        foreach(var a in colors)
+        {
+            var ps=inv.Ports.Where(p=>p.Aggregate.Equals(a.Key,StringComparison.OrdinalIgnoreCase)).ToList();
+            string mode=string.Join("/",ps.SelectMany(p=>p.Notes).Where(n=>n.StartsWith("Aggregation mode: ")).Select(n=>n[18..].ToUpperInvariant()).Distinct());
+            aggregates.OutlineColors.Add(a.Value);
+            aggregates.Entries.Add(a.Key+(mode.Length>0?" ("+mode+")":"")+": "+Ports(ps));
+        }sections.Add(aggregates);
+        var purposes=new Section{Title="Port descriptions",Columns=3};
+        foreach(var d in inv.Ports.Where(p=>p.Description.Length>0).GroupBy(p=>p.Description))purposes.Entries.Add(Ports(d)+": "+d.Key);
+        sections.Add(purposes);
+        return sections;
+    }
+    static void AppendPagedDetails(Result result,Inventory inv,double bottom)
+    {
+        const double font=7.5,gap=8,rowGap=.7,inset=25;
+        double width=result.Scene.DiagramBodyWidth,x0=(PageWidth-width)/2,lineHeight=Height(font)+.15;
+        var scene=result.Scene;double y=scene.Height+1;
+        void NextPage()
+        {
+            scene.Height=CompactBottom(scene)+1;
+            scene=new Scene{Width=PageWidth,Height=PageHeight,DiagramBodyWidth=width,DiagramScale=1,MarkerRadius=result.MarkerRadius,IsAdaptiveLayout=true,VlanColors=result.VlanColors};
+            scene.Boxes.AddRange(result.Scene.Boxes.Where(box=>box.Y<DiagramTop));
+            scene.Labels.AddRange(result.Scene.Labels.Where(label=>label.Y<DiagramTop).Select(label=>label.Text=="NETWORK PORT MAP"?label with{Text="NETWORK PORT MAP | Details continued"}:label));
+            result.DetailContinuations.Add(scene);y=DiagramTop;
+        }
+        foreach(var section in DetailSections(inv,result.AggregateColors).Where(section=>section.Entries.Count>0))
+        {
+            bool heading=true;int entryIndex=0;
+            double colWidth=(width-gap*(section.Columns-1))/section.Columns;
+            bool outlined=section.OutlineColors.Count>0;
+            foreach(var row in section.Entries.Chunk(section.Columns))
+            {
+                var lines=row.Select(entry=>Wrap(entry,colWidth-(outlined?inset:0),font)).ToArray();
+                int count=lines.Max(line=>line.Count),offset=0;
+                while(offset<count)
+                {
+                    double header=heading?13:0,minimum=Math.Max(outlined?11:0,lineHeight)+rowGap;
+                    if(y+header+minimum>bottom-1){NextPage();heading=true;header=13;}
+                    double remaining=bottom-1-y-header;
+                    double wholeHeight=Math.Max(outlined?11:0,(count-offset)*lineHeight)+rowGap;
+                    // Keep normal rows together; split only an entry taller than a
+                    // fresh page, preserving every wrapped line at the same size.
+                    if(offset==0&&wholeHeight>remaining&&wholeHeight<=bottom-1-DiagramTop-13)
+                    {NextPage();heading=true;header=13;remaining=bottom-1-y-header;}
+                    if(heading)
+                    {
+                        scene.Rect(x0,y,width,12,"#e7eff6","#c3d2df",2,"Heading");
+                        scene.Text(x0+5,y+1,section.Title+(result.DetailContinuations.Count>0?" (continued)":""),8.5,"#20374e",true,width-10,inkBox:true);
+                        y+=13;heading=false;
+                    }
+                    int take=Math.Min(count-offset,(int)Math.Floor((bottom-1-y-rowGap)/lineHeight));
+                    if(take<1)throw new OnePageCapacityException("a detail continuation has no room for one readable line");
+                    double rowHeight=Math.Max(outlined?11:0,take*lineHeight);
+                    for(int col=0;col<row.Length;col++)
+                    {
+                        var segment=lines[col].Skip(offset).Take(take).ToArray();if(segment.Length==0)continue;
+                        double x=x0+col*(colWidth+gap);
+                        if(outlined)AggregateKey(scene,x+2,y+(rowHeight-10)/2,17,10,section.OutlineColors[entryIndex+col]);
+                        double textY=y+(outlined?(rowHeight-segment.Length*lineHeight)/2:0);
+                        for(int line=0;line<segment.Length;line++)scene.Text(x+(outlined?inset:0),textY+line*lineHeight,segment[line],font,"#172333",false,colWidth-(outlined?inset:0));
+                    }
+                    y+=rowHeight+rowGap;offset+=take;
+                    if(offset<count){NextPage();heading=true;}
+                }
+                entryIndex+=row.Length;
+            }
+            y+=1;
+        }
+        foreach(var page in new[]{result.Scene}.Concat(result.DetailContinuations))
+        {
+            page.Height=CompactBottom(page)+1;
+            var errors=Charts.ValidateScene(page);
+            if(page.Height>bottom+.001||errors.Count>0)throw new OnePageCapacityException("detail continuation: "+string.Join("; ",errors));
+        }
     }
     static double CompactBottom(Scene scene)
     {
@@ -393,7 +485,7 @@ public static class QuickSheet
         foreach(var image in scene.Images)bottom=Math.Max(bottom,image.Y+image.H);
         return bottom;
     }
-    static Result BuildCore(Inventory inv,List<Placement> original,string hash,bool compact,LayoutPlan plan,Dictionary<int,string> palette,Dictionary<string,string> colors,bool includeVlanKey=true)
+    static Result BuildCore(Inventory inv,List<Placement> original,string hash,bool compact,LayoutPlan plan,Dictionary<int,string> palette,Dictionary<string,string> colors,bool includeVlanKey=true,bool includeDetails=true)
     {
         var output=new Result();var scene=output.Scene;var groups=inv.Groups.ToDictionary(g=>g.Id);
         plan.TitleInkHeight=inv.Groups.Select(g=>ReportRenderer.Measure(new Label(0,0,PanelTitle(inv,g),plan.Font(7)*plan.Scale,"#ffffff",true,0,"",true)).Height/plan.Scale).DefaultIfEmpty(0).Max();
@@ -478,6 +570,7 @@ public static class QuickSheet
             foreach(var g in inv.Groups){panels.Add(new(g.Id,PanelTitle(inv,g),0,y,diagramWidth,activePanelHeight));y+=activePanelHeight+plan.PanelGap;}
         }
         double diagramBottom=y;
+        if(diagramBottom>plan.Bottom)throw new OnePageCapacityException("physical switch / stack geometry exceeds the available A4 height");
         foreach(var panel in panels)
         {
             scene.Rect(panel.X,panel.Y,panel.W,panel.H,panel.Group.Length==0?"#f7f9fc":"#ffffff","#355774",3,panel.Group.Length==0?"InactivePanel":"ActivePanel");
@@ -511,18 +604,8 @@ public static class QuickSheet
             }
         }
         var vlans=output.VlanColors.Keys.Order().ToList();
-        var sections=new List<Section>();
-        var aggregates=new Section{Title="Trunks / LAGs",Columns=3};
-        foreach(var a in colors)
-        {
-            var ps=inv.Ports.Where(p=>p.Aggregate.Equals(a.Key,StringComparison.OrdinalIgnoreCase)).ToList();
-            string mode=string.Join("/",ps.SelectMany(p=>p.Notes).Where(n=>n.StartsWith("Aggregation mode: ")).Select(n=>n[18..].ToUpperInvariant()).Distinct());
-            aggregates.OutlineColors.Add(a.Value);
-            aggregates.Entries.Add(a.Key+(mode.Length>0?" ("+mode+")":"")+": "+Ports(ps));
-        }sections.Add(aggregates);
-        var purposes=new Section{Title="Port descriptions",Columns=3};
-        foreach(var d in inv.Ports.Where(p=>p.Description.Length>0).GroupBy(p=>p.Description))purposes.Entries.Add(Ports(d)+": "+d.Key);
-        sections.Add(purposes);
+        var sections=includeDetails?DetailSections(inv,colors):new List<Section>();
+        var aggregates=sections.FirstOrDefault(section=>section.Title=="Trunks / LAGs")??new Section();
         int keyColumns=plan.KeyBelow?Math.Max(1,Math.Min(5,(int)Math.Floor((keyWidth+7/plan.Scale)/(plan.KeyWidth+7/plan.Scale)))):1;
         double keyTop=plan.KeyBelow?diagramBottom+2/plan.Scale:DiagramTop;
         double keyBottom=includeVlanKey?DrawVlanKey(scene,inv,vlans,keyX,keyTop,keyWidth,keyColumns,true,output.VlanColors,plan):DiagramTop;
@@ -541,7 +624,7 @@ public static class QuickSheet
             else aggregates.Columns=3;
         }
         if(Required(font)>plan.Bottom)font=plan.Font(7);
-        if(Required(font)>plan.Bottom)throw new OnePageCapacityException("VLAN / trunk / purpose key needs more space at seven-point text");
+        if(Required(font)>plan.Bottom)throw new OnePageCapacityException("trunk / port-description details need more space at seven-point text");
         foreach(var section in sections)infoY=DrawSection(scene,section,infoY,diagramWidth,font,true,plan);
         string model=ReportText.SwitchModel(inv);
         var chassis=inv.Devices.Where(d=>d.Kind=="Chassis").ToList();

@@ -18,6 +18,34 @@ static class WorkspaceSheetChecks
         {port.TaggedVlans=Enumerable.Range(100,40).ToList();port.VoiceVlan=101;}
         return inv;
     }
+    static Inventory DetailOverflow()
+    {
+        // Synthetic eight-member stack with independent LAGs: no customer input.
+        var inv=TallStack();inv.Hostname="DETAIL-OVERFLOW";
+        for(int index=0;index<34;index++)
+        {
+            var port=inv.Ports[index];port.Aggregate="trk"+(index/2+1);
+            port.Notes.Add("Aggregation mode: lacp");
+            port.Description="Endpoint purpose "+index.ToString("D2")+" with a complete readable location description";
+        }
+        inv.Vlans.Add(new(){Id=10,Name="Data"});
+        foreach(var port in inv.Ports){port.UntaggedVlan=10;port.UntaggedState="Known";}
+        return inv;
+    }
+    static int CheckLocalWorkspace(string directory,string output)
+    {
+        // Optional consumer-local diagnostic. CI never supplies or uploads private inputs.
+        var workspace=new ConfigurationWorkspace();int oldFailures=0;
+        foreach(string path in Directory.GetFiles(directory,"*.txt").Order(StringComparer.Ordinal))
+        {
+            var item=workspace.AddText(File.ReadAllText(path),Path.GetFileName(path));
+            try{QuickSheet.BuildCompact(item.Inventory,Charts.Layout(item.Inventory),"LOCAL",null,false,749.89);}
+            catch(OnePageCapacityException){oldFailures++;}
+        }
+        var result=WorkspaceExport.Export(workspace,output);
+        if(result.FailureCount>0||result.CombinedError.Length>0)throw new Exception(result.CombinedError+" "+string.Join("; ",result.Items.Where(item=>!item.Success).Select(item=>item.Error)));
+        Console.WriteLine(JsonSerializer.Serialize(new{Configurations=workspace.Items.Count,LegacyCompactFailures=oldFailures,result.SuccessCount,result.PageCount,result.OutputDirectory}));return 0;
+    }
     static WorkspaceSheetItem Item(string id,Inventory inv)=>new(id,id+".cfg",inv,"SHEET-TEST");
     static void Validate(WorkspaceSheetResult result,IReadOnlyList<WorkspaceSheetItem> inputs)
     {
@@ -65,6 +93,7 @@ static class WorkspaceSheetChecks
     }
     static int Main(string[] args)
     {
+        if(args.Length==3&&args[0]=="--workspace")return CheckLocalWorkspace(args[1],args[2]);
         string root=args.Length>0?Path.GetFullPath(args[0]):Path.Combine(Path.GetTempPath(),"workspace-sheet-test-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
         try
         {
@@ -109,6 +138,25 @@ static class WorkspaceSheetChecks
             var dense=new[]{Item("dense-before",Aruba("DENSE-BEFORE")),Item("dense",Dense()),Item("dense-stack",TallStack()),Item("dense-after",Router("DENSE-AFTER"))};
             var denseSheets=WorkspaceSheet.Build(dense);Validate(denseSheets,dense);
             Check(denseSheets.Pages.Count>1,"Dense and tall configurations paginate without losing markers or legend rows.");Save(denseSheets,root,"dense-fallback");
+            var overflow=DetailOverflow();
+            bool legacyOverflow=false;
+            try{QuickSheet.BuildCompact(overflow,Charts.Layout(overflow),"SYNTHETIC",null,false,749.89);}
+            catch(OnePageCapacityException ex){legacyOverflow=ex.Message.Contains("details need more space");}
+            Check(legacyOverflow,"Synthetic tall stack reproduces the non-paginating trunk/description capacity failure, not a physical geometry failure.");
+            var detailInputs=new[]{Item("detail-before",Aruba("DETAIL-BEFORE")),Item("detail-overflow",overflow),Item("detail-after",Router("DETAIL-AFTER"))};
+            var detailSheets=WorkspaceSheet.Build(detailInputs);Validate(detailSheets,detailInputs);
+            Check(detailSheets.Pages.Count>3&&detailSheets.Warnings.Any(warning=>warning.StartsWith("Trunk / port-description details")),"Overflowing detail sections receive readable additional sheets.");
+            var detailText=string.Concat(detailSheets.Pages.SelectMany(page=>page.Labels).Select(label=>label.Text.Replace(" ","")));
+            foreach(var port in overflow.Ports.Where(port=>port.Description.Length>0))Check(detailText.Contains(port.Description.Replace(" ","")),"Every complete port description survives pagination: "+port.Id);
+            foreach(string lag in overflow.Ports.Select(port=>port.Aggregate).Where(value=>value.Length>0).Distinct())Check(detailText.Contains(lag+"(LACP):"),"Every LAG identity and mode survives continuation: "+lag);
+            Check(detailSheets.Pages.Any(page=>page.Labels.Any(label=>label.Text.Contains("Details continued"))),"Additional detail pages identify the switch and their continuation purpose.");
+            Save(detailSheets,root,"detail-overflow");
+            // One oversized description must split at wrapped lines, not disappear.
+            var huge=Aruba("ONE-LONG-DESCRIPTION");huge.Ports[0].Description=string.Join(' ',Enumerable.Range(1,300).Select(index=>"Token"+index.ToString("D3")));
+            var hugeInputs=new[]{Item("huge-description",huge)};var hugeSheets=WorkspaceSheet.Build(hugeInputs,title:"Details room");Validate(hugeSheets,hugeInputs);
+            var hugeText=string.Concat(hugeSheets.Pages.SelectMany(page=>page.Labels).Select(label=>label.Text.Replace(" ","")));
+            foreach(int token in Enumerable.Range(1,300))Check(hugeText.Contains("Token"+token.ToString("D3")),"A single oversized entry keeps token "+token);
+            Check(hugeSheets.Pages.Count>1,"One exceptionally long description can continue across pages with an optional title.");
             string logoPath=Path.Combine(root,"synthetic-logo.png");
             using(var bitmap=new SKBitmap(120,30)){bitmap.Erase(SKColors.DarkCyan);using var image=SKImage.FromBitmap(bitmap);using var bytes=image.Encode(SKEncodedImageFormat.Png,100);File.WriteAllBytes(logoPath,bytes.ToArray());}
             var branded=WorkspaceSheet.Build(inputs,ReportLogo.Load(logoPath),"Customer workspace");Validate(branded,inputs);
