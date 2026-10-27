@@ -40,8 +40,14 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await button('one','select').click();await workspace('one');await selected('one',true,'A saved output\nOutput: A-folder');
   assert(!(await page.locator('#openChart').isDisabled()));
   await button('two','remove').click();assert.deepEqual(await last(),{action:'removeItem',id:'two'});
-  // The native host owns confirmation. No optimistic removal occurs before its response.
+  // Native removal is immediate/reversible; no optimistic list edits before its response.
   assert.equal(await page.locator('.workspace-row').count(),3);items=[three,one];await workspace('one');assert.equal(await button('one','select').getAttribute('aria-current'),'true');
+  await deliver({type:'workspace',items,selectedId:'one',dirty:true,canUndo:true,undoLabel:'Undo removal'});
+  assert(!(await page.locator('#clearWorkspace').isDisabled()));await page.click('#undoWorkspace');assert.deepEqual(await last(),{action:'undoWorkspace'});
+  await page.click('#clearWorkspace');assert.deepEqual(await last(),{action:'clearWorkspace'});
+  await deliver({type:'workspace',items:[],selectedId:null,dirty:true,canUndo:true,undoLabel:'Undo clear all'});await deliver({type:'selected',id:null,name:''});
+  await publish({stale:true,emptyWorkspace:true});assert((await page.locator('#projectStale').innerText()).includes('Previous project'));assert(!(await page.locator('#openChart').isDisabled()));assert(await page.locator('#clearWorkspace').isDisabled());
+  await page.click('#undoWorkspace');assert.deepEqual(await last(),{action:'undoWorkspace'});await workspace('one');await selected('one');
   await page.click('#saveWorkspace');assert.deepEqual(await last(),{action:'saveWorkspace'});await workspace('one',false);assert(await page.locator('#workspaceDirty').isHidden());
   await deliver({type:'workspaceSaved',message:'Workspace saved securely.'});assert.equal(await page.locator('#status').innerText(),'A saved output\nOutput: A-folder');assert.equal(await page.locator('#importResult').innerText(),'Workspace saved securely.');
   console.log('PASS independent selection/output restoration, safe literal labels, duplicate filenames, reorder by keyboard and drag, host-confirmed removal and explicit save/open.');
@@ -147,7 +153,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
    await page.waitForFunction(()=>{const selected=document.querySelector('.workspace-row.selected'),list=document.getElementById('workspaceList');if(!selected)return false;const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();return row.top>=bounds.top&&row.bottom<=bounds.bottom;});
    const bounds=await page.evaluate(()=>({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,listScroll:document.getElementById('workspaceList').scrollHeight,listClient:document.getElementById('workspaceList').clientHeight}));
    assert(bounds.scrollWidth<=bounds.width+1,JSON.stringify(bounds));
-   for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace','editWorkspaceLabel','openChart','openPdf','open','copyOutput'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
+   for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace','clearWorkspace','undoWorkspace','editWorkspaceLabel','openChart','openPdf','open','copyOutput'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
    assert(bounds.listScroll>bounds.listClient,'long configuration list scrolls inside its panel');
    await page.screenshot({path:'build/workspace-'+viewport.width+'x'+viewport.height+'.png',fullPage:true});
   }

@@ -10,7 +10,7 @@ public sealed partial class MainForm
         var project=projects.Current;
         Send(new{type="project",available=project!=null,chartAvailable=projects.ChartAvailable,folderAvailable=projects.FolderAvailable,
             combined=project?.Paged??false,pageCount=project?.Charts.Length??0,pdfAvailable=projects.PdfAvailable,
-            label=project?.Label??"",output=project?.OutputDirectory??"",stale=project?.Stale??false,summary=project?.Summary??""});
+            label=project?.Label??"",output=project?.OutputDirectory??"",stale=project?.Stale??false,emptyWorkspace=workspace.Items.Count==0,summary=project?.Summary??""});
     }
     void OpenProject()
     {

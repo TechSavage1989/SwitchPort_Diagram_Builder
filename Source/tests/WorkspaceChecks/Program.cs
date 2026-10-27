@@ -22,9 +22,27 @@ static class WorkspaceChecks
         catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
         finally { if (args.Length == 0) Directory.Delete(root, true); }
     }
+    static void CheckUndo(string root)
+    {
+        var w=new ConfigurationWorkspace();var a=w.AddText(Aruba,"a.cfg");var b=w.AddText(RouterOs,"b.cfg");
+        w.SetDevices(a.Id,new[]{new DeviceIdentity{Id="1",Name="Edited",Notes="Unsaved operator detail"}});
+        var inventory=a.Inventory;var devices=a.Devices;w.Select(a.Id);w.OutputLabel="Custom";w.SavedWorkspaceName="Closet";w.ShowWorkspaceTitle=true;
+        string source=Path.Combine(root,"undo-original.cfg"),output=Path.Combine(root,"undo-existing-report.txt");File.WriteAllText(source,Aruba);File.WriteAllText(output,"Previous output");a.SourcePath=source;a.LastOutput=root;a.LastChart=output;a.Status="Previous preview";
+        w.Remove(a.Id);Check(w.CanUndo&&w.Selected==b&&w.Items.Count==1,"Removing selected item is reversible and selects its neighbour.");
+        Check(w.UndoRemoval()&&w.Items[0]==a&&w.Selected==a&&ReferenceEquals(a.Inventory,inventory)&&ReferenceEquals(a.Devices,devices)&&a.Dirty,"Undo restores original parsed/edit state, selection and position without reparsing.");
+        Check(a.LastChart==output&&a.Status=="Previous preview","Undo retains per-item generated result state.");
+        w.Remove(b.Id);Check(w.Selected==a,"Removing another item preserves selection.");w.UndoRemoval();
+        w.Clear();Check(w.Items.Count==0&&w.Selected==null&&w.OutputLabel==""&&w.SavedWorkspaceName==""&&!w.ShowWorkspaceTitle&&w.CanUndo,"Clear resets workspace-specific state, not files.");
+        w.UndoRemoval();Check(w.Items.SequenceEqual(new[]{a,b})&&w.Selected==a&&w.OutputLabel=="Custom"&&w.SavedWorkspaceName=="Closet"&&w.ShowWorkspaceTitle,"Undo clear restores order, selection and workspace metadata.");
+        w.Remove(a.Id);w.Remove(b.Id);Check(w.Items.Count==0&&w.CanUndo,"Removing the final item leaves a usable reversible empty workspace.");w.UndoRemoval();w.UndoRemoval();Check(w.Items.SequenceEqual(new[]{a,b})&&w.Selected==a,"Multiple removals can be undone in reverse order.");
+        w.Clear();var added=w.AddText(RouterOs,"new.cfg");w.UndoRemoval();Check(w.Items.SequenceEqual(new[]{a,b,added}),"Undo clear preserves newly added configurations instead of silently discarding them.");
+        Check(File.ReadAllText(source)==Aruba&&File.ReadAllText(output)=="Previous output","Remove/reset/undo never modify original files or generated reports.");
+        Check(!w.Serialize().Contains("UndoLabel")&&!w.Serialize().Contains("RemovedItems"),"Undo is in-memory only, not an additional source cache or workspace-format change.");
+    }
     static void Run(string root)
     {
         CheckNaming(root);
+        CheckUndo(root);
         var workspace = new ConfigurationWorkspace();
         var first = workspace.AddText(Aruba, "switch.cfg", "/no-longer-present/switch.cfg");
         var duplicate = workspace.AddText(Aruba, "switch.cfg");

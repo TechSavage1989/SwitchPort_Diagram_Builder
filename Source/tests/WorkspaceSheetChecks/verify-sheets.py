@@ -6,7 +6,7 @@ from PIL import Image, ImageChops
 from pypdf import PdfReader
 
 root = Path(sys.argv[1])
-for prefix in ['detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
+for prefix in ['atomic-stack-after-small', 'atomic-stack-reordered', 'detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
     plan = json.loads((root / (prefix + '-plan.json')).read_text())
     pdf = PdfReader(root / (prefix + '.pdf'))
     assert len(pdf.pages) == plan['PageCount']
@@ -26,6 +26,14 @@ for prefix in ['detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 
         assert [text.index('ORDERED-' + str(i)) for i in range(1, 6)] == sorted(text.index('ORDERED-' + str(i)) for i in range(1, 6))
     if prefix == 'mixed-vendors':
         assert len(pdf.pages) == 1 and 'MIXED-ARUBA' in pdf.pages[0].extract_text() and 'MIXED-ROUTEROS' in pdf.pages[0].extract_text()
+    if prefix.startswith('atomic-stack-'):
+        assert len(pdf.pages) == 2
+        target = pdf.pages[1 if prefix.endswith('after-small') else 0].extract_text()
+        assert 'ATOMIC-STACK' in target and 'Details continued' not in target
+        compact_target = ''.join(target.split())
+        for lag in range(1, 18):
+            assert f'trk{lag}(LACP):' in compact_target
+        assert 'Uplinktocore' in compact_target
     if prefix == 'detail-overflow':
         all_text = ''.join(''.join(page.extract_text().split()) for page in pdf.pages)
         assert len(pdf.pages) > 2 and 'Detailscontinued' in all_text
@@ -82,7 +90,7 @@ print('PASS header-free multi-switch PDFs, single shared side VLAN key by ID, me
 
 # Actual PDF positions, not just scene metadata: standalone and combined pages.
 import pdfplumber
-for name in ['single-bottom-key.pdf', 'two-on-one.pdf', 'five-ordered.pdf', 'titled-sheet.pdf', 'detail-overflow.pdf']:
+for name in ['single-bottom-key.pdf', 'two-on-one.pdf', 'five-ordered.pdf', 'titled-sheet.pdf', 'detail-overflow.pdf', 'atomic-stack-after-small.pdf']:
     with pdfplumber.open(root / name) as document:
         for page in document.pages:
             matches = page.search(r'Native VLAN|Tagged VLAN|Voice VLAN|LAG / trunk', regex=True)

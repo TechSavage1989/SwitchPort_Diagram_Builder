@@ -13,7 +13,7 @@ public sealed partial class MainForm
     {
       Send(new
       {
-        type="workspace",selectedId=workspace.SelectedId,dirty=workspace.Dirty,
+        type="workspace",selectedId=workspace.SelectedId,dirty=workspace.Dirty,canUndo=workspace.CanUndo,undoLabel=workspace.UndoLabel,
         showWorkspaceTitle=workspace.ShowWorkspaceTitle,outputLabel=workspace.OutputLabel,effectiveLabel=WorkspaceNaming.Effective(workspace),suggestedLabel=WorkspaceNaming.Suggested(workspace),workspaceName=workspace.SavedWorkspaceName,
         items=workspace.Items.Select(item=>new
         {
@@ -61,8 +61,7 @@ public sealed partial class MainForm
     {
         var item=workspace.Items.FirstOrDefault(item=>item.Id==id);
         if(item==null)return;
-        if(item.Dirty&&!ConfirmDiscard("Remove \""+item.Name+"\" and discard its unsaved workspace changes?"))return;
-        workspace.Remove(id);InvalidateOutputs();SendSelection();
+        workspace.Remove(id);InvalidateBatch();SendSelection();
     }
     void SaveWorkspace()
     {

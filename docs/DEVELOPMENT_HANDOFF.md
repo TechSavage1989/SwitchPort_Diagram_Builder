@@ -1,3 +1,39 @@
+# Reversible workspace edits / complete fresh-page blocks — 1.14.6
+
+Removal is immediate with an in-memory undo stack. Exact item instances retain
+parsed inventory, per-item device edits, dirty state and previous output metadata.
+Undo restores positions/selection and pruned palette overrides; Clear all also
+resets/restores workspace naming/title metadata. Newly added items are not silently
+lost on Undo. Original files and generated reports are never deleted or modified.
+Opening another workspace/closing ends undo history; no extra raw-source cache or
+workspace format change is introduced. App-wide preferences/logo/base directory
+remain outside this reset. Latest successful output is retained, stale and clearly
+labeled as previous when the workspace is empty. Clear/Undo are near the list,
+keyboard accessible and disabled while busy or unavailable.
+
+Shared layout first measures complete compact components against a fresh page,
+then tries the actual standalone side-key solver before detail continuation.
+This lets a tall stack place its LAGs alongside the VLAN key instead of wrongly
+forcing all details underneath. Dedicated pages preserve ordering, all member/
+port/description data and shared palette colors; ordinary small configurations
+still share sheets. The page reports its true standalone geometry scale. A tight
+optional title can use the existing top header rather than splitting a fitting
+configuration; an overlong title is rejected explicitly, never silently truncated.
+Only the existing genuine overflow path produces detail continuations. Side-key
+pagination, minimum text/socket geometry and validation remain intact.
+
+The supplied private eight-member regression passes standalone, after-small,
+reordered and repeated-config tests; its complete 17-LAG key now stays with the
+switch on one page. Original inputs/reports remain outside Git/CI. Synthetic
+fixtures cover the same side-LAG fallback and genuine oversized descriptions.
+Local verification passed 1,945 shared-sheet assertions, 122 workspace/state
+assertions, actual PDF/PNG checks and 34 packaging/root/branding tests. The supplied
+configuration passed 320 atomic-layout checks including the optional title.
+Local compilation uses the standard Roslyn compiler with existing public runtime
+references because SDK/NuGet bootstrap is unavailable; hosted normal builds remain
+required. Focused local workspace/geometry/PDF checks and all enforced review CI
+are publication gates. No interactive native Windows dialogs were exercised.
+
 # Detail-key continuation correction — 1.14.5
 
 ## Current focused update

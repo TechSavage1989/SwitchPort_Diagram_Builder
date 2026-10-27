@@ -43,7 +43,7 @@ public static class QuickSheet
     sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null,double? MaximumBottom=null)
     {
         public double Width=>(PageWidth-.8)/Scale;
-        public double Bottom=>Math.Min(DiagramTop+(DiagramBottom-DiagramTop)/Scale,MaximumBottom??double.MaxValue);
+        public double Bottom=>Math.Min(DiagramTop+(DiagramBottom-DiagramTop)/Scale,MaximumBottom is {} limit?DiagramTop+(limit-DiagramTop)/Scale:double.MaxValue);
         public double Gap=>Compact==0?PortGap:.65;
         public double Pitch=>PortWidth+Gap;
         public double RowPitch=>PortHeight+Gap;
@@ -294,12 +294,12 @@ public static class QuickSheet
     {
         scene.Shapes.Add(new(new[]{(x,y),(x+width,y),(x+width,y+height),(x,y+height)},"",color,AggregateStroke,ClipInside:true));
     }
-    public static Result Build(Inventory inv,List<Placement> original,string hash)
+    public static Result Build(Inventory inv,List<Placement> original,string hash,bool sideKeyOnly=false,double? maximumHeight=null)
     {
         var palette=VlanPalette.Assign(inv);
         var aggregate=AggregatePalette.Assign(inv,p=>Fill(p,palette),palette.Values);
         var alternatives=new List<Result>();OnePageCapacityException? last=null;
-        foreach(bool keyBelow in new[]{false,true})for(int compact=0;compact<=2;compact++)
+        foreach(bool keyBelow in sideKeyOnly?new[]{false}:new[]{false,true})for(int compact=0;compact<=2;compact++)
         {
             Result? Attempt(double scale)
             {
@@ -307,7 +307,7 @@ public static class QuickSheet
                 {
                     try
                     {
-                        var candidate=BuildCore(inv,original,hash,narrow,new(scale,compact,wholeWords,keyBelow),palette,aggregate);
+                        var candidate=BuildCore(inv,original,hash,narrow,new(scale,compact,wholeWords,keyBelow,MaximumBottom:maximumHeight),palette,aggregate);
                         ApplyGeometry(candidate,scale,compact);
                         DrawVisualGuide(candidate.Scene,inv,palette,aggregate);
                         var errors=Charts.ValidateScene(candidate.Scene);
@@ -474,6 +474,19 @@ public static class QuickSheet
             var errors=Charts.ValidateScene(page);
             if(page.Height>bottom+.001||errors.Count>0)throw new OnePageCapacityException("detail continuation: "+string.Join("; ",errors));
         }
+    }
+    internal static Result StandaloneComponent(Inventory inv,List<Placement> placements,string hash,double maximumHeight)
+    {
+        var result=Build(inv,placements,hash,sideKeyOnly:true,maximumHeight:maximumHeight);
+        var scene=result.Scene;
+        // The enclosing workspace supplies exactly one icon key and safety footer.
+        scene.Labels.RemoveAll(label=>label.Y>=IconKeyTop);
+        scene.Boxes.RemoveAll(box=>box.Y>=IconKeyTop);
+        scene.Dots.RemoveAll(dot=>dot.Y>=IconKeyTop);
+        scene.Shapes.RemoveAll(shape=>shape.Points.Min(point=>point.Y)>=IconKeyTop);
+        scene.Height=CompactBottom(scene)+1;
+        if(scene.Height>maximumHeight+.001)throw new OnePageCapacityException("complete standalone block exceeds the available title-adjusted page height");
+        return result;
     }
     static double CompactBottom(Scene scene)
     {

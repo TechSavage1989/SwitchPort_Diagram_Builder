@@ -1,3 +1,13 @@
+1.14.6 focused regression additions
+Local: 1,945 shared-sheet, 122 workspace/state, 320 original-input atomic-layout
+assertions, actual PDF/PNG verification and 34 packaging/root/branding tests passed.
+- Remove/Undo selected/nonselected/final items; repeated undo restores exact edits.
+- Clear all/Undo restores workspace naming/title/order while retaining new items.
+- Original source files and generated reports are untouched; Undo is memory-only.
+- Actual standalone-fitting stack stays atomic alone/after-small/reordered/repeated.
+- Dedicated side-LAG layout and optional-title handling precede continuation.
+- Genuinely oversized descriptions continue without missing text; PDF/PNG checks.
+
 1.14.5 focused regression additions
 - Reproduce compact eight-member stack failure with 17 LAGs and full descriptions.
 - Preserve all description text/LAG modes across extra readable A4 detail sheets.

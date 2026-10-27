@@ -4,12 +4,12 @@
 <div id="updateReminder" class="update-reminder" role="status" hidden><span id="updateNotice"></span><button id="reviewUpdateNotice" class="secondary compact">Review update</button><button id="laterUpdateNotice" class="secondary compact">Later</button></div>
 <section class="workspace-layout">
 <div class="workspace-panel">
-<div class="workspace-heading"><h2>Configurations <span id="workspaceCount">0</span></h2><span id="workspaceDirty" hidden>Unsaved</span></div>
+<div class="workspace-heading"><h2>Configurations <span id="workspaceCount">0</span></h2><span id="workspaceDirty" hidden>Unsaved</span><div class="workspace-reset-actions"><button id="clearWorkspace" class="secondary compact" disabled>Clear all</button><button id="undoWorkspace" class="secondary compact" disabled>Undo</button></div></div>
 <div class="input-source" id="inputDropZone"><div class="source-actions"><button id="choose">Add configurations</button><button class="secondary" id="paste">Paste new</button></div><small>Choose or drop files to add them. Existing items are kept.</small></div>
 <ol id="workspaceList" class="workspace-list" aria-label="Configurations in export order"></ol><p id="workspaceEmpty" class="workspace-empty">Add configurations, then arrange their diagram order.</p>
 <div class="workspace-file-actions"><button id="openWorkspace" class="secondary compact">Open workspace</button><button id="saveWorkspace" class="secondary compact" disabled>Save workspace</button></div>
 <div id="importResult" class="import-result" role="status" aria-live="polite" hidden></div>
-<small class="workspace-note">Workspaces contain configuration text. Save them securely.</small>
+<small class="workspace-note">Undo lasts until closing/opening another workspace. Files and reports stay.</small>
 </div>
 <div class="config-panel"><div class="selected-heading"><h2>Diagram settings</h2><small>Shared output settings. Device details apply only to the selected configuration.</small></div>
 <div class="workspace-output-name"><span id="workspaceOutputName" class="path">Project name: Automatic</span><button id="editWorkspaceLabel" class="secondary compact" title="Output folder label and optional workspace report title">Name…</button></div>

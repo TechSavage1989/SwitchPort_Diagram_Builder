@@ -106,6 +106,8 @@ public sealed partial class MainForm : Form
             else if (message?.action == "selectItem" && !busy) { workspace.Select(message.id??"");SendSelection(); }
             else if (message?.action == "moveItem" && !busy) { workspace.Move(message.id??"",message.index??0);InvalidateBatch();SendWorkspace(); }
             else if (message?.action == "removeItem" && !busy) RemoveItem(message.id??"");
+            else if (message?.action == "clearWorkspace" && !busy) { workspace.Clear();InvalidateBatch();SendSelection(); }
+            else if (message?.action == "undoWorkspace" && !busy) { workspace.UndoRemoval();InvalidateBatch();SendSelection(); }
             else if (message?.action == "setWorkspaceTitle" && !busy) { workspace.ShowWorkspaceTitle=message.enabled??false;workspace.Dirty=true;InvalidateBatch();SendWorkspace(); }
             else if (message?.action == "setWorkspaceLabel" && !busy) { workspace.OutputLabel=WorkspaceNaming.CleanLabel(message.text);workspace.Dirty=true;InvalidateBatch();SendWorkspace(); }
             else if (message?.action == "previewCombined" && !busy) PreviewCombined(message.index??0,message.requestId);

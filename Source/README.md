@@ -1,4 +1,10 @@
-Switchport Diagram Builder 1.14.5 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.6 - Windows 10/11 x64
+
+1.14.6: Reversible workspace reset and complete switch blocks
+- Remove configurations without repetitive prompts; Undo restores edits/order.
+- Clear all resets workspace state, with Undo and no file/report deletion.
+- Standalone-fitting switches keep their LAGs/descriptions on one fresh page
+  when compact shared layout cannot fit them. Genuine oversize still continues.
 
 1.14.5: Readable trunk and port-description continuation sheets
 - Tall stacks no longer fail shared generation just because their LAG/member or

@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace SwitchportGenerator;
 
 public sealed record WorkspaceSheetItem(string Id,string Name,Inventory Inventory,string Hash="",int Ordinal=0);
-public sealed record WorkspaceSheetPlacement(string Id,string Name,int PageNumber,double Y,double Height,double GeometryScale=1,bool Standalone=false);
+public sealed record WorkspaceSheetPlacement(string Id,string Name,int PageNumber,double Y,double Height,double GeometryScale=1,bool Standalone=false,bool InlineTitle=false);
 public sealed record WorkspaceSheetLegendEntry(string Identity,int VlanId,string Label,string Color,bool Voice,int PageNumber);
 public sealed class WorkspaceSheetResult
 {
@@ -21,8 +21,8 @@ public static class WorkspaceSheet
     public const double PageWidth=805.89,PageHeight=559.28,BlockGap=6,ContentTop=0;
     const double ContentBottom=QuickSheet.DiagramBottom,LegendGap=6,LegendFont=7.5,LegendHeading=24,LegendInset=21;
     const double MinimumBodyWidth=580,PreferredLegendWidth=156,MinimumLegendWidth=50,MaximumBodyWidth=PageWidth-LegendGap-MinimumLegendWidth;
-    sealed record Component(WorkspaceSheetItem Item,QuickSheet.Result Layout);
-    sealed record Block(WorkspaceSheetItem Item,Scene Scene,bool Continuation=false);
+    sealed record Component(WorkspaceSheetItem Item,QuickSheet.Result Layout,bool Standalone=false,bool InlineTitle=false);
+    sealed record Block(WorkspaceSheetItem Item,Scene Scene,bool Continuation=false,bool Standalone=false,bool InlineTitle=false);
     sealed record LegendEntry(string Identity,int VlanId,string Label,string Color,bool Voice=false,bool Marker=true);
     sealed record LegendPlan(List<LegendEntry> Entries,List<List<string>> Lines,double Width,double LineHeight,double Height);
 
@@ -48,19 +48,26 @@ public static class WorkspaceSheet
             if(item.Inventory.Blockers.Count>0)throw new InvalidOperationException("Resolve configuration validation blockers before adding "+item.Name+" to a workspace sheet.");
             var placements=Charts.Layout(item.Inventory);var errors=Charts.Validate(item.Inventory,placements);
             if(errors.Count>0)throw new InvalidOperationException(string.Join("; ",errors));
-            components.Add(new(item,Compact(item,placements,ContentBottom-top)));
+            components.Add(Prepare(item,placements,ContentBottom-top,title));
         }
-        double radius=components.Select(component=>component.Layout.MarkerRadius).DefaultIfEmpty(QuickSheet.DotRadius).Min();result.MarkerRadius=radius;
+        double radius=Math.Min(QuickSheet.DotRadius,components.Select(component=>component.Layout.MarkerRadius).DefaultIfEmpty(QuickSheet.DotRadius).Min());result.MarkerRadius=radius;
         for(int index=0;index<components.Count;index++)
         {
             var current=components[index];
             if(Math.Abs(current.Layout.MarkerRadius-radius)>1e-5)
-                components[index]=current with{Layout=Compact(current.Item,Charts.Layout(current.Item.Inventory),ContentBottom-top,radius)};
+            {
+                if(current.Standalone)
+                {
+                    for(int dot=0;dot<current.Layout.Scene.Dots.Count;dot++)current.Layout.Scene.Dots[dot]=current.Layout.Scene.Dots[dot] with{Radius=radius};
+                    current.Layout.Scene.MarkerRadius=radius;
+                }
+                else components[index]=Prepare(current.Item,Charts.Layout(current.Item.Inventory),ContentBottom-top,title,radius);
+            }
         }
         var guideInventory=new Inventory{Ports=prepared.SelectMany(item=>item.Inventory.Ports).ToList(),Vlans=prepared.SelectMany(item=>item.Inventory.Vlans).ToList()};
         var guideVlans=prepared.SelectMany(item=>VlanPalette.Assign(item.Inventory)).GroupBy(pair=>pair.Key).ToDictionary(group=>group.Key,group=>group.First().Value);
         var guideLags=palette.Items.Values.SelectMany(item=>item.Aggregates).GroupBy(pair=>pair.Key,StringComparer.OrdinalIgnoreCase).ToDictionary(group=>group.Key,group=>group.First().Value,StringComparer.OrdinalIgnoreCase);
-        var blocks=components.SelectMany(component=>new[]{new Block(component.Item,component.Layout.Scene)}
+        var blocks=components.SelectMany(component=>new[]{new Block(component.Item,component.Layout.Scene,Standalone:component.Standalone,InlineTitle:component.InlineTitle)}
             .Concat(component.Layout.DetailContinuations.Select(scene=>new Block(component.Item,scene,true)))).ToArray();
         foreach(var component in components.Where(component=>component.Layout.DetailContinuations.Count>0))
             result.Warnings.Add("Trunk / port-description details for "+ReportText.DisplayName(component.Item.Inventory)+" continue onto "+component.Layout.DetailContinuations.Count+" additional block(s), at readable text size.");
@@ -99,6 +106,39 @@ public static class WorkspaceSheet
         }
         foreach(var component in blocks)
         {
+            if(component.Standalone)
+            {
+                Flush();
+                var source=component.Scene;double pageTop=component.InlineTitle?0:top;
+                var page=new Scene{Width=PageWidth,Height=PageHeight,DiagramScale=source.DiagramScale,MarkerRadius=radius,IsAdaptiveLayout=true};
+                if(titleLines.Count>0&&!component.InlineTitle)
+                {
+                    page.Rect(0,0,PageWidth,titleHeight-4,"#13283d","#13283d",4,"DocumentTitle");
+                    for(int line=0;line<titleLines.Count;line++)page.Text(12,5+line*17,titleLines[line],14,"#ffffff",true,PageWidth-24);
+                }
+                Append(page,source,pageTop,PageWidth,component.Item.Id,component.Item.Ordinal,component.Item.Name,true);
+                if(component.InlineTitle)
+                {
+                    int header=page.Labels.FindIndex(label=>label.Text=="NETWORK PORT MAP");
+                    var label=page.Labels[header] with{Text=title!};
+                    if(ReportRenderer.Measure(label).Text!=title)throw new OnePageCapacityException("workspace title is too long for the complete switch page; shorten the title or disable it");
+                    page.Labels[header]=label;
+                    result.Warnings.Add("The workspace title shares the switch header on a dedicated page to keep the complete configuration together.");
+                }
+                page.DiagramBodyWidth=page.Labels.Single(label=>label.Text=="VLAN key").X-5;
+                QuickSheet.DrawVisualGuide(page,guideInventory,guideVlans,guideLags);
+                if(logo!=null)logo.Apply(page,pageTop);
+                result.Pages.Add(page);
+                result.Placements.Add(new(component.Item.Id,component.Item.Name,result.Pages.Count,pageTop,source.Height,source.DiagramScale,true));
+                foreach(var entry in Entries(new[]{component.Item}).Where(entry=>entry.VlanId>=0))
+                {
+                    var vlan=component.Item.Inventory.Vlans.FirstOrDefault(vlan=>vlan.Id==entry.VlanId);
+                    string label=(entry.VlanId+(entry.Voice?" Voice":"")+" "+(vlan?.Name??"")).TrimEnd();
+                    result.LegendEntries.Add(new(entry.Identity,entry.VlanId,label,entry.Color,entry.Voice,result.Pages.Count));
+                }
+                result.Warnings.Add(ReportText.DisplayName(component.Item.Inventory)+" uses a dedicated complete A4 layout so its LAGs and descriptions stay with the switch.");
+                continue;
+            }
             double candidateHeight=bodyHeight+(group.Count==0?0:BlockGap)+component.Scene.Height;
             if(candidateHeight>ContentBottom-top&&group.Count>0)
             {
@@ -118,14 +158,27 @@ public static class WorkspaceSheet
         return result;
     }
 
-    static QuickSheet.Result Compact(WorkspaceSheetItem item,List<Placement> placements,double availableHeight,double? radius=null)
+    static Component Prepare(WorkspaceSheetItem item,List<Placement> placements,double availableHeight,string? title,double? radius=null)
     {
-        // Prefer a useful text column; yield sidebar width only when fixed physical
-        // chassis/module geometry genuinely needs it. Never shrink socket geometry.
+        // Measure a whole fresh-page block, never the leftover space on a page.
+        // Only genuinely oversized detail sets may reach continuation planning.
+        foreach(double width in new[]{PageWidth-LegendGap-PreferredLegendWidth,MaximumBodyWidth})
+            try{return new(item,QuickSheet.BuildCompact(item.Inventory,placements,item.Hash,radius,false,width,false,availableHeight));}
+            catch(OnePageCapacityException){}
+        // Dedicated pages still retain all aliases for a numeric VLAN identity.
+        // This is the already-cloned render inventory, never the original source.
+        item.Inventory.Vlans=item.Inventory.Vlans.GroupBy(vlan=>vlan.Id).Select(group=>new Vlan{Id=group.Key,Voice=group.Any(vlan=>vlan.Voice),Name=string.Join(" / ",group.Select(vlan=>Normalize(vlan.Name)).Where(name=>name.Length>0).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))}).ToList();
+        try{return new(item,QuickSheet.StandaloneComponent(item.Inventory,placements,item.Hash,availableHeight),true);}
+        catch(OnePageCapacityException){}
+        if(title!=null)
+        {
+            try{return new(item,QuickSheet.StandaloneComponent(item.Inventory,placements,item.Hash,ContentBottom),true,true);}
+            catch(OnePageCapacityException){}
+        }
         try
         {
-            try{return QuickSheet.BuildCompact(item.Inventory,placements,item.Hash,radius,false,PageWidth-LegendGap-PreferredLegendWidth,true,availableHeight);}
-            catch(OnePageCapacityException){return QuickSheet.BuildCompact(item.Inventory,placements,item.Hash,radius,false,MaximumBodyWidth,true,availableHeight);}
+            try{return new(item,QuickSheet.BuildCompact(item.Inventory,placements,item.Hash,radius,false,PageWidth-LegendGap-PreferredLegendWidth,true,availableHeight));}
+            catch(OnePageCapacityException){return new(item,QuickSheet.BuildCompact(item.Inventory,placements,item.Hash,radius,false,MaximumBodyWidth,true,availableHeight));}
         }
         catch(OnePageCapacityException ex)
         {throw new InvalidOperationException("Configuration "+ReportText.DisplayName(item.Inventory)+" ("+item.Name+") could not be laid out: "+ex.Message,ex);}
@@ -212,16 +265,16 @@ public static class WorkspaceSheet
             y+=Math.Max(8,lines.Count*plan.LineHeight)+3;
         }
     }
-    static void Append(Scene target,Scene source,double dy,double bodyWidth,string id,int ordinal,string name)
+    static void Append(Scene target,Scene source,double dy,double bodyWidth,string id,int ordinal,string name,bool preserveWidth=false)
     {
         string Owner(string value)=>value.Length==0?"":id+":"+value;
-        double Shift(double y)=>y>=QuickSheet.DiagramTop?(bodyWidth-PageWidth)/2:0;
+        double Shift(double y)=>!preserveWidth&&y>=QuickSheet.DiagramTop?(bodyWidth-PageWidth)/2:0;
         double Y(double y)=>y+dy;
-        foreach(var box in source.Boxes)target.Boxes.Add(box with{X=box.X+Shift(box.Y),Y=Y(box.Y),W=box.Y<37&&box.X==0?bodyWidth:box.W});
+        foreach(var box in source.Boxes)target.Boxes.Add(box with{X=box.X+Shift(box.Y),Y=Y(box.Y),W=!preserveWidth&&box.Y<37&&box.X==0?bodyWidth:box.W});
         foreach(var original in source.Labels)
         {
             var label=original;double x=label.X+Shift(label.Y),width=label.Width;
-            if(label.Y<37)
+            if(!preserveWidth&&label.Y<37)
             {
                 double split=bodyWidth*.52;
                 if(label.X>=420){x=split;width=bodyWidth-x-12;}else width=split-label.X-12;

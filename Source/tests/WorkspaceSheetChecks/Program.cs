@@ -46,6 +46,37 @@ static class WorkspaceSheetChecks
         if(result.FailureCount>0||result.CombinedError.Length>0)throw new Exception(result.CombinedError+" "+string.Join("; ",result.Items.Where(item=>!item.Success).Select(item=>item.Error)));
         Console.WriteLine(JsonSerializer.Serialize(new{Configurations=workspace.Items.Count,LegacyCompactFailures=oldFailures,result.SuccessCount,result.PageCount,result.OutputDirectory}));return 0;
     }
+    static void CheckAtomic(Inventory inv,string root,string prefix)
+    {
+        var standalone=QuickSheet.Build(inv,Charts.Layout(inv),"ATOMIC");
+        Check(Charts.ValidateScene(standalone.Scene).Count==0,"Regression configuration truly fits readable standalone A4.");
+        Pdf.Save(new(){standalone.Scene},Path.Combine(root,prefix+"-standalone.pdf"));
+        Png.Save(standalone.Scene,Path.Combine(root,prefix+"-standalone.png"),3508,2480,true);
+        var target=Item("atomic-target",inv);var small=Item("atomic-small",Router("SMALL-BEFORE"));
+        var titled=WorkspaceSheet.Build(new[]{target},title:"Closet location");Validate(titled,new[]{target});
+        Check(titled.Pages.Count==1&&titled.Pages[0].Labels.Any(label=>label.Text=="Closet location"),"An optional title cannot force a standalone-fitting configuration to split.");
+        foreach(var (name,items) in new[]{("alone",new[]{target}),("after-small",new[]{small,target}),("reordered",new[]{target,small}),("several",new[]{target,target with{Id="atomic-copy"},target with{Id="atomic-copy-two"}})})
+        {
+            var sheets=WorkspaceSheet.Build(items);Validate(sheets,items);
+            foreach(var item in items.Where(item=>item.Id!="atomic-small"))
+            {
+                var placement=sheets.Placements.Single(place=>place.Id==item.Id);var scene=sheets.Pages[placement.PageNumber-1];
+                string text=string.Concat(scene.Labels.Select(label=>label.Text.Replace(" ","")));
+                Check(!scene.Labels.Any(label=>label.Text.Contains("Details continued")),"Standalone-fitting details stay with the switch: "+name);
+                foreach(var description in inv.Ports.Select(port=>port.Description).Where(value=>value.Length>0).Distinct())Check(text.Contains(description.Replace(" ","")),"All descriptions remain on the switch's page.");
+                foreach(var lag in inv.Ports.Select(port=>port.Aggregate).Where(value=>value.Length>0).Distinct())Check(text.Contains(lag+"(" )||text.Contains(lag+":"),"All LAGs remain on the switch's page: "+lag);
+            }
+            if(name=="after-small")Check(sheets.Placements.Single(place=>place.Id==target.Id).PageNumber==2,"Insufficient remaining space moves the entire block to a fresh page.");
+            if(name is "after-small" or "reordered")Save(sheets,root,prefix+"-"+name);
+        }
+    }
+    static int CheckLocalAtomic(string directory,string output)
+    {
+        Directory.CreateDirectory(output);string path=Directory.GetFiles(directory,"*.txt").Single();
+        var inv=DeviceModels.Parse(File.ReadAllText(path),Array.Empty<DeviceIdentity>());
+        CheckAtomic(inv,output,"supplied-atomic");
+        Console.WriteLine("PASS "+assertions+" original-input standalone/combined/preceding-small/reorder/repeated-config assertions; private output: "+output);return 0;
+    }
     static WorkspaceSheetItem Item(string id,Inventory inv)=>new(id,id+".cfg",inv,"SHEET-TEST");
     static void Validate(WorkspaceSheetResult result,IReadOnlyList<WorkspaceSheetItem> inputs)
     {
@@ -93,6 +124,7 @@ static class WorkspaceSheetChecks
     }
     static int Main(string[] args)
     {
+        if(args.Length==3&&args[0]=="--atomic")return CheckLocalAtomic(args[1],args[2]);
         if(args.Length==3&&args[0]=="--workspace")return CheckLocalWorkspace(args[1],args[2]);
         string root=args.Length>0?Path.GetFullPath(args[0]):Path.Combine(Path.GetTempPath(),"workspace-sheet-test-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
         try
@@ -138,6 +170,11 @@ static class WorkspaceSheetChecks
             var dense=new[]{Item("dense-before",Aruba("DENSE-BEFORE")),Item("dense",Dense()),Item("dense-stack",TallStack()),Item("dense-after",Router("DENSE-AFTER"))};
             var denseSheets=WorkspaceSheet.Build(dense);Validate(denseSheets,dense);
             Check(denseSheets.Pages.Count>1,"Dense and tall configurations paginate without losing markers or legend rows.");Save(denseSheets,root,"dense-fallback");
+            var atomic=DetailOverflow();atomic.Hostname="ATOMIC-STACK";
+            foreach(var port in atomic.Ports)port.Description="";
+            atomic.Ports[0].Description="Uplink to core";
+            atomic.Vlans.Add(new(){Id=10,Name="Shared alias"});
+            CheckAtomic(atomic,root,"atomic-stack");
             var overflow=DetailOverflow();
             bool legacyOverflow=false;
             try{QuickSheet.BuildCompact(overflow,Charts.Layout(overflow),"SYNTHETIC",null,false,749.89);}

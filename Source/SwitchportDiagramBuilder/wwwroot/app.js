@@ -1,3 +1,4 @@
+let workspaceCanUndo=false;
 const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[];
@@ -10,6 +11,7 @@ const editorOpen=()=>['deviceDialog','pasteDialog','workspaceLabelDialog','combi
 function controls(){
  for(const id of ['choose','paste','chooseOutput','chooseLogo','openWorkspace'])el(id).disabled=locked();
  el('run').disabled=locked()||!hasInput;
+ el('clearWorkspace').disabled=locked()||!workspaceItems.length;el('undoWorkspace').disabled=locked()||!workspaceCanUndo;
  el('saveWorkspace').disabled=locked()||(!workspaceItems.length&&!workspaceDirty);
  el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
  el('openChart').disabled=locked()||!project.chartAvailable;el('openPdf').disabled=locked()||!project.pdfAvailable;el('previewSheets').hidden=!project.combined;el('previewSheets').disabled=locked()||!combinedAvailable;el('openPreviewPng').disabled=locked()||previewLoading||el('combinedPreviewImage').hidden;el('open').disabled=updating||!project.folderAvailable;
@@ -37,6 +39,7 @@ function renderProject(message){
  if((changed||!combinedAvailable)&&el('combinedPreviewDialog').open)el('combinedPreviewDialog').close();
  el('projectName').textContent=project.available?(project.label||'Generated project'):'No project generated yet';el('projectName').title=project.output||'';
  el('projectStale').hidden=!project.available||!project.stale;
+ el('projectStale').textContent=project.emptyWorkspace?'Previous project — workspace is empty. These generated files are retained; add configurations to build a new project.':'Source or settings changed. These are the last generated files; build again to refresh.';
  if(project.available){showResult('complete',project.summary||[project.label,project.output?'Output: '+project.output:''].filter(Boolean).join('\n'));if(changed){el('operationStatus').hidden=true;el('operationStatus').textContent='';}}
  controls();
 }
@@ -77,6 +80,8 @@ el('previewSheets').onclick=showProjectPreview;
 el('openPreviewPng').onclick=()=>{if(!locked()&&!el('openPreviewPng').disabled)post({action:'openChart',index:previewIndex});};
 el('openChart').onclick=()=>{if(!locked()&&!el('openChart').disabled)post({action:'openChart'});};
 el('openWorkspace').onclick=()=>{if(!locked())post({action:'openWorkspace'});};
+el('clearWorkspace').onclick=()=>{if(!locked()&&workspaceItems.length)post({action:'clearWorkspace'});};
+el('undoWorkspace').onclick=()=>{if(!locked()&&workspaceCanUndo)post({action:'undoWorkspace'});};
 el('saveWorkspace').onclick=()=>{if(!locked()&&(workspaceItems.length||workspaceDirty))post({action:'saveWorkspace'});};
 
 el('editWorkspaceLabel').onclick=()=>{
@@ -161,6 +166,7 @@ el('saveDevices').onclick=()=>{
 
 function renderWorkspace(message){
  const selectionChanged=selectedId!==(message.selectedId||null);
+ workspaceCanUndo=!!message.canUndo;el('undoWorkspace').setAttribute('aria-label',message.undoLabel||'Undo');el('undoWorkspace').title='Restore the most recently removed configuration(s), including edits and order';
  workspaceItems=message.items||[];workspaceDirty=!!message.dirty;selectedId=message.selectedId||null;
  if(typeof message.showWorkspaceTitle==='boolean')workspaceShowTitle=message.showWorkspaceTitle;
  if(typeof message.outputLabel==='string')workspaceOutputLabel=message.outputLabel;

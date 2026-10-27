@@ -47,6 +47,33 @@ public sealed class ConfigurationWorkspace
     public string SavedWorkspaceName { get; set; } = "";
     public WorkspacePaletteOverrides PaletteOverrides { get; set; } = new();
 
+    sealed record RemovedItems(ConfigurationItem[] Items,int[] Positions,string? SelectedId,WorkspacePaletteOverrides Palette,string? OutputLabel=null,string? SavedName=null,bool ShowTitle=false);
+    readonly Stack<RemovedItems> undo=new();
+    public bool CanUndo=>undo.Count>0;
+    public string UndoLabel=>undo.Count==0?"Undo":undo.Peek().OutputLabel!=null?"Undo clear all":"Undo removal";
+    WorkspacePaletteOverrides CopyPalette()=>new(){Vlans=new(PaletteOverrides.Vlans),Aggregates=new(PaletteOverrides.Aggregates)};
+
+    public void Clear()
+    {
+        if(Items.Count==0)return;
+        undo.Push(new(Items.ToArray(),Enumerable.Range(0,Items.Count).ToArray(),SelectedId,CopyPalette(),OutputLabel,SavedWorkspaceName,ShowWorkspaceTitle));
+        Items.Clear();SelectedId=null;OutputLabel="";SavedWorkspaceName="";ShowWorkspaceTitle=false;PaletteOverrides=new();Dirty=true;
+    }
+    public bool UndoRemoval()
+    {
+        if(!undo.TryPeek(out var edit))return false;
+        if(Items.Count+edit.Items.Length>MaxItems||Items.Sum(item=>(long)Encoding.UTF8.GetByteCount(item.Text))+edit.Items.Sum(item=>(long)Encoding.UTF8.GetByteCount(item.Text))>MaxWorkspaceBytes)
+            throw new InvalidOperationException("Undo would exceed workspace limits. Remove newly added items first; the undo record is retained.");
+        undo.Pop();
+        for(int index=0;index<edit.Items.Length;index++)Items.Insert(Math.Min(edit.Positions[index],Items.Count),edit.Items[index]);
+        SelectedId=edit.SelectedId??SelectedId??Items.FirstOrDefault()?.Id;
+        foreach(var pair in edit.Palette.Vlans)PaletteOverrides.Vlans.TryAdd(pair.Key,pair.Value);
+        foreach(var pair in edit.Palette.Aggregates)PaletteOverrides.Aggregates.TryAdd(pair.Key,pair.Value);
+        if(edit.OutputLabel!=null&&OutputLabel.Length==0&&SavedWorkspaceName.Length==0&&!ShowWorkspaceTitle)
+        {OutputLabel=edit.OutputLabel;SavedWorkspaceName=edit.SavedName??"";ShowWorkspaceTitle=edit.ShowTitle;}
+        Dirty=true;return true;
+    }
+
     public ConfigurationItem AddText(string text, string name, string sourcePath = "")
     {
         ValidateText(text);
@@ -78,6 +105,7 @@ public sealed class ConfigurationWorkspace
     public void Remove(string id)
     {
         var item = Find(id); int index = Items.IndexOf(item);
+        undo.Push(new(new[]{item},new[]{index},SelectedId,CopyPalette()));
         var removedVlans=WorkspacePalette.VlanIds(item.Inventory).Select(vlan=>WorkspacePalette.VlanKey(item.Id,item.Inventory,vlan)).ToArray();
         var removedAggregates=item.Inventory.Ports.Where(port=>port.Aggregate.Length>0).Select(port=>WorkspacePalette.AggregateKey(port.Aggregate)).Distinct().ToArray();
         Items.RemoveAt(index);
