@@ -87,6 +87,18 @@ and selected-item scroll visibility remain regression-tested.
 
 ## Validation and release procedure
 
+Review commit `1bbbf55415502c9eba0492d2beded7e222bde05e` passed the complete
+hosted workflow on 2026-10-27:
+https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/actions/runs/40464057384
+New checks passed 83 workspace/state/batch, 58 shared-palette and 189 shared-sheet
+assertions, plus actual PDF/raster inspection and all prior required suites.
+Downloaded synthetic artifacts were digest-verified and visually inspected: two
+configurations share one sheet, the three-item mixed-vendor export shares one
+sheet, and five switches paginate 3+2 with complete labels/keys and stable scale.
+Normal and compact-window UI screenshots were also inspected. The final reviewed
+commit must pass the same full gate before non-force main promotion.
+
+
 Local Python packaging/branding/publication/root checks and JavaScript syntax run
 before publication. Local .NET execution remains blocked by the executor's NuGet
 mutex/runtime bootstrap restriction; do not retry sandbox bypasses. Actual .NET
