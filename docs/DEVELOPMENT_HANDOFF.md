@@ -1,6 +1,21 @@
-# Shared top symbols and optional workspace title — 1.14.3
+# Bottom icon key on all diagrams — 1.14.4
 
 ## Current focused update
+
+The appearance key is now once at the bottom of every single/combined diagram,
+not at the top. `QuickSheet.IconKeyTop` reserves a fixed 7 pt symbol row above the
+safety footer; `DiagramBottom` bounds all switch and legend layout before that row.
+Standalone geometry moves upward by the former top-key height, retaining the same
+usable body height and minimum sizes. Compact workspace components omit a key;
+WorkspaceSheet adds one common bottom key per page. Stack/disabled indicators are
+preserved. Optional workspace titles, first-switch logos and side VLAN-ID keys
+remain. PNG and PDF share one scene. This supersedes the top-key placement below.
+
+Focused regressions verify single, combined and multi-page key position/count,
+physical geometry clearance, footer separation and actual PDF coordinates. All
+enforced CI stays enabled; no optional expanded testing sweep is added.
+
+## Previous 1.14.3 update
 
 Combined pages have one top symbol/appearance key, reused from the standalone
 renderer, including stack/disabled symbols when applicable. Per-switch copies and

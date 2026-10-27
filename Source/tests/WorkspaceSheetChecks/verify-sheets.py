@@ -19,7 +19,7 @@ for prefix in ['titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'd
         assert text.count('VLAN key') == 1
         assert text.count('10 Data') == 1
         assert 'WORKSPACE PORT MAPS' not in text
-        assert plan['Placements'][0]['Y'] == 18
+        assert plan['Placements'][0]['Y'] == 0
     if prefix == 'five-ordered':
         assert 1 < len(pdf.pages) < 5
         text = '\n'.join(page.extract_text() for page in pdf.pages)
@@ -46,7 +46,7 @@ for prefix in ['titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'd
         for entry in plan['LegendEntries']:
             if entry['PageNumber'] == index:
                 assert ''.join(entry['Label'].split()) in compact, (prefix, index, entry)
-        assert plan['SideKeys'][index - 1]['X'] > 580 and plan['SideKeys'][index - 1]['Y'] >= 18
+        assert plan['SideKeys'][index - 1]['X'] > 580 and plan['SideKeys'][index - 1]['Y'] >= 0
         if prefix == 'many-wrapped-key':
             assert 'Key page ' in text
         if prefix == 'conflicting-key':
@@ -72,3 +72,13 @@ for prefix in ['titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'd
                 pixel = image.convert('RGB').getpixel((x, y))
                 assert max(pixel) < 110, (prefix, item, pixel)
 print('PASS header-free multi-switch PDFs, single shared side VLAN key by ID, merged aliases/unnamed IDs, full wrapped names, capacity pagination, matched raster geometry, A4 and 300 DPI')
+
+# Actual PDF positions, not just scene metadata: standalone and combined pages.
+import pdfplumber
+for name in ['single-bottom-key.pdf', 'two-on-one.pdf', 'five-ordered.pdf', 'titled-sheet.pdf']:
+    with pdfplumber.open(root / name) as document:
+        for page in document.pages:
+            matches = page.search(r'Native VLAN|Tagged VLAN|Voice VLAN|LAG / trunk', regex=True)
+            assert len(matches) == 4, (name, matches)
+            assert all(548 < match['top'] < 565 for match in matches), (name, matches)
+print('PASS standalone and combined multi-page icon keys occupy the reserved bottom band in actual PDFs')

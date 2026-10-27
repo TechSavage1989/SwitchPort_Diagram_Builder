@@ -19,7 +19,8 @@ public static class QuickSheet
     public static double CopperTabTop(Inventory inv)=>TabTop;
     public static double SocketHeight(Inventory inv)=>PortHeight;
     public static double PanelHeight(Inventory inv)=>SocketTop+(Math.Max(2,inv.Groups.SelectMany(g=>g.SocketLayout).Select(s=>s.Row+1).DefaultIfEmpty(2).Max())-1)*RowPitch+PortHeight+PanelBottom;
-    const double PageWidth=805.89,PageHeight=559.28,Pitch=PortWidth+PortGap,RowPitch=PortHeight+PortGap,Header=8,SocketTop=Header+1,PanelBottom=.8,PanelGap=.5,DiagramTop=51,BodyFont=7.5;
+    const double PageWidth=805.89,PageHeight=559.28,Pitch=PortWidth+PortGap,RowPitch=PortHeight+PortGap,Header=8,SocketTop=Header+1,PanelBottom=.8,PanelGap=.5,BodyFont=7.5;
+    public const double DiagramTop=37,IconKeyTop=PageHeight-24,DiagramBottom=IconKeyTop-3;
     public record Socket(string Port,string Suffix,Box Tile,string Display,bool Optical,Box NumberBounds)
     {
         public (double X,double Y)[] FacePoints {get;init;}=Array.Empty<(double,double)>();
@@ -41,7 +42,7 @@ public static class QuickSheet
     sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null)
     {
         public double Width=>(PageWidth-.8)/Scale;
-        public double Bottom=>DiagramTop+(PageHeight-13-DiagramTop)/Scale;
+        public double Bottom=>DiagramTop+(DiagramBottom-DiagramTop)/Scale;
         public double Gap=>Compact==0?PortGap:.65;
         public double Pitch=>PortWidth+Gap;
         public double RowPitch=>PortHeight+Gap;
@@ -307,6 +308,7 @@ public static class QuickSheet
                     {
                         var candidate=BuildCore(inv,original,hash,narrow,new(scale,compact,wholeWords,keyBelow),palette,aggregate);
                         ApplyGeometry(candidate,scale,compact);
+                        DrawVisualGuide(candidate.Scene,inv,palette,aggregate);
                         var errors=Charts.ValidateScene(candidate.Scene);
                         if(errors.Count>0)throw new OnePageCapacityException(string.Join("; ",errors));
                         return candidate;
@@ -555,7 +557,6 @@ public static class QuickSheet
         scene.Text(12,17,ReportText.DisplayName(inv),14,"#ffffff",true,390);
         if(model.Length>0)scene.Text(420,7,model,9,"#ffffff",true,PageWidth-432);
         scene.Text(420,model.Length>0?22:14,(inv.Firmware=="Unknown"?"":inv.Firmware+"  |  ")+inv.Ports.Count+" interfaces",8,"#d5e7f4",false,PageWidth-432);
-        DrawVisualGuide(scene,inv,output.VlanColors,colors);
         scene.Text(0,PageHeight-10,ReportText.CableMoveDisclaimer,7,"#52677c",false,PageWidth);
         scene.DiagramBodyWidth=includeVlanKey?keyX+keyWidth:diagramWidth;
         return output;
@@ -563,7 +564,7 @@ public static class QuickSheet
     static void ApplyGeometry(Result result,double scale,int compact)
     {
         var scene=result.Scene;double dx=Math.Max(0,(PageWidth-scene.DiagramBodyWidth*scale)/2);
-        bool Body(double y)=>y>=DiagramTop-.01&&y<PageHeight-12;
+        bool Body(double y)=>y>=DiagramTop-.01&&y<IconKeyTop;
         double X(double x)=>dx+x*scale;double Y(double y)=>DiagramTop+(y-DiagramTop)*scale;
         for(int i=0;i<scene.Boxes.Count;i++){var b=scene.Boxes[i];if(Body(b.Y))scene.Boxes[i]=b with{X=X(b.X),Y=Y(b.Y),W=b.W*scale,H=b.H*scale,Radius=b.Radius*scale};}
         for(int i=0;i<scene.Labels.Count;i++){var l=scene.Labels[i];if(Body(l.Y))scene.Labels[i]=l with{X=X(l.X),Y=Y(l.Y),Size=l.Size*scale,Width=l.Width*scale};}
@@ -579,7 +580,7 @@ public static class QuickSheet
     public static void FitToPage(Scene scene)
     {
         if(scene.IsAdaptiveLayout)return;
-        bool Body(double y)=>y>=DiagramTop-0.01&&y<PageHeight-12;
+        bool Body(double y)=>y>=DiagramTop-0.01&&y<IconKeyTop;
         var xs=new List<double>();var ys=new List<double>();
         foreach(var b in scene.Boxes.Where(b=>Body(b.Y))){xs.Add(b.X+b.W+.4);ys.Add(b.Y+b.H+.4);}
         foreach(var l in scene.Labels.Where(l=>Body(l.Y))){var m=ReportRenderer.Measure(l);xs.Add(l.X+m.Width);ys.Add(l.Y+m.Height);}
@@ -587,7 +588,7 @@ public static class QuickSheet
         foreach(var shape in scene.Shapes.Where(s=>Body(s.Points.Min(p=>p.Y)))){xs.Add(shape.Points.Max(p=>p.X)+.4);ys.Add(shape.Points.Max(p=>p.Y)+.4);}
         if(xs.Count==0)return;
         double width=xs.Max(),height=ys.Max()-DiagramTop;
-        double scale=Math.Max(1,Math.Min((PageWidth-2)/width,(PageHeight-14-DiagramTop)/height));
+        double scale=Math.Max(1,Math.Min((PageWidth-2)/width,(DiagramBottom-DiagramTop)/height));
         scene.DiagramScale=scale;double dx=Math.Max(0,(PageWidth-width*scale)/2);
         double X(double x)=>dx+x*scale;double Y(double y)=>DiagramTop+(y-DiagramTop)*scale;
         for(int i=0;i<scene.Boxes.Count;i++){var b=scene.Boxes[i];if(Body(b.Y))scene.Boxes[i]=b with{X=X(b.X),Y=Y(b.Y),W=b.W*scale,H=b.H*scale,Radius=b.Radius*scale};}
@@ -595,7 +596,7 @@ public static class QuickSheet
         for(int i=0;i<scene.Dots.Count;i++){var d=scene.Dots[i];if(Body(d.Y))scene.Dots[i]=d with{X=X(d.X),Y=Y(d.Y),Radius=d.Radius*scale,Halo=d.Halo*scale,Outline=d.Outline*scale,VoiceExtra=d.VoiceExtra*scale};}
         for(int i=0;i<scene.Shapes.Count;i++){var shape=scene.Shapes[i];if(Body(shape.Points.Min(p=>p.Y)))scene.Shapes[i]=shape with{Points=shape.Points.Select(p=>(X(p.X),Y(p.Y))).ToArray(),StrokeWidth=shape.StrokeWidth*scale};}
     }
-    internal static void DrawVisualGuide(Scene scene,Inventory inv,IReadOnlyDictionary<int,string> palette,IReadOnlyDictionary<string,string> aggregates,double y=39)
+    internal static void DrawVisualGuide(Scene scene,Inventory inv,IReadOnlyDictionary<int,string> palette,IReadOnlyDictionary<string,string> aggregates,double y=IconKeyTop)
     {
         double x=0;
         string fill=palette.GetValueOrDefault(10,palette.Values.FirstOrDefault()??"#b9cfdf");

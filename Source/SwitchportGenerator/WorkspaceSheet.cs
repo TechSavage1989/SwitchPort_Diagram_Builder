@@ -18,8 +18,8 @@ public sealed class WorkspaceSheetResult
 /// <summary>Ordered A4 switch blocks with one ID-based VLAN key down the side of each sheet.</summary>
 public static class WorkspaceSheet
 {
-    public const double PageWidth=805.89,PageHeight=559.28,BlockGap=6,ContentTop=18;
-    const double ContentBottom=PageHeight-11,LegendGap=6,LegendFont=7.5,LegendHeading=24,LegendInset=21;
+    public const double PageWidth=805.89,PageHeight=559.28,BlockGap=6,ContentTop=0;
+    const double ContentBottom=QuickSheet.DiagramBottom,LegendGap=6,LegendFont=7.5,LegendHeading=24,LegendInset=21;
     const double MinimumBodyWidth=580,PreferredLegendWidth=156,MinimumLegendWidth=50,MaximumBodyWidth=PageWidth-LegendGap-MinimumLegendWidth;
     sealed record Component(WorkspaceSheetItem Item,QuickSheet.Result Layout);
     sealed record LegendEntry(string Identity,int VlanId,string Label,string Color,bool Voice=false,bool Marker=true);
@@ -74,14 +74,14 @@ public static class WorkspaceSheet
                     page.Rect(0,0,PageWidth,titleHeight-4,"#13283d","#13283d",4,"DocumentTitle");
                     for(int line=0;line<titleLines.Count;line++)page.Text(12,5+line*17,titleLines[line],14,"#ffffff",true,PageWidth-24);
                 }
-                QuickSheet.DrawVisualGuide(page,guideInventory,guideVlans,guideLags,titleHeight+2);
+                QuickSheet.DrawVisualGuide(page,guideInventory,guideVlans,guideLags);
                 foreach(var component in group)
                 {
                     Append(page,component.Layout.Scene,y,bodyWidth,component.Item.Id,component.Item.Ordinal,component.Item.Name);
                     // Continuation sheets repeat the original switch context; the
                     // ordered placement index points to each switch's first page.
-                    if(part==0)result.Placements.Add(new(component.Item.Id,component.Item.Name,result.Pages.Count,y,component.Layout.Scene.Height-14));
-                    y+=component.Layout.Scene.Height-14+BlockGap;
+                    if(part==0)result.Placements.Add(new(component.Item.Id,component.Item.Name,result.Pages.Count,y,component.Layout.Scene.Height));
+                    y+=component.Layout.Scene.Height+BlockGap;
                 }
                 DrawLegend(page,legends[part],bodyWidth+LegendGap,radius,part+1,legends.Count,top);
                 foreach(var entry in legends[part].Entries.Where(entry=>entry.VlanId>=0))
@@ -94,10 +94,10 @@ public static class WorkspaceSheet
         }
         foreach(var component in components)
         {
-            double candidateHeight=bodyHeight+(group.Count==0?0:BlockGap)+component.Layout.Scene.Height-14;
+            double candidateHeight=bodyHeight+(group.Count==0?0:BlockGap)+component.Layout.Scene.Height;
             if(candidateHeight>ContentBottom-top&&group.Count>0)
             {
-                Flush();candidateHeight=component.Layout.Scene.Height-14;
+                Flush();candidateHeight=component.Layout.Scene.Height;
                 result.Warnings.Add("A new sheet starts with "+component.Item.Name+" so complete switch blocks remain readable beside the VLAN key.");
             }
             if(candidateHeight>ContentBottom-top)throw new OnePageCapacityException(component.Item.Name+" cannot fit beside its side VLAN key at readable reference geometry; its individual export remains available");
@@ -204,11 +204,10 @@ public static class WorkspaceSheet
     static void Append(Scene target,Scene source,double dy,double bodyWidth,string id,int ordinal,string name)
     {
         string Owner(string value)=>value.Length==0?"":id+":"+value;
-        double Shift(double y)=>y>=51?(bodyWidth-PageWidth)/2:0;
-        bool Guide(double y)=>y>=37&&y<51;
-        double Y(double y)=>y+dy-(y>=51?14:0);
-        foreach(var box in source.Boxes.Where(box=>!Guide(box.Y)))target.Boxes.Add(box with{X=box.X+Shift(box.Y),Y=Y(box.Y),W=box.Y<37&&box.X==0?bodyWidth:box.W});
-        foreach(var original in source.Labels.Where(label=>!Guide(label.Y)))
+        double Shift(double y)=>y>=QuickSheet.DiagramTop?(bodyWidth-PageWidth)/2:0;
+        double Y(double y)=>y+dy;
+        foreach(var box in source.Boxes)target.Boxes.Add(box with{X=box.X+Shift(box.Y),Y=Y(box.Y),W=box.Y<37&&box.X==0?bodyWidth:box.W});
+        foreach(var original in source.Labels)
         {
             var label=original;double x=label.X+Shift(label.Y),width=label.Width;
             if(label.Y<37)
@@ -218,12 +217,12 @@ public static class WorkspaceSheet
             }
             target.Labels.Add(label with{X=x,Y=Y(label.Y),Width=width,Owner=Owner(label.Owner),Text=label.Text});
         }
-        foreach(var dot in source.Dots.Where(dot=>!Guide(dot.Y)))target.Dots.Add(dot with{X=dot.X+Shift(dot.Y),Y=Y(dot.Y)});
-        foreach(var shape in source.Shapes.Where(shape=>!Guide(shape.Points.Min(point=>point.Y))))
+        foreach(var dot in source.Dots)target.Dots.Add(dot with{X=dot.X+Shift(dot.Y),Y=Y(dot.Y)});
+        foreach(var shape in source.Shapes)
         {
             double dx=Shift(shape.Points.Min(point=>point.Y));
             target.Shapes.Add(shape with{Points=shape.Points.Select(point=>(point.X+dx,Y(point.Y))).ToArray(),Owner=Owner(shape.Owner),ClipBounds=shape.ClipBounds is {} bounds?bounds with{X=bounds.X+dx,Y=Y(bounds.Y)}:null});
         }
-        foreach(var image in source.Images.Where(image=>!Guide(image.Y)))target.Images.Add(image with{X=image.X+Shift(image.Y),Y=Y(image.Y)});
+        foreach(var image in source.Images)target.Images.Add(image with{X=image.X+Shift(image.Y),Y=Y(image.Y)});
     }
 }

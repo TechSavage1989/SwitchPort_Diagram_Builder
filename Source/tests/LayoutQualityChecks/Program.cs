@@ -107,7 +107,7 @@ static class LayoutQualityChecks
             }
         }
         foreach(var l in scene.Labels.Where(l=>l.Owner.Length>0&&l.InkBox))Check(l.Size>=4.5-.01&&l.Size<=9+.01,name+": port number font outside bounds.");
-        foreach(var l in scene.Labels.Where(l=>l.Owner.Length==0&&l.Color=="#ffffff"&&l.Y>=51))Check(l.Size>=7-.01&&l.Size<=8.5+.01,name+": oversized panel heading.");
+        foreach(var l in scene.Labels.Where(l=>l.Owner.Length==0&&l.Color=="#ffffff"&&l.Y>=QuickSheet.DiagramTop))Check(l.Size>=7-.01&&l.Size<=8.5+.01,name+": oversized panel heading.");
         Key(inv,result,name);
         if(below)Check(scene.Labels.Single(l=>l.Text=="VLAN key").Y>result.Sockets.Max(s=>Math.Max(s.Tile.Y+s.Tile.H,s.NumberBounds.Y+s.NumberBounds.H)),name+": wide/dense layout did not use below-bank key fallback.");
         Check(JsonSerializer.Serialize(inv)==original,name+": sizing mutated inventory data.");

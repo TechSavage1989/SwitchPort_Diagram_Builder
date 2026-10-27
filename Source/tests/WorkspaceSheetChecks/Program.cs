@@ -33,11 +33,13 @@ static class WorkspaceSheetChecks
             Check(scene.Labels.Count(label=>label.Text.Contains(ReportText.CableMoveDisclaimer,StringComparison.Ordinal))==1,"Each sheet retains one complete cable-move warning.");
             Check(scene.Labels.Count(label=>label.Text=="VLAN key")==1,"Every rendered sheet has one complete VLAN key, never a repeated key for each switch.");
             var sideKey=scene.Labels.Single(label=>label.Text=="VLAN key");
-            Check(sideKey.Y>=WorkspaceSheet.ContentTop&&sideKey.X>scene.DiagramBodyWidth,"The common VLAN key stays in a side column beside the first switch below the common top key, never beneath the switches.");
+            Check(sideKey.Y>=WorkspaceSheet.ContentTop&&sideKey.X>scene.DiagramBodyWidth,"The common VLAN key stays in a side column beside the first switch with the symbol key reserved at the bottom, never beneath the switches.");
             Check(scene.Shapes.Where(shape=>shape.Owner.Length>0).All(shape=>shape.Points.Max(point=>point.X)<sideKey.X),"The sidebar never overlaps physical switch sockets.");
             foreach(string symbol in new[]{"Native VLAN","Tagged VLAN","Voice VLAN","LAG / trunk"})
-                Check(scene.Labels.Count(label=>label.Text==symbol)==1&&scene.Labels.Single(label=>label.Text==symbol).Y<sideKey.Y,"One shared symbol key stays above the switches: "+symbol);
+                Check(scene.Labels.Count(label=>label.Text==symbol)==1&&scene.Labels.Single(label=>label.Text==symbol).Y==QuickSheet.IconKeyTop,"One shared symbol key stays at the bottom: "+symbol);
             Check(!scene.Labels.Any(label=>inputs.Any(input=>label.Text.Contains(input.Name,StringComparison.Ordinal))),"Source filenames never appear in combined switch headers.");
+            Check(scene.Shapes.Where(shape=>shape.Owner.Length>0).All(shape=>shape.Points.Max(point=>point.Y)<QuickSheet.IconKeyTop),"Physical switch geometry cannot overlap the reserved bottom key.");
+            Check(scene.Labels.Single(label=>label.Text.StartsWith(ReportText.CableMoveDisclaimer)).Y>QuickSheet.IconKeyTop+10,"The cable warning stays below the icon key.");
             Check(!scene.Labels.Any(label=>label.Text.Contains("WORKSPACE PORT MAPS",StringComparison.Ordinal)),"Combined sheet has no redundant workspace title bar.");
             Check(scene.Labels.Where(label=>label.Color=="#30465c").All(label=>ReportRenderer.Measure(label).Text==label.Text),"Every shared legend line wraps fully instead of truncating or ellipsizing.");
         }
@@ -73,7 +75,7 @@ static class WorkspaceSheetChecks
             Check(together.Pages.Count==1&&together.Placements.All(item=>item.PageNumber==1),"Two actual switch configurations must share the first A4 sheet, not become separate pages.");
             Check(together.Placements.All(item=>!item.Standalone&&item.GeometryScale==1),"Ordinary switches use reusable reference-scale components.");
             Check(JsonSerializer.Serialize(inputs.Select(item=>item.Inventory))==before,"Composing sheets must not alter parsed inventories, memberships or details.");
-            Check(together.Placements.First().Y==WorkspaceSheet.ContentTop,"The shared symbol key occupies the top only once before switch headers.");
+            Check(together.Placements.First().Y==WorkspaceSheet.ContentTop,"Without a title the switches start at the top; the symbol key is at the bottom.");
             Check(together.LegendEntries.Count(entry=>entry.VlanId==10)==1&&together.LegendEntries.Count(entry=>entry.VlanId==150)==1,"Matching VLAN IDs are deduplicated in the common side legend.");
             var sharedPalette=WorkspacePalette.Create(inputs.Select(input=>(input.Id,input.Inventory)).ToArray());
             foreach(var input in inputs)
@@ -86,10 +88,15 @@ static class WorkspaceSheetChecks
                     Check(onSheet.Count(shape=>shape.Fill==group.Key.Fill&&shape.Stroke==group.Key.Stroke)==group.Count(),"Native VLAN fills/LAG outlines retain source colors and multiplicity.");
                 var area=together.Placements.Single(item=>item.Id==input.Id);
                 var dots=together.Pages[0].Dots.Where(dot=>dot.X<together.Pages[0].DiagramBodyWidth&&dot.Y>=area.Y&&dot.Y<area.Y+area.Height).ToArray();
-                Check(dots.Length==compact.Scene.Dots.Count(dot=>dot.Y>=51),"Tagged/voice port markers and visual guide are retained exactly while duplicate VLAN keys are replaced by the common key.");
-                Check(dots.Count(dot=>dot.Voice)==compact.Scene.Dots.Count(dot=>dot.Voice&&dot.Y>=51),"Voice diamonds remain distinct from tagged circles.");
+                Check(dots.Length==compact.Scene.Dots.Count(dot=>dot.Y>=QuickSheet.DiagramTop),"Tagged/voice port markers and visual guide are retained exactly while duplicate VLAN keys are replaced by the common key.");
+                Check(dots.Count(dot=>dot.Voice)==compact.Scene.Dots.Count(dot=>dot.Voice&&dot.Y>=QuickSheet.DiagramTop),"Voice diamonds remain distinct from tagged circles.");
             }
             Save(together,root,"two-on-one");
+            var single=QuickSheet.Build(alpha,Charts.Layout(alpha),"BOTTOM-KEY");
+            foreach(string symbol in new[]{"Native VLAN","Tagged VLAN","Voice VLAN","LAG / trunk"})
+                Check(single.Scene.Labels.Count(label=>label.Text==symbol)==1&&single.Scene.Labels.Single(label=>label.Text==symbol).Y==QuickSheet.IconKeyTop,"Standalone diagrams use exactly one bottom icon key: "+symbol);
+            Check(single.Scene.Shapes.Where(shape=>shape.Owner.Length>0).All(shape=>shape.Points.Max(point=>point.Y)<QuickSheet.IconKeyTop),"Standalone sockets leave the bottom key clear.");
+            Pdf.Save(new(){single.Scene},Path.Combine(root,"single-bottom-key.pdf"));Png.Save(single.Scene,Path.Combine(root,"single-bottom-key.png"),3508,2480,true);
             for(int count=3;count<=5;count++)
             {
                 var many=Enumerable.Range(1,count).Select(index=>Item("ordered-"+index,Aruba("ORDERED-"+index))).ToArray();

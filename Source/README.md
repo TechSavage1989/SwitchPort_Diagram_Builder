@@ -1,4 +1,11 @@
-Switchport Diagram Builder 1.14.3 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.4 - Windows 10/11 x64
+
+1.14.4: Bottom icon key on every diagram page
+- Native/tagged/voice/LAG appearance symbols now appear once at the bottom of
+  individual and combined diagrams, with applicable stack/disabled symbols.
+- The reserved key band stays above the safety footer and clear of all switches.
+- Side VLAN keys, optional workspace titles, logos and PNG/PDF choices remain.
+
 
 1.14.3: Shared top symbol key and optional workspace title
 - Combined sheets show one native/tagged/voice/LAG appearance key at the top.
