@@ -14,7 +14,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   const workspace=async(selected='two',dirty=true)=>deliver({type:'workspace',items,selectedId:selected,dirty});
   const selected=async(id='two',chartAvailable=false,statusText='')=>{const i=items.find(i=>i.id===id);await deliver({type:'selected',id,name:i?.name||'',hostname:i?.hostname||'',chartAvailable,statusType:statusText?'complete':'',statusText});};
   const publish=patch=>deliver({type:'project',available:true,chartAvailable:true,folderAvailable:true,combined:false,pageCount:1,pdfAvailable:false,stale:false,label:'Access-A',output:'A-folder',summary:'A saved output\nOutput: A-folder',...patch});
-  const previewProject=async()=>{await page.click('#openChart');assert.deepEqual(await last(),{action:'openChart'});await deliver({type:'openProjectPreview'});return last();};
+  const previewProject=async()=>{await page.click('#openChart');assert.deepEqual(await last(),{action:'openChart'});assert(await page.locator('#combinedPreviewDialog').isHidden(),'Open chart requests a native PNG, never a PDF or modal');await page.click('#previewSheets');return last();};
   const button=(id,action)=>page.locator(`button[data-item-id="${id}"][data-workspace-action="${action}"]`);
   assert(await page.locator('#runAll').isDisabled());assert(await page.locator('#saveWorkspace').isDisabled());assert(await page.locator('#combinePdf').isChecked(),'shared A4 sheets are enabled by default');
   await page.click('#openWorkspace');assert.deepEqual(await last(),{action:'openWorkspace'});
@@ -84,6 +84,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await deliver({type:'batchComplete',message:'Built 5 configurations.',details:'1. Core\n2. Access-A\n3. First\n4. Duplicate\n5. Pasted',output:'Batch-folder',combinedAvailable:true,pageCount:3,warnings:['VLAN 10 uses different names across configurations.']});
   assert.equal(await page.locator('#status').innerText(),batchSummary);assert(!(await page.locator('#open').isDisabled()));
   await page.click('#open');assert.deepEqual(await last(),{action:'open'});
+  await page.click('#openPdf');assert.deepEqual(await last(),{action:'openCombined'});
 
   assert((await page.locator('#status').innerText()).includes('3 shared A4 sheets.'));assert((await page.locator('#status').innerText()).includes('VLAN 10 uses different names'));
   assert.equal(await page.locator('#previewCombined').count(),0);assert.equal(await page.locator('#openBatch').count(),0);let preview=await previewProject();
@@ -95,11 +96,12 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await deliver({type:'combinedPreview',requestId:preview.requestId,index:1,count:3,name:'Campus shared sheets',src:previewSrc});
   assert.equal(await page.locator('#combinedPreviewPage').innerText(),'Page 2 of 3');assert(!(await page.locator('#nextCombined').isDisabled()));assert(!(await page.locator('#previousCombined').isDisabled()));
   await page.click('#nextCombined');preview=await last();assert.equal(preview.index,2);await deliver({type:'combinedPreview',requestId:preview.requestId,index:2,count:3,name:'Campus shared sheets',src:previewSrc});assert.equal(await page.locator('#combinedPreviewPage').innerText(),'Page 3 of 3');assert(await page.locator('#nextCombined').isDisabled());
+  await page.click('#openPreviewPng');assert.deepEqual(await last(),{action:'openChart',index:2});
   await page.click('#openCombined');assert.deepEqual(await last(),{action:'openCombined'});
   for(const viewport of [{width:900,height:650},{width:600,height:430}]){
    await page.setViewportSize(viewport);
    const box=await page.locator('#combinedPreviewDialog').boundingBox();assert(box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width+.5&&box.y+box.height<=viewport.height+.5);
-   for(const id of ['previousCombined','nextCombined','openCombined','closeCombinedPreview'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits compact preview');
+   for(const id of ['previousCombined','nextCombined','openPreviewPng','openCombined','closeCombinedPreview'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits compact preview');
   }
   await page.click('#previousCombined');preview=await last();assert.equal(preview.index,1);await deliver({type:'combinedPreviewError',requestId:preview.requestId,message:'Page 2 PNG is missing.'});assert.equal(await page.locator('#combinedPreviewPage').innerText(),'Page 2 of 3');assert(!(await page.locator('#previousCombined').isDisabled()));assert(!(await page.locator('#nextCombined').isDisabled()),'missing middle page retains navigation to page 3');await page.click('#nextCombined');preview=await last();assert.equal(preview.index,2);await page.click('#closeCombinedPreview');
   await deliver({type:'combinedPreview',requestId:preview.requestId,index:0,count:3,name:'Late result',src:previewSrc});assert(await page.locator('#combinedPreviewDialog').isHidden());assert.equal(await page.locator('#combinedPreviewImage').getAttribute('src'),null);
@@ -127,7 +129,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   await page.click('#copyOutput');assert.deepEqual(await last(),{action:'copyOutput',text:'Single project output'});await deliver({type:'outputCopied',message:'Copied.'});
   await page.click('#openChart');assert.deepEqual(await last(),{action:'openChart'});assert(await page.locator('#combinedPreviewDialog').isHidden());
   await page.click('#open');assert.deepEqual(await last(),{action:'open'});
-  await publish({label:'Newest single chart',output:'Single-latest',summary:'Single project output',chartAvailable:false,folderAvailable:true,stale:true});assert(await page.locator('#openChart').isDisabled());assert(!(await page.locator('#open').isDisabled()));
+  await publish({label:'Newest single chart',output:'Single-latest',summary:'Single project output',chartAvailable:false,pdfAvailable:true,folderAvailable:true,stale:true});assert(await page.locator('#openChart').isDisabled());assert(!(await page.locator('#openPdf').isDisabled()));assert(!(await page.locator('#open').isDisabled()));
   await publish({label:'Newest single chart',output:'Single-latest',summary:'Single project output',stale:true});
   await selected('six');await workspace('six');
   console.log('PASS single → shared project → individual-chart project → single latest-project actions; failed builds/selection/source edits preserve success and Copy; stale/missing-file states are explicit.');
@@ -139,7 +141,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
    await page.waitForFunction(()=>{const selected=document.querySelector('.workspace-row.selected'),list=document.getElementById('workspaceList');if(!selected)return false;const row=selected.getBoundingClientRect(),bounds=list.getBoundingClientRect();return row.top>=bounds.top&&row.bottom<=bounds.bottom;});
    const bounds=await page.evaluate(()=>({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,listScroll:document.getElementById('workspaceList').scrollHeight,listClient:document.getElementById('workspaceList').clientHeight}));
    assert(bounds.scrollWidth<=bounds.width+1,JSON.stringify(bounds));
-   for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace','editWorkspaceLabel','openChart','open','copyOutput'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
+   for(const id of ['choose','paste','run','runAll','saveWorkspace','openWorkspace','editWorkspaceLabel','openChart','openPdf','open','copyOutput'])assert(await page.locator('#'+id).evaluate(el=>{const b=el.getBoundingClientRect();return b.top>=0&&b.bottom<=innerHeight&&b.left>=0&&b.right<=innerWidth;}),id+' fits '+viewport.width+'x'+viewport.height);
    assert(bounds.listScroll>bounds.listClient,'long configuration list scrolls inside its panel');
    await page.screenshot({path:'build/workspace-'+viewport.width+'x'+viewport.height+'.png',fullPage:true});
   }

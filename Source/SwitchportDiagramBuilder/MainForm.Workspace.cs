@@ -107,7 +107,7 @@ public sealed partial class MainForm
     void OpenCombined()
     {
         SendProject();
-        if(!projects.PdfAvailable)throw new InvalidOperationException("This project has no available combined PDF.");
+        if(!projects.PdfAvailable)throw new InvalidOperationException("This project has no available PDF.");
         Process.Start(new ProcessStartInfo(projects.Current!.PdfPath!){UseShellExecute=true});
     }
     async Task RunAll(bool combined)

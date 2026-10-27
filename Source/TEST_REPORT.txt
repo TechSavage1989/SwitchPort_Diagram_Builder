@@ -1,3 +1,15 @@
+SWITCHPORT DIAGRAM BUILDER 1.14.2 - TEST NOTES
+
+Focused correction: ID-only shared VLAN colors/aliases, side legend with complete
+readable pagination, and PNG-first latest-project opening with separate PDF.
+Targeted regressions extend palette/geometry/project/browser suites. All enforced
+CI remains required before promotion. No repeated unrelated manual sweeps.
+Local .NET/browser restrictions remain; use hosted CI for actual runtime checks.
+Native interactive Windows dialogs and real user restart are not claimed tested.
+
+Historical 1.14.1 test notes follow
+=================================
+
 SWITCHPORT DIAGRAM BUILDER 1.14.1 - TEST NOTES
 
 Scoped shared-sheet polish removes the generic workspace header and repeated VLAN

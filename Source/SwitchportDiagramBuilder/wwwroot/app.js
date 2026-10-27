@@ -12,7 +12,7 @@ function controls(){
  el('run').disabled=locked()||!hasInput;
  el('saveWorkspace').disabled=locked()||(!workspaceItems.length&&!workspaceDirty);
  el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
- el('openChart').disabled=locked()||!project.chartAvailable;el('open').disabled=updating||!project.folderAvailable;
+ el('openChart').disabled=locked()||!project.chartAvailable;el('openPdf').disabled=locked()||!project.pdfAvailable;el('previewSheets').hidden=!project.combined;el('previewSheets').disabled=locked()||!combinedAvailable;el('openPreviewPng').disabled=locked()||previewLoading||el('combinedPreviewImage').hidden;el('open').disabled=updating||!project.folderAvailable;
  el('editWorkspaceLabel').disabled=locked();el('applyWorkspaceLabel').disabled=locked();el('workspaceLabelInput').disabled=locked();
  el('previousCombined').disabled=previewLoading||previewIndex<=0;el('nextCombined').disabled=previewLoading||previewIndex>=combinedPageCount-1;el('openCombined').disabled=locked()||!project.pdfAvailable;
  el('workspaceList').querySelectorAll('button').forEach(button=>button.disabled=locked()||button.dataset.boundary==='true');
@@ -72,6 +72,9 @@ el('copyOutput').onclick=()=>{
  const text=el('status').textContent;if(copying||!text.trim())return;
  copying=true;el('copyOutput').disabled=true;el('copyFeedback').textContent='';post({action:'copyOutput',text});
 };
+el('openPdf').onclick=()=>{if(!locked()&&project.pdfAvailable)post({action:'openCombined'});};
+el('previewSheets').onclick=showProjectPreview;
+el('openPreviewPng').onclick=()=>{if(!locked()&&!el('openPreviewPng').disabled)post({action:'openChart',index:previewIndex});};
 el('openChart').onclick=()=>{if(!locked()&&!el('openChart').disabled)post({action:'openChart'});};
 el('openWorkspace').onclick=()=>{if(!locked())post({action:'openWorkspace'});};
 el('saveWorkspace').onclick=()=>{if(!locked()&&(workspaceItems.length||workspaceDirty))post({action:'saveWorkspace'});};

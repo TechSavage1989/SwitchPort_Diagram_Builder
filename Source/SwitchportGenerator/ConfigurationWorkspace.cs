@@ -163,7 +163,7 @@ public sealed class ConfigurationWorkspace
             throw new InvalidOperationException("The selected configuration is not in this workspace.");
         workspace.SelectedId = document.SelectedId ?? workspace.Items.FirstOrDefault()?.Id;
         workspace.OutputLabel=WorkspaceNaming.CleanLabel(document.OutputLabel);
-        workspace.PaletteOverrides=document.PaletteOverrides??new();
+        workspace.PaletteOverrides=WorkspacePalette.NormalizeOverrides(workspace.Items.Select(item=>(item.Id,item.Inventory)).ToArray(),document.PaletteOverrides??new());
         // Palette overrides are explicit workspace metadata, not independent per-item colors.
         if(workspace.PaletteOverrides.Vlans==null||workspace.PaletteOverrides.Aggregates==null||workspace.PaletteOverrides.Vlans.Count>0||workspace.PaletteOverrides.Aggregates.Count>0)
             WorkspacePalette.Create(workspace,workspace.PaletteOverrides);

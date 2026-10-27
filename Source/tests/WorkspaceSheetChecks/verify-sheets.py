@@ -26,6 +26,11 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
         assert [text.index('ORDERED-' + str(i)) for i in range(1, 6)] == sorted(text.index('ORDERED-' + str(i)) for i in range(1, 6))
     if prefix == 'mixed-vendors':
         assert len(pdf.pages) == 1 and 'MIXED-ARUBA' in pdf.pages[0].extract_text() and 'MIXED-ROUTEROS' in pdf.pages[0].extract_text()
+    if prefix == 'many-wrapped-key':
+        all_text = ''.join(''.join(page.extract_text().split()) for page in pdf.pages)
+        for vlan in [1] + list(range(100, 140)):
+            assert 'InfrastructureManagementBackPlaneSegment' + str(vlan) in all_text
+        assert len(pdf.pages) > 1
     for index, page in enumerate(pdf.pages, 1):
         assert abs(float(page.mediabox.width) - 841.89) < 0.5
         assert abs(float(page.mediabox.height) - 595.28) < 0.5
@@ -37,15 +42,16 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
         for entry in plan['LegendEntries']:
             if entry['PageNumber'] == index:
                 assert ''.join(entry['Label'].split()) in compact, (prefix, index, entry)
+        assert plan['SideKeys'][index - 1]['X'] > 580 and plan['SideKeys'][index - 1]['Y'] < 3
         if prefix == 'many-wrapped-key':
-            for vlan in [1] + list(range(100, 140)):
-                assert 'InfrastructureManagementBackPlaneSegment' + str(vlan) in compact
+            assert 'Key page ' in text
         if prefix == 'conflicting-key':
             assert 'CONFLICT-DATA' in text and 'CONFLICT-SERVERS' in text and 'CONFLICT-UNNAMED' in text
-            assert len({entry['Color'] for entry in plan['LegendEntries'] if entry['VlanId'] == 10}) == 3
+            assert len({entry['Color'] for entry in plan['LegendEntries'] if entry['VlanId'] == 10}) == 1
+            assert 'Data/Servers' in compact
         if prefix == 'unnamed-key':
             assert text.count('Native not supplied') == 1 and text.count('No native VLAN') == 1
-            assert len([entry for entry in plan['LegendEntries'] if entry['VlanId'] == 20]) == 2
+            assert len([entry for entry in plan['LegendEntries'] if entry['VlanId'] == 20]) == 1
         with Image.open(root / f'{prefix}-{index}.png') as image:
             assert image.size == (3508, 2480)
             assert abs(image.info['dpi'][0] - 300) < 0.1
@@ -61,4 +67,4 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
                 x = round((18 + 2) * sx)
                 pixel = image.convert('RGB').getpixel((x, y))
                 assert max(pixel) < 110, (prefix, item, pixel)
-print('PASS header-free multi-switch PDFs, single complete shared VLAN key, conflicts/unnamed scopes, full wrapped names, capacity pagination, matched raster geometry, A4 and 300 DPI')
+print('PASS header-free multi-switch PDFs, single shared side VLAN key by ID, merged aliases/unnamed IDs, full wrapped names, capacity pagination, matched raster geometry, A4 and 300 DPI')

@@ -32,6 +32,9 @@ static class WorkspaceSheetChecks
             Check(scene.Dots.All(dot=>dot.X-dot.Radius>=0&&dot.Y-dot.Radius>=0&&dot.X+dot.Radius<=scene.Width&&dot.Y+dot.Radius<=scene.Height),"All VLAN markers stay inside sheet bounds.");
             Check(scene.Labels.Count(label=>label.Text.Contains(ReportText.CableMoveDisclaimer,StringComparison.Ordinal))==1,"Each sheet retains one complete cable-move warning.");
             Check(scene.Labels.Count(label=>label.Text=="VLAN key")==1,"Every rendered sheet has one complete VLAN key, never a repeated key for each switch.");
+            var sideKey=scene.Labels.Single(label=>label.Text=="VLAN key");
+            Check(sideKey.Y<3&&sideKey.X>scene.DiagramBodyWidth,"The common VLAN key stays in a side column from the top, never beneath the switches.");
+            Check(scene.Shapes.Where(shape=>shape.Owner.Length>0).All(shape=>shape.Points.Max(point=>point.X)<sideKey.X),"The sidebar never overlaps physical switch sockets.");
             Check(!scene.Labels.Any(label=>label.Text.Contains("WORKSPACE PORT MAPS",StringComparison.Ordinal)),"Combined sheet has no redundant workspace title bar.");
             Check(scene.Labels.Where(label=>label.Color=="#30465c").All(label=>ReportRenderer.Measure(label).Text==label.Text),"Every shared legend line wraps fully instead of truncating or ellipsizing.");
         }
@@ -53,7 +56,7 @@ static class WorkspaceSheetChecks
     {
         Pdf.Save(result.Pages,Path.Combine(root,prefix+".pdf"));
         for(int index=0;index<result.Pages.Count;index++)Png.Save(result.Pages[index],Path.Combine(root,prefix+"-"+(index+1)+".png"),3508,2480,true);
-        File.WriteAllText(Path.Combine(root,prefix+"-plan.json"),JsonSerializer.Serialize(new{result.Placements,result.LegendEntries,result.Warnings,PageCount=result.Pages.Count},new JsonSerializerOptions{WriteIndented=true}));
+        File.WriteAllText(Path.Combine(root,prefix+"-plan.json"),JsonSerializer.Serialize(new{result.Placements,result.LegendEntries,result.Warnings,SideKeys=result.Pages.Select(page=>page.Labels.Single(label=>label.Text=="VLAN key")).Select(label=>new{label.X,label.Y}),PageCount=result.Pages.Count},new JsonSerializerOptions{WriteIndented=true}));
     }
     static int Main(string[] args)
     {
@@ -68,7 +71,7 @@ static class WorkspaceSheetChecks
             Check(together.Placements.All(item=>!item.Standalone&&item.GeometryScale==1),"Ordinary switches use reusable reference-scale components.");
             Check(JsonSerializer.Serialize(inputs.Select(item=>item.Inventory))==before,"Composing sheets must not alter parsed inventories, memberships or details.");
             Check(together.Placements.First().Y==0,"The first switch's own header starts immediately at the sheet top.");
-            Check(together.LegendEntries.Count(entry=>entry.VlanId==10)==1&&together.LegendEntries.Count(entry=>entry.VlanId==150)==1,"Matching VLAN ID/name pairs are deduplicated in the common legend.");
+            Check(together.LegendEntries.Count(entry=>entry.VlanId==10)==1&&together.LegendEntries.Count(entry=>entry.VlanId==150)==1,"Matching VLAN IDs are deduplicated in the common side legend.");
             var sharedPalette=WorkspacePalette.Create(inputs.Select(input=>(input.Id,input.Inventory)).ToArray());
             foreach(var input in inputs)
             {
@@ -79,7 +82,7 @@ static class WorkspaceSheetChecks
                 foreach(var group in compact.Scene.Shapes.Where(shape=>shape.Owner.Length>0).GroupBy(shape=>(shape.Fill,shape.Stroke)))
                     Check(onSheet.Count(shape=>shape.Fill==group.Key.Fill&&shape.Stroke==group.Key.Stroke)==group.Count(),"Native VLAN fills/LAG outlines retain source colors and multiplicity.");
                 var area=together.Placements.Single(item=>item.Id==input.Id);
-                var dots=together.Pages[0].Dots.Where(dot=>dot.Y>=area.Y&&dot.Y<area.Y+area.Height).ToArray();
+                var dots=together.Pages[0].Dots.Where(dot=>dot.X<together.Pages[0].DiagramBodyWidth&&dot.Y>=area.Y&&dot.Y<area.Y+area.Height).ToArray();
                 Check(dots.Length==compact.Scene.Dots.Count,"Tagged/voice port markers and visual guide are retained exactly while duplicate VLAN keys are replaced by the common key.");
                 Check(dots.Count(dot=>dot.Voice)==compact.Scene.Dots.Count(dot=>dot.Voice),"Voice diamonds remain distinct from tagged circles.");
             }
@@ -106,26 +109,25 @@ static class WorkspaceSheetChecks
             conflictB.Vlans.Single(vlan=>vlan.Id==10).Name="Servers";conflictC.Vlans.Single(vlan=>vlan.Id==10).Name="";
             var conflicts=new[]{Item("conflict-a",conflictA),Item("conflict-b",conflictB),Item("conflict-c",conflictC)};
             var conflictSheets=WorkspaceSheet.Build(conflicts);Validate(conflictSheets,conflicts);
-            Check(conflictSheets.Pages.Count==1,"Three ordinary conflicting-name switches fit with one complete scoped key.");
+            Check(conflictSheets.Pages.Count==1,"Three ordinary switches with different names for the same VLAN fit beside one common ID key.");
             var tens=conflictSheets.LegendEntries.Where(entry=>entry.VlanId==10).ToArray();
-            Check(tens.Length==3&&tens.Select(entry=>entry.Color).Distinct().Count()==3,"Conflicting and unnamed meanings remain three separate legend identities and colors.");
-            Check(tens.Any(entry=>entry.Label.Contains("Data"))&&tens.Any(entry=>entry.Label.Contains("Servers"))&&tens.Any(entry=>entry.Label.Contains("Unnamed")),"Shared key retains every conflicting name and the explicit unnamed state.");
-            Check(tens.All(entry=>entry.Label.Contains("conflict-")),"Conflicting/unnamed legend entries identify their source configurations.");
+            Check(tens.Length==1&&tens[0].Identity=="vlan:10","Matching VLAN IDs use exactly one legend identity and color regardless of name.");
+            Check(tens[0].Label.Contains("Data / Servers")&&!tens[0].Label.Contains("Unnamed"),"The shared ID key retains all named aliases; blank names do not create another meaning.");
             Check(conflictSheets.LegendEntries.Count(entry=>entry.VlanId==150)==1,"A shared named voice VLAN deduplicates despite other conflicts.");Save(conflictSheets,root,"conflicting-key");
             var unnamedA=Router("UNNAMED-A");var unnamedB=Router("UNNAMED-B");
             foreach(var inv in new[]{unnamedA,unnamedB}){inv.Vlans.Add(new(){Id=20});inv.Ports[0].UntaggedVlan=20;inv.Ports[0].UntaggedState="Known";inv.Ports[1].UntaggedState="None";}
             var unnamed=new[]{new WorkspaceSheetItem("unnamed-a","same.cfg",unnamedA),new WorkspaceSheetItem("unnamed-b","same.cfg",unnamedB)};
             var unnamedSheets=WorkspaceSheet.Build(unnamed);Validate(unnamedSheets,unnamed);
-            Check(unnamedSheets.LegendEntries.Count(entry=>entry.VlanId==20)==2,"Two unnamed VLANs with the same ID remain independently scoped.");
+            Check(unnamedSheets.LegendEntries.Count(entry=>entry.VlanId==20)==1,"Two unnamed VLANs with the same ID share one legend entry.");
             Check(unnamedSheets.Pages[0].Labels.Count(label=>label.Text=="Native not supplied")==1&&unnamedSheets.Pages[0].Labels.Count(label=>label.Text=="No native VLAN")==1,"Native unknown/none legend states are retained once, not repeated per switch.");Save(unnamedSheets,root,"unnamed-key");
             var ambiguous=Aruba("AMBIGUOUS");ambiguous.Vlans.Add(new(){Id=10,Name="Second meaning"});
             var ambiguousInput=new[]{Item("ambiguous",ambiguous),Item("ambiguous-peer",Aruba("AMBIGUOUS-PEER"))};var ambiguousSheets=WorkspaceSheet.Build(ambiguousInput);Validate(ambiguousSheets,ambiguousInput);
-            Check(ambiguousSheets.LegendEntries.Any(entry=>entry.Label.Contains("Data / Second meaning")&&entry.Label.Contains("ambiguous names")),"Internally ambiguous names are not silently collapsed into the first name.");Save(ambiguousSheets,root,"ambiguous-key");
+            Check(ambiguousSheets.LegendEntries.Any(entry=>entry.Label.Contains("Data / Second meaning")),"Internally ambiguous names are not silently collapsed into the first name.");Save(ambiguousSheets,root,"ambiguous-key");
             var manyA=Dense();manyA.Hostname="LONG-KEY-A";var manyB=Dense();manyB.Hostname="LONG-KEY-B";
             foreach(var inv in new[]{manyA,manyB})foreach(var vlan in inv.Vlans)vlan.Name="Infrastructure Management BackPlane Segment "+vlan.Id;
             var manyInput=new[]{Item("long-key-a",manyA),Item("long-key-b",manyB)};var manySheets=WorkspaceSheet.Build(manyInput);Validate(manySheets,manyInput);
-            foreach(var placement in manySheets.Placements.Where(placement=>!placement.Standalone))
-                Check(manySheets.LegendEntries.Count(entry=>entry.PageNumber==placement.PageNumber)==41,"Every long-name VLAN appears in the complete per-sheet key.");Save(manySheets,root,"many-wrapped-key");
+            Check(manySheets.LegendEntries.Select(entry=>entry.VlanId).Distinct().Count()==41,"Every long-name VLAN appears across the complete side-key pages.");
+            Check(manySheets.Pages.Count>1&&manySheets.Pages.All(page=>page.Labels.Any(label=>label.Text.StartsWith("Key page "))),"Dense side keys paginate explicitly instead of shrinking names or moving below switches.");Save(manySheets,root,"many-wrapped-key");
             var contradictory=inputs.Select(input=>input with{Inventory=JsonSerializer.Deserialize<Inventory>(JsonSerializer.Serialize(input.Inventory))!}).ToArray();
             foreach(var input in contradictory)sharedPalette.Apply(input.Id,input.Inventory);
             contradictory[1].Inventory.VlanColorOverrides![10]=sharedPalette.ForItem("alpha").Vlans[150];

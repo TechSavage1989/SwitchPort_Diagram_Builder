@@ -159,9 +159,11 @@ static class WorkspaceChecks
         string Chart(int index)=>Path.Combine(successful[index].OutputDirectory,"wall-chart.png");
         Check(history.RecordSingle(true,"First switch",successful[0].OutputDirectory,Chart(0),"Single result"),"Successful single build records the output project.");
         Check(!history.Current!.Paged&&history.ExistingCharts().Single()==Chart(0)&&history.FolderAvailable,"Single chart and folder belong to one project.");
+        Check(history.ChartPath()==Chart(0)&&history.PdfAvailable&&history.Current.PdfPath==Path.Combine(successful[0].OutputDirectory,"a4-one-page.pdf"),"Single PNG default and separate A4 PDF target the same latest project.");
         Check(history.RecordBatch(exported,true,"Shared workspace","Combined result"),"Successful shared sheet output replaces single result.");
         Check(history.Current!.Paged&&history.Current.OutputDirectory==exported.OutputDirectory&&history.PdfAvailable
             &&history.ExistingCharts().SequenceEqual(exported.CombinedImages),"Combined chart, PDF, preview pages and output folder agree.");
+        Check(history.ChartPath()==exported.CombinedImages[0]&&history.ChartPath(0)==exported.CombinedImages[0],"Combined Open chart defaults to the first PNG, not the PDF.");
         var combined=history.Current;
         string oldSelection=workspace.SelectedId!;bool wasDirty=workspace.Dirty;workspace.Select(successful[2].Id);workspace.Select(oldSelection);workspace.Dirty=wasDirty;
         Check(history.Current==combined,"Selecting another configuration cannot redirect latest generated project.");
@@ -192,6 +194,9 @@ static class WorkspaceChecks
         var partial=new GeneratedProjectHistory();partial.Restore(new("Partial pages",missingRoot,new[]{firstPage,secondPage},pdf,true,"Previous complete build"));
         Check(partial.Current!.Charts.Length==2&&partial.Current.Charts[0]==firstPage&&partial.ExistingCharts().Length==1&&partial.PdfAvailable,
             "Missing preview files retain declared page slots so PDF page numbers cannot silently change.");
+        Check(partial.ChartPath()==secondPage&&partial.ChartPath(0)==null&&partial.ChartPath(1)==secondPage,"Missing pages never silently substitute a PDF for PNG opening.");
+        File.Delete(secondPage);
+        Check(!partial.ChartAvailable&&partial.PdfAvailable&&partial.ChartPath()==null,"PNG and PDF availability are independent; a missing PNG does not make Open chart open PDF.");
         var missing=new GeneratedProjectHistory();missing.Restore(history.Current! with{OutputDirectory=Path.Combine(exported.OutputDirectory,"missing"),Charts=Array.Empty<string>(),PdfPath=null});
         Check(missing.Current==null&&!missing.ChartAvailable&&!missing.FolderAvailable,"Deleted output cannot be offered as an available restored project.");
     }

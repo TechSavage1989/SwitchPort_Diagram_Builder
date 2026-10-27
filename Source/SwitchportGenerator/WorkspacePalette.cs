@@ -85,8 +85,8 @@ public sealed class WorkspacePalettePlan
 
 public static class WorkspacePalette
 {
-    // Trim and canonical Unicode normalization only: VLAN names remain case-sensitive.
-    // Equal labels are a color identity, not proof that devices share the same network.
+    // VLAN IDs alone define shared colors. Names are display aliases, never identities.
+    // Shared colors do not prove physical network connectivity.
     static string Name(string? value)=>(value??"").Trim().Normalize(NormalizationForm.FormC);
     public static string AggregateKey(string label)=>Name(label).ToUpperInvariant();
     public static List<int> VlanIds(Inventory inventory)=>inventory.Vlans.Select(vlan=>vlan.Id)
@@ -94,10 +94,30 @@ public static class WorkspacePalette
             .Concat(port.UntaggedVlan.HasValue?new[]{port.UntaggedVlan.Value}:Array.Empty<int>())
             .Concat(port.VoiceVlan.HasValue?new[]{port.VoiceVlan.Value}:Array.Empty<int>()))).Distinct().Order().ToList();
     static string[] Names(Inventory inventory,int id)=>inventory.Vlans.Where(vlan=>vlan.Id==id).Select(vlan=>Name(vlan.Name)).Where(name=>name.Length>0).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-    public static string VlanKey(string itemId,Inventory inventory,int id)
+    public static string VlanKey(string itemId,Inventory inventory,int id)=>"vlan:"+id;
+
+    // Read old ID/name and item-scoped keys without changing the version-1 file format.
+    // Equal legacy choices coalesce; contradictory choices must be resolved explicitly.
+    public static WorkspacePaletteOverrides NormalizeOverrides(IReadOnlyList<(string Id,Inventory Inventory)> inputs,WorkspacePaletteOverrides overrides)
     {
-        var names=Names(inventory,id);
-        return names.Length==1?"vlan:"+id+":name:"+names[0]:"vlan:"+id+":item:"+itemId;
+        if(overrides.Vlans==null||overrides.Aggregates==null)throw new InvalidOperationException("Workspace palette overrides must contain VLAN and LAG maps.");
+        var legacy=new Dictionary<string,string>(StringComparer.Ordinal);
+        foreach(var item in inputs)foreach(int id in VlanIds(item.Inventory))
+        {
+            string key=VlanKey(item.Id,item.Inventory,id);legacy[key]=key;
+            var names=Names(item.Inventory,id);
+            legacy[names.Length==1?"vlan:"+id+":name:"+names[0]:"vlan:"+id+":item:"+item.Id]=key;
+        }
+        var normalized=new WorkspacePaletteOverrides{Aggregates=new(overrides.Aggregates,StringComparer.Ordinal)};
+        foreach(var pair in overrides.Vlans.OrderBy(pair=>pair.Key,StringComparer.Ordinal))
+        {
+            if(!legacy.TryGetValue(pair.Key,out var key))throw new InvalidOperationException("A saved VLAN color override has no matching identity in this workspace: "+pair.Key);
+            RenderPalette.ValidateVlanColor(pair.Value);
+            if(normalized.Vlans.TryGetValue(key,out string? color)&&!color.Equals(pair.Value,StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Conflicting saved colors for "+key+". VLAN IDs now share one color regardless of name. Replace its legacy overrides with one "+key+" color choice.");
+            normalized.Vlans[key]=pair.Value.ToLowerInvariant();
+        }
+        return normalized;
     }
 
     public static WorkspacePalettePlan Create(ConfigurationWorkspace workspace,WorkspacePaletteOverrides? overrides=null)
@@ -115,6 +135,7 @@ public static class WorkspacePalette
         if(overrides.Vlans==null||overrides.Aggregates==null)throw new InvalidOperationException("Workspace palette overrides must contain VLAN and LAG maps.");
         foreach(string color in overrides.Vlans.Values)RenderPalette.ValidateVlanColor(color);
         foreach(string color in overrides.Aggregates.Values)RenderPalette.ValidateColor(color);
+        overrides=NormalizeOverrides(inputs,overrides);
         var plan=new WorkspacePalettePlan();
         // Stable identity order, never visible list order, controls palette optimization.
         var allItems=inputs.OrderBy(item=>item.Id,StringComparer.Ordinal).ToArray();
@@ -155,7 +176,6 @@ public static class WorkspacePalette
         if(items.Length!=allItems.Length)plan.Warnings.Add("Configurations with validation blockers are excluded from the shared palette until corrected.");
         var identities=new Dictionary<string,int>(StringComparer.Ordinal);
         var namesById=new Dictionary<int,HashSet<string>>();
-        var ambiguous=new HashSet<int>();
         foreach(var item in items)
         {
             foreach(int id in VlanIds(item.Inventory))
@@ -163,15 +183,10 @@ public static class WorkspacePalette
                 string key=plan.VlanIdentities[item.Id][id];identities.TryAdd(key,id);
                 if(!namesById.TryGetValue(id,out var names))namesById[id]=names=new(StringComparer.Ordinal);
                 var supplied=Names(item.Inventory,id);foreach(string name in supplied)names.Add(name);
-                if(supplied.Length!=1)ambiguous.Add(id);
             }
         }
         foreach(var pair in namesById.OrderBy(pair=>pair.Key))
-        {
-            if(pair.Value.Count>1)plan.Warnings.Add("VLAN "+pair.Key+" has conflicting names ("+string.Join(" / ",pair.Value.Order(StringComparer.Ordinal))+"). Each ID/name identity has its own color; no shared network is inferred.");
-            if(ambiguous.Contains(pair.Key)&&items.Count(item=>plan.VlanIdentities[item.Id].ContainsKey(pair.Key))>1)
-                plan.Warnings.Add("VLAN "+pair.Key+" is unnamed or ambiguous in at least one configuration. Those identities remain item-scoped and do not imply a shared network.");
-        }
+            if(pair.Value.Count>1)plan.Warnings.Add("VLAN "+pair.Key+" uses name aliases ("+string.Join(" / ",pair.Value.Order(StringComparer.Ordinal))+"). One shared color/key is used by VLAN ID; connectivity is not inferred.");
         var syntheticIds=new Dictionary<string,int>(StringComparer.Ordinal);int next=100_000;
         foreach(var group in identities.OrderBy(pair=>pair.Value).ThenBy(pair=>pair.Key,StringComparer.Ordinal).GroupBy(pair=>pair.Value))
         {

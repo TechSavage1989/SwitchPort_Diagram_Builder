@@ -128,7 +128,7 @@ public sealed partial class MainForm : Form
             }
             else if (message?.action == "open") Open();
             else if (message?.action == "copyOutput") CopyOutput(message.text??"");
-            else if (message?.action == "openChart" && !busy) OpenChart();
+            else if (message?.action == "openChart" && !busy) OpenProjectChart(message.index);
             else if (message?.action == "run" && !busy) await Run();
         }
         catch (Exception ex) { Send(new { type = "error", message = ex.Message }); }

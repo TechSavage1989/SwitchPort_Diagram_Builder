@@ -18,12 +18,10 @@ public sealed partial class MainForm
         if(!projects.FolderAvailable)throw new InvalidOperationException("The last generated project folder is unavailable. Build reports to create a new project.");
         Process.Start(new ProcessStartInfo("explorer.exe"){UseShellExecute=true,ArgumentList={projects.Current!.OutputDirectory}});
     }
-    void OpenProjectChart()
+    void OpenProjectChart(int? index=null)
     {
-        SendProject();var project=projects.Current;var charts=projects.ExistingCharts();
-        if(project==null||!projects.ChartAvailable)throw new InvalidOperationException("The last generated chart is unavailable. Build reports to create a new project.");
-        if(project.Paged&&charts.Length>0){Send(new{type="openProjectPreview"});return;}
-        string path=charts.FirstOrDefault()??project.PdfPath!;
+        SendProject();string? path=projects.ChartPath(index);
+        if(path==null)throw new InvalidOperationException("The generated PNG is unavailable. Open PDF separately if available, or build reports again.");
         Process.Start(new ProcessStartInfo(path){UseShellExecute=true});
     }
 }

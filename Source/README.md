@@ -1,9 +1,17 @@
-Switchport Diagram Builder 1.14.1 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.2 - Windows 10/11 x64
+
+1.14.2: VLAN-ID matching, side key and explicit PNG/PDF opening
+- One shared key/color per VLAN ID regardless of name; aliases are retained.
+- Combined keys stay beside switch diagrams with readable continuation pages.
+- Open chart opens PNG; Open PDF is separate. Sheets… previews multiple pages,
+  and Open PNG opens the displayed page. Latest-successful-project behavior stays.
+- Consistent old palette overrides migrate; contradictory choices fail explicitly.
+
 
 1.14.1: Clean combined sheets with one shared VLAN legend
 - Combined diagrams start directly with switch headers, without a generic workspace title bar.
 - Tight inter-switch spacing and one complete, deduplicated VLAN legend per sheet replace repeated per-switch VLAN lists.
-- Shared VLAN identities keep exactly the same colors in switches and legend; conflicting names remain explicit.
+- Shared VLAN IDs keep exactly the same colors in switches and legend; differing names appear as aliases.
 - Configuration, diagram settings and build/results controls are grouped by purpose and scope. Unified Open chart/Open output folder follow the latest successful single or multiple-switch project; changes and failed builds do not remove access to previous output.
 - Individual switch diagrams, exports, ordering, output naming and updater behavior remain unchanged.
 
@@ -11,7 +19,7 @@ Historical 1.14.0: Shared multi-switch A4 sheets and consistent workspace colors
 - Shared A4 sheets now place multiple switches from separate configurations together in workspace order; pagination occurs only when another complete readable switch block will not fit.
 - Exact-sheet PNG previews and vector PDFs use the same geometry; combined booklets retain full per-switch inventory appendices. Selected exports remain available.
 - Named workspace folders default to the saved filename, support custom labels, and derive switch names before saving. Repeated names receive safe numeric suffixes.
-- Matching VLAN ID/name pairs and normalized LAG labels have one shared color mapping across combined and selected workspace exports. Conflicting or unnamed VLAN identities stay distinct with explicit warnings.
+- VLAN IDs alone now share one key/color, including differing or blank names. Normalized LAG labels retain their shared color mapping.
 - This corrects the earlier separate-diagram-per-page behavior; see ../docs/DEVELOPMENT_HANDOFF.md for policies and validation.
 
 Historical 1.13.0: Ordered multi-configuration workspaces

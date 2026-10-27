@@ -10,7 +10,8 @@ public sealed class GeneratedProjectHistory
     public bool RecordSingle(bool success,string label,string output,string? chart,string summary)
     {
         if(!success||chart==null)return false;
-        return Record(new(label,output,new[]{chart},null,false,summary));
+        string pdf=Path.Combine(output,"a4-one-page.pdf");
+        return Record(new(label,output,new[]{chart},File.Exists(pdf)?pdf:null,false,summary));
     }
     public bool RecordBatch(WorkspaceExportResult result,bool combinedRequested,string label,string summary)
     {
@@ -38,7 +39,10 @@ public sealed class GeneratedProjectHistory
     public string[] ExistingCharts()=>Current?.Charts.Where(File.Exists).ToArray()??Array.Empty<string>();
     public bool FolderAvailable=>Current!=null&&Directory.Exists(Current.OutputDirectory);
     public bool PdfAvailable=>Current?.PdfPath is {} path&&File.Exists(path);
-    public bool ChartAvailable=>ExistingCharts().Length>0||PdfAvailable;
+    public bool ChartAvailable=>ExistingCharts().Length>0;
+    public string? ChartPath(int? index=null)=>index.HasValue
+        ?Current!=null&&index>=0&&index<Current.Charts.Length&&File.Exists(Current.Charts[index.Value])?Current.Charts[index.Value]:null
+        :ExistingCharts().FirstOrDefault();
     static bool Valid(GeneratedProject project)
     {
         if(string.IsNullOrWhiteSpace(project.Label)||project.Label.Length>200||project.Summary==null||project.Charts==null||project.Charts.Length>1000

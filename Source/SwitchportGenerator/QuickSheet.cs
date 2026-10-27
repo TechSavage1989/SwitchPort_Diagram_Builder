@@ -38,7 +38,7 @@ public static class QuickSheet
         public Dictionary<int,string> VlanColors {get;}=new();
         public Dictionary<string,string> AggregateColors {get;}=new(StringComparer.OrdinalIgnoreCase);
     }
-    sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false)
+    sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null)
     {
         public double Width=>(PageWidth-.8)/Scale;
         public double Bottom=>DiagramTop+(PageHeight-13-DiagramTop)/Scale;
@@ -340,10 +340,11 @@ public static class QuickSheet
     // Reusable reference-scale component for a multi-configuration sheet. Unlike
     // Build(), this does not enlarge a single switch to consume the entire A4 page.
     // All symbol geometry, labels, keys and capacity guards use the same renderer.
-    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null,bool includeVlanKey=true)
+    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null,bool includeVlanKey=true,double? maximumBodyWidth=null)
     {
         if(markerRadius is {} requested&&(requested<MinimumDotRadius||requested>DotRadius))
             throw new ArgumentOutOfRangeException(nameof(markerRadius));
+        if(maximumBodyWidth is {} width&&(!double.IsFinite(width)||width<=0))throw new ArgumentOutOfRangeException(nameof(maximumBodyWidth));
         var palette=VlanPalette.Assign(inv);
         var aggregate=AggregatePalette.Assign(inv,p=>Fill(p,palette),palette.Values);
         var candidates=new List<Result>();OnePageCapacityException? last=null;
@@ -352,7 +353,7 @@ public static class QuickSheet
         {
             try
             {
-                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow),palette,aggregate,includeVlanKey);
+                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow,maximumBodyWidth),palette,aggregate,includeVlanKey);
                 ApplyGeometry(candidate,1,compact);
                 double radius=markerRadius??DotRadius;
                 if(!MarkersFit(candidate,radius))
@@ -405,7 +406,7 @@ public static class QuickSheet
         foreach(var pair in colors)output.AggregateColors.Add(pair.Key,pair.Value);
         var physical=Charts.PhysicalView(inv);var panels=new List<Panel>();double y=DiagramTop;
         double activePanelHeight=plan.PanelHeight(inv);
-        bool modular=physical!=null&&!inv.FlexibleUplinks;double diagramWidth=plan.Width-(!includeVlanKey||plan.KeyBelow?0:plan.KeyWidth+plan.Gutter);
+        bool modular=physical!=null&&!inv.FlexibleUplinks;double availableBodyWidth=Math.Min(plan.Width-(!includeVlanKey||plan.KeyBelow?0:plan.KeyWidth+plan.Gutter),plan.MaximumBodyWidth??double.MaxValue);double diagramWidth=availableBodyWidth;
         double BankWidth(Group g)
         {
             var xs=original.Where(p=>p.Group==g.Id).Select(p=>p.Tile.X).Distinct().Order().ToList();
@@ -421,7 +422,7 @@ public static class QuickSheet
             diagramWidth=Math.Max(diagramWidth,BankWidth(baseGroup)+bays*(BayWidth(device.Where(g=>g.Slot.Length>0))+6));
         }
         if(!modular&&!inv.FlexibleUplinks)diagramWidth=Math.Max(diagramWidth,inv.Groups.Max(BankWidth));
-        if(diagramWidth>plan.Width-(!includeVlanKey||plan.KeyBelow?0:plan.Gutter+plan.KeyWidth)+.001)throw new OnePageCapacityException("physical banks leave insufficient room for a readable VLAN key");
+        if(diagramWidth>availableBodyWidth+.001)throw new OnePageCapacityException("physical banks leave insufficient room for a readable VLAN key");
         double keyX=plan.KeyBelow?0:diagramWidth+plan.Gutter;
         double keyWidth=plan.KeyBelow?diagramWidth:compact?Math.Min(plan.KeyWidth,plan.Width-keyX):plan.Width-keyX;
         if(modular)

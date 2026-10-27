@@ -1,21 +1,19 @@
-# Combined legend and unified results — 1.14.1
+# VLAN-ID keys, side legends and PNG opening — 1.14.2
 
 ## Focused update
 
-Combined scenes now start directly with each switch's own header; the generic
-workspace title bar is absent. Switch blocks have a 6 pt gap and no per-switch VLAN
-key. A complete, wrapped, deduplicated key is reserved once per A4 sheet. Matching
-ID/name identities share one entry and exactly the same fill across switches;
-conflicting/unnamed meanings remain separately labeled. Page grouping accounts for
-both all switch blocks and the full key before accepting another configuration.
-Dense single-item fallbacks retain one complete readable key and their established
-geometry. The standalone renderer/export path remains unchanged.
+VLAN identity is now numeric ID alone (`vlan:<id>`), superseding the earlier
+ID/name rule. Differing names are sorted aliases in one shared side-key entry;
+blank names do not split an ID. Combined sheets reserve a right sidebar and retain
+switch headers and compact gaps. Long keys wrap and continue across pages rather
+than shrinking or dropping entries. Standalone rendering defaults are unchanged.
+The same scene drives vector PDF and 300 DPI PNG output.
 
-The same scene drives the combined PDF and 300 DPI PNG preview. Logos appear once
-in the first switch header on each page. Inventory appendices retain their full
-per-switch values. Workspace palette planning has a pre-parsed inventory overload
-that preserves applied color maps and rejects conflicting supplied maps without
-mutating original inventories.
+Consistent legacy name/item-scoped overrides normalize to ID-only keys on load.
+Contradictory old overrides for one ID fail explicitly with a request to replace
+those keys with one `vlan:<id>` choice; no order-dependent winner is chosen.
+Existing applied maps with conflicting colors are likewise rejected. LAG matching,
+contrast and connectivity-disclaimer policy is unchanged.
 
 ## Latest successful project and intuitive controls
 
@@ -38,9 +36,10 @@ saved configuration workspace files. Old handoffs still migrate selected output.
 
 The authoritative `project` bridge event publishes available/chartAvailable/
 folderAvailable, combined (paged preview), pageCount, pdfAvailable, label, output,
-stale and summary. `openChart` opens the latest single PNG or emits
-`openProjectPreview` for the latest multi-page project; existing preview requests
-read that same result. Generation errors/status are separate from the last success
+stale and summary. `openChart` always opens the latest PNG (first available page, or explicit preview
+page index), never a PDF fallback. Open PDF is separate for single or combined
+projects. Sheets… opens the PNG preview and its Open PNG uses the displayed index.
+Existing preview requests read the same latest result. Generation errors/status are separate from the last success
 summary, so Copy and opening controls keep a consistent target.
 
 ## Names and persistence
@@ -72,12 +71,9 @@ call the same generator with it directly. Inventory JSON includes optional rende
 overlay maps only when supplied. Combined regeneration therefore retains exactly
 the same colors. `workspace-palette.json` records per-item maps and policy warnings.
 
-- VLAN identity: numeric ID plus exact **trimmed, NFC-normalized, case-sensitive
-  name**. Equal pairs share color across configurations.
-- Different names for one ID remain separate colors and produce an explicit
-  conflict warning. An unnamed or internally ambiguous ID stays scoped to the
-  stable configuration ID; it is not silently merged with a named network or
-  another unnamed configuration. Colors do not establish network connectivity.
+- VLAN identity: numeric ID alone, regardless of names or blank metadata.
+  Distinct trimmed/NFC names are displayed as aliases under one ID and color.
+  Matching colors do not establish network connectivity.
 - LAG identity: trimmed/NFC label matched case-insensitively. Matching labels share
   a contrast-checked outline across every member fill. Matching numeric suffixes
   with different labels are not guessed to match. **Matching LAG colors do not
@@ -94,6 +90,13 @@ are retained. Adding/removing configs or editing device/model details invalidate
 per-item render caches because it can change the shared palette; the latest successful project is marked stale instead of losing its open links. Old generated files are never deleted by these edits.
 
 ## Validation and release procedure
+
+1.14.2 focused checks cover same-ID/different/blank names, alias-key deduplication,
+side-key geometry/continuation, legacy override migration/conflicts and PNG/PDF
+path selection across single→combined→single results. Local Python and JS checks
+run before review. Required hosted CI remains unchanged and must pass on the exact
+reviewed commit before non-force main promotion. No repeated broad manual sweep;
+inspect representative side-key artifacts and essential public package/feed proofs.
 
 Initial 1.14.1 review `bdc7a2e` passed the full Linux parser/render/report suite
 and Windows build/updater checks, including 102 workspace/project-state, 66 palette

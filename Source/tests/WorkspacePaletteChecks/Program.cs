@@ -26,9 +26,9 @@ static class WorkspacePaletteChecks
         var plan=WorkspacePalette.Create(workspace);
         var a=plan.ForItem(first.Id);var b=plan.ForItem(second.Id);var c=plan.ForItem(conflict.Id);
         Check(a.Vlans[10]==b.Vlans[10]&&a.Vlans[20]==b.Vlans[20],"Matching VLAN ID and name must share colors across independently parsed configurations.");
-        Check(a.Vlans[10]!=c.Vlans[10],"Same VLAN ID with conflicting names must have different colors.");
-        Check(a.Vlans[99]!=b.Vlans[99]&&b.Vlans[99]!=c.Vlans[99],"Unnamed VLANs remain item-scoped rather than silently merged.");
-        Check(plan.Warnings.Any(warning=>warning.Contains("VLAN 10 has conflicting names"))&&plan.Warnings.Any(warning=>warning.Contains("VLAN 99 is unnamed")),"Ambiguous VLAN identity requires explicit warnings.");
+        Check(a.Vlans[10]==c.Vlans[10],"Same VLAN ID with differing names must share one color.");
+        Check(a.Vlans[99]==b.Vlans[99]&&b.Vlans[99]==c.Vlans[99],"Unnamed VLANs share the same ID color.");
+        Check(plan.Warnings.Any(warning=>warning.Contains("VLAN 10 uses name aliases"))&&!plan.Warnings.Any(warning=>warning.Contains("item-scoped")),"Differing names are explicit aliases under one VLAN ID.");
         Check(plan.Warnings.Any(warning=>warning.Contains("does not establish a physical link")),"Shared LAG colors must not imply cross-device physical connectivity.");
         string firstLag=first.Inventory.Ports.First(port=>port.Aggregate.Length>0).Aggregate;
         string secondLag=second.Inventory.Ports.First(port=>port.Aggregate.Length>0).Aggregate;
@@ -60,7 +60,7 @@ static class WorkspacePaletteChecks
         var decomposed=new Inventory{Vlans=new(){new Vlan{Id=50,Name="Cafe\u0301"}}};
         Check(WorkspacePalette.VlanKey(first.Id,named,50)==WorkspacePalette.VlanKey(second.Id,decomposed,50),"VLAN names use canonical Unicode normalization and surrounding trim.");
         decomposed.Vlans[0].Name="CAFÉ";
-        Check(WorkspacePalette.VlanKey(first.Id,named,50)!=WorkspacePalette.VlanKey(second.Id,decomposed,50),"Different case in VLAN names remains an explicit distinct identity.");
+        Check(WorkspacePalette.VlanKey(first.Id,named,50)==WorkspacePalette.VlanKey(second.Id,decomposed,50),"Name case does not change VLAN ID identity.");
 
         var single=new ConfigurationWorkspace();var only=single.AddText(Source("SINGLE"),"single.cfg");
         var baseline=VlanPalette.Assign(only.Inventory);
@@ -72,7 +72,7 @@ static class WorkspacePaletteChecks
         var overrides=new WorkspacePaletteOverrides();overrides.Vlans[key]="#abcdef";
         var custom=WorkspacePalette.Create(workspace,overrides);
         Check(custom.ForItem(first.Id).Vlans[10]=="#abcdef"&&custom.ForItem(second.Id).Vlans[10]=="#abcdef", "A saved semantic VLAN override applies to every matching configuration.");
-        Check(custom.ForItem(conflict.Id).Vlans[10]!="#abcdef", "Conflicting named VLAN identity does not inherit an override.");
+        Check(custom.ForItem(conflict.Id).Vlans[10]=="#abcdef", "All name aliases inherit the VLAN ID override.");
         var savedOverrides=JsonSerializer.Deserialize<WorkspacePaletteOverrides>(JsonSerializer.Serialize(overrides))!;
         Check(WorkspacePalette.Create(reopened,savedOverrides).ForItem(first.Id).Vlans[10]=="#abcdef", "Saved overrides remain portable across workspace reload.");
         workspace.PaletteOverrides=overrides;
@@ -81,7 +81,7 @@ static class WorkspacePaletteChecks
         overrides.Aggregates[WorkspacePalette.AggregateKey(firstLag)]=custom.ForItem(first.Id).Aggregates[firstLag];
         Check(WorkspacePalette.Create(workspace,overrides).ForItem(second.Id).Aggregates[secondLag]==overrides.Aggregates[WorkspacePalette.AggregateKey(firstLag)],
             "A contrast-safe saved LAG override is honored across all member contexts.");
-        var duplicateColors=new WorkspacePaletteOverrides{Vlans=new(){[key]="#abcdef",[plan.VlanIdentities[conflict.Id][10]]="#abcdef"}};
+        var duplicateColors=new WorkspacePaletteOverrides{Vlans=new(){[key]="#abcdef",[plan.VlanIdentities[conflict.Id][20]]="#abcdef"}};
         Reject(()=>WorkspacePalette.Create(workspace,duplicateColors),"Distinct identities cannot receive duplicate overridden VLAN colors.");
         Reject(()=>WorkspacePalette.Create(workspace,new(){Vlans=new(){["missing-identity"]="#abcdef"}}),"Missing saved identity keys must fail explicitly.");
         Reject(()=>WorkspacePalette.Create(workspace,new(){Vlans=new(){[key]="red"}}),"Malformed color values must fail explicitly.");
@@ -95,6 +95,16 @@ static class WorkspacePaletteChecks
         Reject(()=>decoded.Apply(fresh),"Incomplete render contexts cannot silently recompute different colors.");
         Reject(()=>RenderPalette.Deserialize("{bad"),"Malformed render context JSON must fail clearly.");
         Check(VlanPalette.Assign(fresh).SequenceEqual(a.Vlans),"Failed render-context application preserves the previous valid context.");
+        var legacy=new WorkspacePaletteOverrides{Vlans=new(){["vlan:10:name:Data"]="#abcdef",["vlan:10:name:Guest"]="#ABCDEF"}};
+        Check(WorkspacePalette.Create(workspace,legacy).ForItem(conflict.Id).Vlans[10]=="#abcdef","Equal legacy ID/name overrides migrate to the shared ID color.");
+        legacy.Vlans["vlan:10:name:Guest"]="#f5c9a3";
+        Reject(()=>WorkspacePalette.Create(workspace,legacy),"Contradictory legacy colors for one ID require one explicit choice; list order never chooses a winner.");
+        legacy.Vlans.Remove("vlan:10:name:Guest");workspace.PaletteOverrides=legacy;
+        var migrated=ConfigurationWorkspace.Deserialize(workspace.Serialize());
+        Check(migrated.PaletteOverrides.Vlans.Keys.SequenceEqual(new[]{"vlan:10"}),"Legacy overrides persist as canonical VLAN-ID keys after reopening.");
+        var blank=workspace.AddText(Source("BLANK",""),"blank.cfg");
+        var blankPlan=WorkspacePalette.Create(workspace);
+        Check(blankPlan.ForItem(blank.Id).Vlans[10]==blankPlan.ForItem(first.Id).Vlans[10],"A blank name and named aliases with the same ID have identical colors.");
         RemovalLifecycle();
         BlockedIsolation();
         ParsedInventoryContexts();
@@ -105,17 +115,17 @@ static class WorkspacePaletteChecks
         var workspace=new ConfigurationWorkspace();
         var first=workspace.AddText(Source("REMOVE-FIRST"),"first.cfg");
         var second=workspace.AddText(Source("KEEP-SHARED","Data",20),"second.cfg");
-        var exclusive=workspace.AddText(Source("REMOVE-EXCLUSIVE","Exclusive").Replace("trk1","trk2"),"exclusive.cfg");
+        var exclusive=workspace.AddText(Source("REMOVE-EXCLUSIVE","Exclusive").Replace("trk1","trk2").Replace("vlan 10","vlan 30"),"exclusive.cfg");
         var plan=WorkspacePalette.Create(workspace);
         foreach(var item in workspace.Items)
         {
             foreach(var pair in plan.VlanIdentities[item.Id])workspace.PaletteOverrides.Vlans[pair.Value]=plan.ForItem(item.Id).Vlans[pair.Key];
             foreach(var pair in plan.ForItem(item.Id).Aggregates)workspace.PaletteOverrides.Aggregates[WorkspacePalette.AggregateKey(pair.Key)]=pair.Value;
         }
-        string unnamed=plan.VlanIdentities[first.Id][99],shared=plan.VlanIdentities[first.Id][10],privateName=plan.VlanIdentities[exclusive.Id][10];
+        string unnamed=plan.VlanIdentities[first.Id][99],shared=plan.VlanIdentities[first.Id][10],privateName=plan.VlanIdentities[exclusive.Id][30];
         string sharedColor=workspace.PaletteOverrides.Vlans[shared],sharedOutline=workspace.PaletteOverrides.Aggregates["TRK1"];
         workspace.Remove(first.Id);
-        Check(!workspace.PaletteOverrides.Vlans.ContainsKey(unnamed),"Removing an item prunes its sole-owner unnamed VLAN override.");
+        Check(workspace.PaletteOverrides.Vlans.ContainsKey(unnamed),"Removing an item retains unnamed VLAN IDs still present elsewhere.");
         Check(workspace.PaletteOverrides.Vlans[shared]==sharedColor&&workspace.PaletteOverrides.Aggregates["TRK1"]==sharedOutline,
             "Removing one owner retains shared named VLAN and LAG overrides.");
         var reopened=ConfigurationWorkspace.Deserialize(workspace.Serialize());
@@ -193,8 +203,8 @@ static class WorkspacePaletteChecks
         if(direct.ForItem(first.Id).Aggregates.Values.Single()=="#123456")mismatched[1].Inventory.AggregateColorOverrides![lag]="#654321";
         Reject(()=>WorkspacePalette.Create(mismatched),"Contradicting applied LAG colors must fail before rendering a shared legend.");
         Reject(()=>WorkspacePalette.Create(new[]{parsed[0],parsed[0]}),"Pre-parsed palette inputs require distinct stable identifiers.");
-        Check(direct.ForItem(first.Id).Vlans[10]!=direct.ForItem(conflict.Id).Vlans[10]
-            &&direct.ForItem(first.Id).Vlans[99]!=direct.ForItem(second.Id).Vlans[99],
-            "Pre-parsed planning preserves conflicting named and item-scoped unnamed VLAN identities.");
+        Check(direct.ForItem(first.Id).Vlans[10]==direct.ForItem(conflict.Id).Vlans[10]
+            &&direct.ForItem(first.Id).Vlans[99]==direct.ForItem(second.Id).Vlans[99],
+            "Pre-parsed planning merges named aliases and unnamed VLANs by ID.");
     }
 }
