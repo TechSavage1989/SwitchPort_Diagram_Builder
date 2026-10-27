@@ -7,12 +7,12 @@ namespace SwitchportGenerator;
 public static class WorkspaceRestartState
 {
     public const int MaxBytes = 256_000_000;
-    public sealed record Snapshot(string Workspace, bool Dirty, ItemState[] Items, string SavedWorkspaceName="");
+    public sealed record Snapshot(string Workspace, bool Dirty, ItemState[] Items, string SavedWorkspaceName="",GeneratedProject? LatestProject=null);
     public sealed record ItemState(string Id, string? LastOutput, string? LastChart, string Status, string StatusType, bool Dirty);
     public sealed record LegacySession(string Text, string Name, DeviceIdentity[]? Devices, string? LastOutput, string? LastChart);
 
-    public static Snapshot Capture(ConfigurationWorkspace workspace) => new(workspace.Serialize(), workspace.Dirty,
-        workspace.Items.Select(item => new ItemState(item.Id, item.LastOutput, item.LastChart, item.Status, item.StatusType, item.Dirty)).ToArray(),workspace.SavedWorkspaceName);
+    public static Snapshot Capture(ConfigurationWorkspace workspace,GeneratedProject? latestProject=null) => new(workspace.Serialize(), workspace.Dirty,
+        workspace.Items.Select(item => new ItemState(item.Id, item.LastOutput, item.LastChart, item.Status, item.StatusType, item.Dirty)).ToArray(),workspace.SavedWorkspaceName,latestProject);
 
     public static ConfigurationWorkspace Restore(string json, Func<string, bool> directoryExists, Func<string, bool> fileExists)
     {
@@ -54,6 +54,12 @@ public static class WorkspaceRestartState
             return migrated;
         }
         catch (JsonException) { throw new InvalidOperationException("Saved restart workspace is not valid JSON."); }
+    }
+
+    public static GeneratedProject? RestoreProject(string json)
+    {
+        try{return JsonSerializer.Deserialize<Snapshot>(json)?.LatestProject;}
+        catch(JsonException){return null;}
     }
 
     static void RestorePaths(ConfigurationItem item, string? output, string? chart, Func<string, bool> directoryExists, Func<string, bool> fileExists)

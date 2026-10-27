@@ -52,19 +52,19 @@ const path=require('path'),assert=require('assert');
   await drop({text:'hostname "Drop-Lab"\nvlan 10\n',name:'Client config with spaces.cfg'});
   await page.waitForFunction(()=>document.getElementById('file').textContent.includes('Drop-Lab'));
   assert((await page.locator('#file').innerText()).includes('Client config with spaces.cfg'));
-  assert(await page.locator('#openChart').isDisabled());assert(await page.evaluate(()=>window.__dropPrevented));
+  assert(!(await page.locator('#openChart').isDisabled()),'import does not hide the latest generated chart');assert(await page.evaluate(()=>window.__dropPrevented));
   assert(!(await page.evaluate(()=>document.body.classList.contains('drop-active'))));
   await drop({text:'hostname "UTF16-Lab"\r\n',name:'UTF16.conf',encoding:'utf16'});
   await page.waitForFunction(()=>document.getElementById('file').textContent.includes('UTF16-Lab'));
   assert.equal((await page.evaluate(()=>window.__switchportMessages.at(-1))).text,'hostname "UTF16-Lab"\r\n');
   count=await page.evaluate(()=>window.__switchportMessages.length);
   for(const options of [{text:'',name:'empty.txt'},{text:'config',name:'large.txt',oversized:true}]){
-   await drop(options);await page.waitForFunction(()=>document.getElementById('status').className==='error');
+   await drop(options);await page.waitForFunction(()=>document.getElementById('operationStatus').className==='error');
    assert.equal(await page.evaluate(()=>window.__switchportMessages.length),count);
    assert(!(await page.locator('#run').isDisabled()));
    assert((await page.locator('#file').innerText()).includes('UTF16-Lab'));
   }
-  console.log('PASS file drop, UTF-16 decoding, no navigation, stale chart reset, empty/20 MB guards (multi-file acceptance is covered by verify-workspace-ui) and retained selection.');
+  console.log('PASS file drop, UTF-16 decoding, no navigation, latest chart retention, empty/20 MB guards (multi-file acceptance is covered by verify-workspace-ui) and retained selection.');
   await page.evaluate(()=>{const dt=new DataTransfer();dt.setData('text/plain','hostname Text-Drop\n');document.body.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));});
   await page.waitForFunction(()=>document.getElementById('file').textContent.includes('Text-Drop'));
   await page.click('#paste');await page.locator('#pasteText').fill('hostname Unused');await page.keyboard.press('Escape');
@@ -72,7 +72,7 @@ const path=require('path'),assert=require('assert');
   await page.evaluate(()=>window.__switchportDeliver({type:'selected',path:'C:/Configs/File.txt',name:'File.txt',hostname:'File-Lab'}));
   await page.click('#run');await page.evaluate(()=>window.__switchportDeliver({type:'blocked',message:'Generation blocked.'}));
   assert(!(await page.locator('#paste').isDisabled()));
-  assert(await page.locator('#openChart').isDisabled());
+  assert(!(await page.locator('#openChart').isDisabled()),'failed generation retains the previous successful chart');
   if(process.env.Switchport_TEST_SCREENSHOT)await page.screenshot({path:process.env.Switchport_TEST_SCREENSHOT});
   console.log('PASS text drop, modal cancel, file reselection and blocked-run recovery.');
  }finally{await browser.close();}

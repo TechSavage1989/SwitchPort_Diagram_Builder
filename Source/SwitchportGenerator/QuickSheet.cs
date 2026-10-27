@@ -340,19 +340,19 @@ public static class QuickSheet
     // Reusable reference-scale component for a multi-configuration sheet. Unlike
     // Build(), this does not enlarge a single switch to consume the entire A4 page.
     // All symbol geometry, labels, keys and capacity guards use the same renderer.
-    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null)
+    public static Result BuildCompact(Inventory inv,List<Placement> original,string hash,double? markerRadius=null,bool includeVlanKey=true)
     {
         if(markerRadius is {} requested&&(requested<MinimumDotRadius||requested>DotRadius))
             throw new ArgumentOutOfRangeException(nameof(markerRadius));
         var palette=VlanPalette.Assign(inv);
         var aggregate=AggregatePalette.Assign(inv,p=>Fill(p,palette),palette.Values);
         var candidates=new List<Result>();OnePageCapacityException? last=null;
-        foreach(bool keyBelow in new[]{false,true})for(int compact=0;compact<=2;compact++)
+        foreach(bool keyBelow in includeVlanKey?new[]{false,true}:new[]{false})for(int compact=0;compact<=2;compact++)
         foreach(bool wholeWords in new[]{true,false})foreach(bool narrow in new[]{true,false})
         {
             try
             {
-                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow),palette,aggregate);
+                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow),palette,aggregate,includeVlanKey);
                 ApplyGeometry(candidate,1,compact);
                 double radius=markerRadius??DotRadius;
                 if(!MarkersFit(candidate,radius))
@@ -390,7 +390,7 @@ public static class QuickSheet
         foreach(var image in scene.Images)bottom=Math.Max(bottom,image.Y+image.H);
         return bottom;
     }
-    static Result BuildCore(Inventory inv,List<Placement> original,string hash,bool compact,LayoutPlan plan,Dictionary<int,string> palette,Dictionary<string,string> colors)
+    static Result BuildCore(Inventory inv,List<Placement> original,string hash,bool compact,LayoutPlan plan,Dictionary<int,string> palette,Dictionary<string,string> colors,bool includeVlanKey=true)
     {
         var output=new Result();var scene=output.Scene;var groups=inv.Groups.ToDictionary(g=>g.Id);
         plan.TitleInkHeight=inv.Groups.Select(g=>ReportRenderer.Measure(new Label(0,0,PanelTitle(inv,g),plan.Font(7)*plan.Scale,"#ffffff",true,0,"",true)).Height/plan.Scale).DefaultIfEmpty(0).Max();
@@ -405,7 +405,7 @@ public static class QuickSheet
         foreach(var pair in colors)output.AggregateColors.Add(pair.Key,pair.Value);
         var physical=Charts.PhysicalView(inv);var panels=new List<Panel>();double y=DiagramTop;
         double activePanelHeight=plan.PanelHeight(inv);
-        bool modular=physical!=null&&!inv.FlexibleUplinks;double diagramWidth=plan.Width-(plan.KeyBelow?0:plan.KeyWidth+plan.Gutter);
+        bool modular=physical!=null&&!inv.FlexibleUplinks;double diagramWidth=plan.Width-(!includeVlanKey||plan.KeyBelow?0:plan.KeyWidth+plan.Gutter);
         double BankWidth(Group g)
         {
             var xs=original.Where(p=>p.Group==g.Id).Select(p=>p.Tile.X).Distinct().Order().ToList();
@@ -421,7 +421,7 @@ public static class QuickSheet
             diagramWidth=Math.Max(diagramWidth,BankWidth(baseGroup)+bays*(BayWidth(device.Where(g=>g.Slot.Length>0))+6));
         }
         if(!modular&&!inv.FlexibleUplinks)diagramWidth=Math.Max(diagramWidth,inv.Groups.Max(BankWidth));
-        if(diagramWidth>plan.Width-(plan.KeyBelow?0:plan.Gutter+plan.KeyWidth)+.001)throw new OnePageCapacityException("physical banks leave insufficient room for a readable VLAN key");
+        if(diagramWidth>plan.Width-(!includeVlanKey||plan.KeyBelow?0:plan.Gutter+plan.KeyWidth)+.001)throw new OnePageCapacityException("physical banks leave insufficient room for a readable VLAN key");
         double keyX=plan.KeyBelow?0:diagramWidth+plan.Gutter;
         double keyWidth=plan.KeyBelow?diagramWidth:compact?Math.Min(plan.KeyWidth,plan.Width-keyX):plan.Width-keyX;
         if(modular)
@@ -522,11 +522,11 @@ public static class QuickSheet
         sections.Add(purposes);
         int keyColumns=plan.KeyBelow?Math.Max(1,Math.Min(5,(int)Math.Floor((keyWidth+7/plan.Scale)/(plan.KeyWidth+7/plan.Scale)))):1;
         double keyTop=plan.KeyBelow?diagramBottom+2/plan.Scale:DiagramTop;
-        double keyBottom=DrawVlanKey(scene,inv,vlans,keyX,keyTop,keyWidth,keyColumns,true,output.VlanColors,plan);
+        double keyBottom=includeVlanKey?DrawVlanKey(scene,inv,vlans,keyX,keyTop,keyWidth,keyColumns,true,output.VlanColors,plan):DiagramTop;
         if(keyBottom>plan.Bottom)throw new OnePageCapacityException("VLAN key exceeds the available A4 height");
-        double infoY=plan.KeyBelow?keyBottom+2/plan.Scale:diagramBottom+(plan.Compact==0?2:1/plan.Scale),font=plan.Font(BodyFont);
+        double infoY=includeVlanKey&&plan.KeyBelow?keyBottom+2/plan.Scale:diagramBottom+(plan.Compact==0?2:1/plan.Scale),font=plan.Font(BodyFont);
         double Required(double f){double next=infoY;foreach(var section in sections)next=DrawSection(scene,section,next,diagramWidth,f,false,plan);return next;}
-        if(!plan.KeyBelow&&(modular||Required(font)>plan.Bottom)&&aggregates.Entries.Count>0)
+        if(includeVlanKey&&!plan.KeyBelow&&(modular||Required(font)>plan.Bottom)&&aggregates.Entries.Count>0)
         {
             aggregates.Columns=1;
             double sideBottom=DrawSection(scene,aggregates,keyBottom+3,keyWidth,font,false,plan,keyX);
@@ -556,7 +556,7 @@ public static class QuickSheet
         scene.Text(420,model.Length>0?22:14,(inv.Firmware=="Unknown"?"":inv.Firmware+"  |  ")+inv.Ports.Count+" interfaces",8,"#d5e7f4",false,PageWidth-432);
         DrawVisualGuide(scene,inv,output.VlanColors,colors);
         scene.Text(0,PageHeight-10,ReportText.CableMoveDisclaimer,7,"#52677c",false,PageWidth);
-        scene.DiagramBodyWidth=keyX+keyWidth;
+        scene.DiagramBodyWidth=includeVlanKey?keyX+keyWidth:diagramWidth;
         return output;
     }
     static void ApplyGeometry(Result result,double scale,int compact)

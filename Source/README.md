@@ -1,6 +1,13 @@
-Switchport Diagram Builder 1.14.0 - Windows 10/11 x64
+Switchport Diagram Builder 1.14.1 - Windows 10/11 x64
 
-1.14.0: Shared multi-switch A4 sheets and consistent workspace colors
+1.14.1: Clean combined sheets with one shared VLAN legend
+- Combined diagrams start directly with switch headers, without a generic workspace title bar.
+- Tight inter-switch spacing and one complete, deduplicated VLAN legend per sheet replace repeated per-switch VLAN lists.
+- Shared VLAN identities keep exactly the same colors in switches and legend; conflicting names remain explicit.
+- Configuration, diagram settings and build/results controls are grouped by purpose and scope. Unified Open chart/Open output folder follow the latest successful single or multiple-switch project; changes and failed builds do not remove access to previous output.
+- Individual switch diagrams, exports, ordering, output naming and updater behavior remain unchanged.
+
+Historical 1.14.0: Shared multi-switch A4 sheets and consistent workspace colors
 - Shared A4 sheets now place multiple switches from separate configurations together in workspace order; pagination occurs only when another complete readable switch block will not fit.
 - Exact-sheet PNG previews and vector PDFs use the same geometry; combined booklets retain full per-switch inventory appendices. Selected exports remain available.
 - Named workspace folders default to the saved filename, support custom labels, and derive switch names before saving. Repeated names receive safe numeric suffixes.

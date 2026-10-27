@@ -18,7 +18,7 @@
 - **Map physical ports:** generate device layouts with proportional RJ45 and optical connectors, member/chassis/module identity and VLAN keys.
 - **Read VLAN membership at a glance:** native VLAN fills, tagged-VLAN circles and voice-VLAN diamonds use configuration-aware colors.
 - **Keep the complete inventory:** PDF tables retain full tagged-VLAN lists, with wrapped cells and continuation pages for long rows.
-- **Share one sheet:** place switches from different configurations together on readable A4 sheets in workspace order, with shared VLAN/LAG colors and exact-sheet previews.
+- **Share one sheet:** place switches from different configurations together on readable A4 sheets in workspace order, with shared VLAN/LAG colors, one combined VLAN legend and exact-sheet previews.
 - **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
@@ -45,7 +45,7 @@ See [hardware coverage](Source/SUPPORT_COVERAGE.md), [MikroTik support](Source/M
 2. Launch the executable from a writable local folder. **Microsoft Edge WebView2 Runtime** must be installed.
 3. Choose one or more saved configurations, drop files into the window, or use **Paste new → Add configuration**. Imports add items; duplicate names stay separate.
 4. Select a configuration in the workspace. Open **Device details**, leave its model empty for automatic detection, or supply an exact supported SKU when hardware identity is missing. Each item retains its own member/module details.
-5. Choose an output folder and select **Build selected** (or **Build all**). After a successful build, use **Open chart** or **Open output folder** for the selected item.
+5. Set shared output-folder/logo preferences and the selected switch's **Device details**, then choose **Build selected** or **Build all**. The unified **Open chart** and **Open output folder** always open the latest successful project, regardless of which configuration is selected.
 
 Reports are saved in a child folder named for the switch hostname or identified model. Repeated exports create numbered folders rather than replacing earlier results.
 
@@ -57,13 +57,13 @@ Drag list items or use their **Move up / Move down** controls. Selection follows
 
 The generated workspace folder defaults to the **saved workspace filename**. Before saving, it derives a compact label from switch names/models. Use **Name…** for an optional custom output label (clear it to return to automatic naming). A renamed workspace uses its new filename when reopened, unless you explicitly set a custom label. The **base output folder** remains separate; repeated exports use `Name (2)`, `Name (3)` rather than overwriting.
 
-**Build all → Shared A4 sheets** is enabled by default. Multiple complete switch diagrams from separate configurations share each sheet in list order, with clear labels and boundaries. Common reference port geometry and readable labels are retained; another A4 page is added only when the next complete switch block cannot fit. Dense chassis/stack configurations can require their own sheet and are explicitly reported. **Preview sheets** shows the actual exported PNG for every page; the PDF uses the same vector scenes. The combined booklet begins with shared sheets, followed by complete per-switch inventory/detail pages. Individual eight-file packages and **Build selected** remain available.
+**Build all configurations → Shared A4 sheets** is enabled by default. Multiple complete switch diagrams from separate configurations share each sheet in list order, with each switch's own header, minimal separation and one deduplicated VLAN legend per sheet—no generic workspace title bar. Common reference port geometry and readable labels are retained; another A4 page is added only when the next complete switch block cannot fit. Dense chassis/stack configurations can require their own sheet and are explicitly reported. **Open chart** shows the actual exported PNG for every page of the latest multi-switch project; the PDF uses the same vector scenes. The combined booklet begins with shared sheets, followed by complete per-switch inventory/detail pages. Individual eight-file packages and **Build selected** remain available.
 
 **Shared colors:** matching VLAN ID plus exact trimmed/Unicode-normalized name receives the same color throughout the workspace. Different names for one ID remain distinct and generate warnings. Unnamed or ambiguous VLANs stay item-scoped rather than being silently merged. Matching trimmed, case-insensitive **LAG labels** share an outline color chosen against all member fills; matching labels do **not** imply a physical connection between switches. These mappings survive reorder, selection and save/reopen and apply to individual workspace exports too. Explicit saved palette overrides are retained when valid; unsafe/conflicting overrides are rejected clearly.
 
-Invalid configurations are reported independently, while valid ones still export. Selected **Output / Copy / Open chart / Open output folder** stay separate from batch output. Output directory, report logo and update preferences remain app-wide.
+Invalid configurations are reported independently, while valid ones still export. **Build & results** keeps one latest-successful project: **Open chart**, **Open output folder** and **Copy** follow it, whether it was built from one configuration or all configurations. Selection never redirects these actions. Source/order/settings changes mark the result as an earlier build without removing access; failed or cancelled builds preserve it. Shared-sheet projects open a paged preview with **Open project PDF**. Output directory, report logo and update preferences remain app-wide; device/model details remain independent per configuration.
 
-See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.14.0 release notes](docs/releases/1.14.0.md).
+See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.14.1 release notes](docs/releases/1.14.1.md).
 
 ## How to use
 

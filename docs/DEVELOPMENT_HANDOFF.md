@@ -1,26 +1,47 @@
-# Shared multi-switch workspace sheets — 1.14.0
+# Combined legend and unified results — 1.14.1
 
-## Corrected intent
+## Focused update
 
-Version 1.14.0 corrects the 1.13.0 interpretation: switches from different
-configurations must share a report sheet, not automatically receive separate
-pages. Selected/individual eight-file exports remain available. Existing vendor
-parsers and standalone layout rules are retained.
+Combined scenes now start directly with each switch's own header; the generic
+workspace title bar is absent. Switch blocks have a 6 pt gap and no per-switch VLAN
+key. A complete, wrapped, deduplicated key is reserved once per A4 sheet. Matching
+ID/name identities share one entry and exactly the same fill across switches;
+conflicting/unnamed meanings remain separately labeled. Page grouping accounts for
+both all switch blocks and the full key before accepting another configuration.
+Dense single-item fallbacks retain one complete readable key and their established
+geometry. The standalone renderer/export path remains unchanged.
 
-`QuickSheet.BuildCompact` reuses the same hardware/socket/key renderer at readable
-reference geometry, removing only unused bottom space and duplicate footer.
-`WorkspaceSheet.Build` stacks complete labeled switch sections in workspace order,
-using a common physical scale and marker size. Another A4 page starts only when the
-next complete section cannot fit. Dense/chassis/stack configurations that need the
-original standalone solver retain their own page with an explicit warning; none are
-silently shrunk below readability or omitted. Shared page plans record placements,
-scale/fallback decisions and warnings in `workspace-layout.json`.
+The same scene drives the combined PDF and 300 DPI PNG preview. Logos appear once
+in the first switch header on each page. Inventory appendices retain their full
+per-switch values. Workspace palette planning has a pre-parsed inventory overload
+that preserves applied color maps and rejects conflicting supplied maps without
+mutating original inventories.
 
-The combined diagram PDF and every `workspace-sheet-NNN.png` use the same scenes.
-The preview modal reads those actual PNGs, not a separate approximation. The
-combined booklet starts with shared sheets and then retains every item's original
-inventory/device/module appendix pages without duplicating standalone diagrams.
-Per-item PNGs, PDFs, CSV, JSON, summary and validation reports remain intact.
+## Latest successful project and intuitive controls
+
+The UI groups Configuration/workspace inputs, Diagram settings and Build & results.
+Output-folder/logo preferences are shared; device/model details belong only to the
+selected configuration. Build selected and Build all retain explicit scope.
+One Open chart/Open output folder pair follows `GeneratedProjectHistory.Current`,
+not whichever item happens to be selected. Successful single, combined and
+individual-only batch builds replace this result atomically; failed/cancelled
+builds or failed requested combination do not. Partial-valid successful combined
+projects retain their warnings. Individual-only batches preview their successful
+charts in workspace order without offering a nonexistent combined PDF.
+
+Source/device/logo/order/workspace-name changes and opening another workspace mark
+the saved result stale but leave existing output accessible. Selection does not
+make output stale. Paths are checked before opening; missing output is not silently
+recreated or redirected to the base output directory. Project metadata is retained
+only in memory and the existing protected update/restart handoff, not in explicitly
+saved configuration workspace files. Old handoffs still migrate selected output.
+
+The authoritative `project` bridge event publishes available/chartAvailable/
+folderAvailable, combined (paged preview), pageCount, pdfAvailable, label, output,
+stale and summary. `openChart` opens the latest single PNG or emits
+`openProjectPreview` for the latest multi-page project; existing preview requests
+read that same result. Generation errors/status are separate from the last success
+summary, so Copy and opening controls keep a consistent target.
 
 ## Names and persistence
 
@@ -68,26 +89,13 @@ the same colors. `workspace-palette.json` records per-item maps and policy warni
   colors or poor LAG contrast are rejected clearly rather than silently changed.
 
 No parser semantics or memberships are changed. Voice diamonds, tagged circles,
-native fills, stack flags, LAG outlines, port labels, per-switch legends and logos
+native fills, stack flags, LAG outlines, port labels, per-switch LAG/description sections and logos
 are retained. Adding/removing configs or editing device/model details invalidates
-cached render links because it can change the shared palette; reordering only
-invalidates combined output. Old generated files are never deleted by these edits.
-
-## Bridge and UI
-
-Existing workspace selection/order/import/delete/Save/Open and updater actions
-remain. New `setWorkspaceLabel` applies a custom label (empty means automatic).
-`workspace` publishes `outputLabel`, `suggestedLabel`, `effectiveLabel`,
-`workspaceName`, `combinedAvailable` and `pageCount`. Shared sheets are enabled by
-default. Batch status keeps policy/capacity warnings separate from selected output.
-`previewCombined {index,requestId}` returns the actual exported image plus page
-metadata; request IDs reject stale modal responses. `openCombined` opens the vector
-PDF. Label/preview modals use existing update-editing deferral. Small-window layout
-and selected-item scroll visibility remain regression-tested.
+per-item render caches because it can change the shared palette; the latest successful project is marked stale instead of losing its open links. Old generated files are never deleted by these edits.
 
 ## Validation and release procedure
 
-Review commit `1bbbf55415502c9eba0492d2beded7e222bde05e` passed the complete
+Historical 1.14.0 review commit `1bbbf55415502c9eba0492d2beded7e222bde05e` passed the complete
 hosted workflow on 2026-10-27:
 https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/actions/runs/40464057384
 New checks passed 83 workspace/state/batch, 58 shared-palette and 189 shared-sheet

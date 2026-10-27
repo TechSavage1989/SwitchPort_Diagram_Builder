@@ -1,3 +1,20 @@
+SWITCHPORT DIAGRAM BUILDER 1.14.1 - TEST NOTES
+
+Scoped shared-sheet polish removes the generic workspace header and repeated VLAN
+keys; one complete combined key per sheet preserves exact shared colors. The UI
+now groups inputs/settings/build-results and opens the latest successful project
+independently of selection, with stale-state and failed-build preservation.
+
+New regression checks cover common legend deduplication/conflicts/readability,
+PNG/PDF consistency, source immutability, latest single→combined→single output,
+failed/cancelled builds, selection/edits/reopen, and update handoff compatibility.
+All existing CI suites remain required. Local .NET/browser execution restrictions
+remain; hosted CI and downloaded synthetic visuals provide runtime verification.
+See ../docs/DEVELOPMENT_HANDOFF.md for policy and exact unrun boundaries.
+
+Historical 1.14.0 test notes follow
+=================================
+
 SWITCHPORT DIAGRAM BUILDER 1.14.0 - TEST NOTES
 
 Correction: real shared multi-switch A4 sheets, meaningful workspace output names,

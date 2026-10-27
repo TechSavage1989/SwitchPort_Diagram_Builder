@@ -97,6 +97,7 @@ static class WorkspacePaletteChecks
         Check(VlanPalette.Assign(fresh).SequenceEqual(a.Vlans),"Failed render-context application preserves the previous valid context.");
         RemovalLifecycle();
         BlockedIsolation();
+        ParsedInventoryContexts();
     }
 
     static void RemovalLifecycle()
@@ -156,5 +157,44 @@ static class WorkspacePaletteChecks
         Check(plan.Warnings.Any(warning=>warning.Contains("excluded from the shared palette")),"Blocked-item palette exclusion remains explicit.");
         workspace.PaletteOverrides.Vlans["not-an-identity"]="#abcdef";
         Reject(()=>WorkspacePalette.Create(workspace),"Even with blocked items present, truly unknown override identity keys must fail.");
+    }
+
+    static void ParsedInventoryContexts()
+    {
+        var workspace=new ConfigurationWorkspace();
+        var first=workspace.AddText(Source("PARSED-FIRST"),"first.cfg");
+        var second=workspace.AddText(Source("PARSED-SECOND","Data",20),"second.cfg");
+        var conflict=workspace.AddText(Source("PARSED-CONFLICT","Guest"),"conflict.cfg");
+        var original=WorkspacePalette.Create(workspace);
+        Inventory Clone(Inventory inventory)=>JsonSerializer.Deserialize<Inventory>(JsonSerializer.Serialize(inventory))!;
+        var parsed=workspace.Items.Select(item=>(item.Id,Inventory:Clone(item.Inventory))).ToArray();
+        var direct=WorkspacePalette.Create(parsed);
+        Check(parsed.All(item=>direct.ForItem(item.Id).Serialize()==original.ForItem(item.Id).Serialize()),
+            "Pre-parsed inputs without overlays must use the same canonical shared identity plan as a workspace.");
+        foreach(var item in parsed)direct.Apply(item.Id,item.Inventory);
+        string[] captured=parsed.Select(item=>JsonSerializer.Serialize(item.Inventory)).ToArray();
+        var preserved=WorkspacePalette.Create(parsed.Reverse().ToArray());
+        Check(parsed.All(item=>preserved.ForItem(item.Id).Vlans.SequenceEqual(direct.ForItem(item.Id).Vlans)
+            &&preserved.ForItem(item.Id).Aggregates.SequenceEqual(direct.ForItem(item.Id).Aggregates)),
+            "Existing full workspace overlays must be pinned without reoptimization on pre-parsed input.");
+        var subset=WorkspacePalette.Create(new[]{parsed[0]});
+        Check(subset.ForItem(first.Id).Vlans.SequenceEqual(direct.ForItem(first.Id).Vlans)
+            &&subset.ForItem(first.Id).Aggregates.SequenceEqual(direct.ForItem(first.Id).Aggregates),
+            "Rendering one sheet's subset must retain colors selected across the complete workspace.");
+        Check(parsed.Select(item=>JsonSerializer.Serialize(item.Inventory)).SequenceEqual(captured),
+            "Palette planning must not mutate parsed source inventories or existing overlay dictionaries.");
+        var mismatched=parsed.Select(item=>(item.Id,Inventory:Clone(item.Inventory))).ToArray();
+        mismatched[1].Inventory.VlanColorOverrides![10]="#abcdef";
+        if(direct.ForItem(first.Id).Vlans[10]=="#abcdef")mismatched[1].Inventory.VlanColorOverrides[10]="#f5c9a3";
+        Reject(()=>WorkspacePalette.Create(mismatched),"Contradicting applied colors for a matching VLAN identity must fail rather than silently recolor.");
+        mismatched=parsed.Select(item=>(item.Id,Inventory:Clone(item.Inventory))).ToArray();
+        string lag=mismatched[1].Inventory.Ports.First(port=>port.Aggregate.Length>0).Aggregate;
+        mismatched[1].Inventory.AggregateColorOverrides![lag]="#123456";
+        if(direct.ForItem(first.Id).Aggregates.Values.Single()=="#123456")mismatched[1].Inventory.AggregateColorOverrides[lag]="#654321";
+        Reject(()=>WorkspacePalette.Create(mismatched),"Contradicting applied LAG colors must fail before rendering a shared legend.");
+        Reject(()=>WorkspacePalette.Create(new[]{parsed[0],parsed[0]}),"Pre-parsed palette inputs require distinct stable identifiers.");
+        Check(direct.ForItem(first.Id).Vlans[10]!=direct.ForItem(conflict.Id).Vlans[10]
+            &&direct.ForItem(first.Id).Vlans[99]!=direct.ForItem(second.Id).Vlans[99],
+            "Pre-parsed planning preserves conflicting named and item-scoped unnamed VLAN identities.");
     }
 }

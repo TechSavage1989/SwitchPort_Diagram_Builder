@@ -88,6 +88,7 @@ static class WorkspaceChecks
 
         string oldSelection = workspace.SelectedId!;
         var exported = WorkspaceExport.Export(workspace, root);
+        CheckLatestProject(workspace,exported);
         Check(exported.SuccessCount == 3 && exported.FailureCount == 1, "Batch continues after invalid items and exports every valid item.");
         Check(exported.Items.Select(item => item.Id).SequenceEqual(workspace.Items.Select(item => item.Id)), "Batch manifest follows visible workspace order.");
         Check(workspace.SelectedId == oldSelection && !workspace.Dirty && workspace.Items.All(item => !item.Dirty), "Export does not change selection or workspace saved state.");
@@ -148,6 +149,51 @@ static class WorkspaceChecks
         Reject(()=>WorkspaceNaming.CleanLabel(new string('x',101)),"Oversized custom labels are rejected explicitly.");
         var legacy=JsonNode.Parse(named.Serialize())!;legacy.AsObject().Remove("OutputLabel");legacy.AsObject().Remove("PaletteOverrides");
         Check(ConfigurationWorkspace.Deserialize(legacy.ToJsonString()).OutputLabel=="","1.13 workspaces remain compatible without optional naming/palette fields.");
+    }
+
+    static void CheckLatestProject(ConfigurationWorkspace workspace,WorkspaceExportResult exported)
+    {
+        var history=new GeneratedProjectHistory();
+        Check(history.Current==null&&!history.FolderAvailable&&!history.ChartAvailable,"No generated project starts with open actions unavailable.");
+        var successful=exported.Items.Where(item=>item.Success).ToArray();
+        string Chart(int index)=>Path.Combine(successful[index].OutputDirectory,"wall-chart.png");
+        Check(history.RecordSingle(true,"First switch",successful[0].OutputDirectory,Chart(0),"Single result"),"Successful single build records the output project.");
+        Check(!history.Current!.Paged&&history.ExistingCharts().Single()==Chart(0)&&history.FolderAvailable,"Single chart and folder belong to one project.");
+        Check(history.RecordBatch(exported,true,"Shared workspace","Combined result"),"Successful shared sheet output replaces single result.");
+        Check(history.Current!.Paged&&history.Current.OutputDirectory==exported.OutputDirectory&&history.PdfAvailable
+            &&history.ExistingCharts().SequenceEqual(exported.CombinedImages),"Combined chart, PDF, preview pages and output folder agree.");
+        var combined=history.Current;
+        string oldSelection=workspace.SelectedId!;bool wasDirty=workspace.Dirty;workspace.Select(successful[2].Id);workspace.Select(oldSelection);workspace.Dirty=wasDirty;
+        Check(history.Current==combined,"Selecting another configuration cannot redirect latest generated project.");
+        history.MarkStale();
+        Check(history.Current!.Stale&&history.Current.OutputDirectory==combined.OutputDirectory&&history.ChartAvailable,"Source edits/reorder/reopen mark stale but retain available chart and folder.");
+        Check(!history.RecordSingle(false,"Failed switch",successful[0].OutputDirectory,Chart(0),"Failed")&&history.Current!.Stale,"Failed or cancelled single builds retain last successful project.");
+        Check(!history.RecordSingle(true,"Missing chart",successful[0].OutputDirectory,Chart(0)+".missing","Missing")&&history.Current!.Paged,"Incomplete single output does not replace the last project.");
+        var failed=new WorkspaceExportResult{OutputDirectory=exported.OutputDirectory};
+        Check(!history.RecordBatch(failed,true,"Failed batch","Failed")&&history.Current!.Paged,"Entirely blocked batches retain the last successful project.");
+        failed.Items.Add(successful[0]);
+        Check(!history.RecordBatch(failed,true,"Combined failed","Failed")&&history.Current!.Paged,"Requested combined failure does not replace valid prior output with incomplete individual-only results.");
+        string handoff=JsonSerializer.Serialize(WorkspaceRestartState.Capture(workspace,history.Current));
+        var restored=new GeneratedProjectHistory();restored.Restore(WorkspaceRestartState.RestoreProject(handoff));
+        Check(restored.Current==null?false:restored.Current.OutputDirectory==history.Current!.OutputDirectory&&restored.Current.Stale
+            &&restored.ExistingCharts().SequenceEqual(history.ExistingCharts()),"Update restart preserves last successful project and stale flag independently of selection.");
+        Check(!workspace.Serialize().Contains("LatestProject"),"Explicit workspace files never persist generated chart paths.");
+        var saved=restored.Current;restored.Restore(saved! with{Charts=new[]{Path.Combine(Path.GetDirectoryName(exported.OutputDirectory)!,"outside.png")}});
+        Check(restored.Current==saved,"Malformed restart paths outside their project cannot redirect chart opening.");
+        Check(history.RecordBatch(exported,false,"Individual batch","Individual pages")&&!history.PdfAvailable
+            &&history.ExistingCharts().SequenceEqual(successful.Select(item=>Path.Combine(item.OutputDirectory,"wall-chart.png"))),"Uncombined all-item project previews individual charts in workspace order, without a false combined PDF.");
+        Check(history.RecordSingle(true,"Newest switch",successful[2].OutputDirectory,Chart(2),"Newest result")&&!history.Current!.Paged
+            &&!history.Current.Stale&&history.Current.OutputDirectory==successful[2].OutputDirectory&&history.ExistingCharts().Single()==Chart(2),"Single→combined→single uses newest successful project rather than stale batch state.");
+        Check(history.RecordSingle(true,new string('X',300),successful[0].OutputDirectory,Chart(0),"Long member names")
+            &&history.Current!.Label.Length<=200&&history.Current.OutputDirectory==successful[0].OutputDirectory,"Long combined member display names cannot prevent a successful single result becoming latest.");
+        string missingRoot=Path.Combine(exported.OutputDirectory,"partial-preview");Directory.CreateDirectory(missingRoot);
+        string firstPage=Path.Combine(missingRoot,"page1.png"),secondPage=Path.Combine(missingRoot,"page2.png"),pdf=Path.Combine(missingRoot,"project.pdf");
+        File.WriteAllText(secondPage,"fixture");File.WriteAllText(pdf,"fixture");
+        var partial=new GeneratedProjectHistory();partial.Restore(new("Partial pages",missingRoot,new[]{firstPage,secondPage},pdf,true,"Previous complete build"));
+        Check(partial.Current!.Charts.Length==2&&partial.Current.Charts[0]==firstPage&&partial.ExistingCharts().Length==1&&partial.PdfAvailable,
+            "Missing preview files retain declared page slots so PDF page numbers cannot silently change.");
+        var missing=new GeneratedProjectHistory();missing.Restore(history.Current! with{OutputDirectory=Path.Combine(exported.OutputDirectory,"missing"),Charts=Array.Empty<string>(),PdfPath=null});
+        Check(missing.Current==null&&!missing.ChartAvailable&&!missing.FolderAvailable,"Deleted output cannot be offered as an available restored project.");
     }
 
     static void CheckRestartState(ConfigurationWorkspace original)

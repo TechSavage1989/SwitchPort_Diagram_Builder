@@ -1,4 +1,4 @@
-Source files for 1.14.0
+Source files for 1.14.1
 
 Branding/Palette.txt
 Branding/README.txt
@@ -17,6 +17,7 @@ README.md
 SUPPORT_COVERAGE.md
 SwitchportDiagramBuilder/AppUpdateController.cs
 SwitchportDiagramBuilder/Assets/AppIcon.ico
+SwitchportDiagramBuilder/MainForm.Project.cs
 SwitchportDiagramBuilder/MainForm.Updates.cs
 SwitchportDiagramBuilder/MainForm.Workspace.cs
 SwitchportDiagramBuilder/MainForm.cs
@@ -39,6 +40,7 @@ SwitchportGenerator/DeviceModels.cs
 SwitchportGenerator/Fonts/LICENSE.txt
 SwitchportGenerator/Fonts/Report-Bold.ttf
 SwitchportGenerator/Fonts/Report-Regular.ttf
+SwitchportGenerator/GeneratedProject.cs
 SwitchportGenerator/Graphics.cs
 SwitchportGenerator/HardwareCatalog.cs
 SwitchportGenerator/HardwareProfiles.cs

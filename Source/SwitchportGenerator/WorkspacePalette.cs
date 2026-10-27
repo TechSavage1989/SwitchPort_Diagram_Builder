@@ -101,15 +101,51 @@ public static class WorkspacePalette
     }
 
     public static WorkspacePalettePlan Create(ConfigurationWorkspace workspace,WorkspacePaletteOverrides? overrides=null)
+        =>CreateCore(workspace.Items.Select(item=>(item.Id,item.Inventory)).ToArray(),overrides??workspace.PaletteOverrides??new(),false);
+
+    /// <summary>Plan from parsed inventories without reparsing source or changing input objects.
+    /// Existing applied contexts are pinned, including when rendering a subset of a workspace.</summary>
+    public static WorkspacePalettePlan Create(IReadOnlyList<(string Id,Inventory Inventory)> inputs,WorkspacePaletteOverrides? overrides=null)
+        =>CreateCore(inputs,overrides??new(),true);
+
+    static WorkspacePalettePlan CreateCore(IReadOnlyList<(string Id,Inventory Inventory)> inputs,WorkspacePaletteOverrides overrides,bool preserveApplied)
     {
-        overrides??=workspace.PaletteOverrides??new();
+        if(inputs==null||inputs.Any(item=>string.IsNullOrWhiteSpace(item.Id)||item.Inventory==null)||inputs.Select(item=>item.Id).Distinct(StringComparer.Ordinal).Count()!=inputs.Count)
+            throw new InvalidOperationException("Workspace palette inputs require distinct nonempty stable identifiers and parsed inventories.");
         if(overrides.Vlans==null||overrides.Aggregates==null)throw new InvalidOperationException("Workspace palette overrides must contain VLAN and LAG maps.");
         foreach(string color in overrides.Vlans.Values)RenderPalette.ValidateVlanColor(color);
         foreach(string color in overrides.Aggregates.Values)RenderPalette.ValidateColor(color);
         var plan=new WorkspacePalettePlan();
         // Stable identity order, never visible list order, controls palette optimization.
-        var allItems=workspace.Items.OrderBy(item=>item.Id,StringComparer.Ordinal).ToArray();
+        var allItems=inputs.OrderBy(item=>item.Id,StringComparer.Ordinal).ToArray();
         var items=allItems.Where(item=>item.Inventory.Blockers.Count==0).ToArray();
+        if(preserveApplied)
+        {
+            overrides=new WorkspacePaletteOverrides{Vlans=new(overrides.Vlans,StringComparer.Ordinal),Aggregates=new(overrides.Aggregates,StringComparer.Ordinal)};
+            void Pin(Dictionary<string,string> target,string key,string color,string kind)
+            {
+                if(target.TryGetValue(key,out string? existing)&&!existing.Equals(color,StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Conflicting applied "+kind+" colors for shared identity "+key+". Rebuild the complete workspace palette.");
+                target[key]=color.ToLowerInvariant();
+            }
+            foreach(var item in items)
+            {
+                var ids=VlanIds(item.Inventory).ToHashSet();
+                foreach(var pair in item.Inventory.VlanColorOverrides??new Dictionary<int,string>())
+                {
+                    if(!ids.Contains(pair.Key))throw new InvalidOperationException("Applied VLAN palette contains an identity absent from its configuration.");
+                    RenderPalette.ValidateVlanColor(pair.Value);
+                    Pin(overrides.Vlans,VlanKey(item.Id,item.Inventory,pair.Key),pair.Value,"VLAN");
+                }
+                var labels=item.Inventory.Ports.Where(port=>port.Aggregate.Length>0).Select(port=>port.Aggregate).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                foreach(var pair in item.Inventory.AggregateColorOverrides??new Dictionary<string,string>())
+                {
+                    if(!labels.Contains(pair.Key))throw new InvalidOperationException("Applied LAG palette contains a label absent from its configuration.");
+                    RenderPalette.ValidateColor(pair.Value);
+                    Pin(overrides.Aggregates,AggregateKey(pair.Key),pair.Value,"LAG");
+                }
+            }
+        }
         var knownVlanKeys=new HashSet<string>(StringComparer.Ordinal);
         foreach(var item in allItems)
         {

@@ -13,9 +13,6 @@ public sealed partial class MainForm : Form
     bool busy;
     string outputRoot="";
     ConfigurationWorkspace workspace=new();
-    string? lastBatchOutput;
-    string? lastCombinedPdf;
-    List<string> lastCombinedImages=new();
     string? lastOutput { get=>workspace.Selected?.LastOutput; set { if(workspace.Selected is {} item)item.LastOutput=value; } }
     string? lastChart { get=>workspace.Selected?.LastChart; set { if(workspace.Selected is {} item)item.LastChart=value; } }
     string? selectedPath=>workspace.Selected?.SourcePath;
@@ -222,21 +219,8 @@ public sealed partial class MainForm : Form
             Send(new {type="outputCopyFailed",message="Clipboard is busy. Try Copy again."});
         }
     }
-    void Open()
-    {
-        string output = lastOutput??outputRoot; Directory.CreateDirectory(output);
-        Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true, ArgumentList = { output } });
-    }
-    void OpenChart()
-    {
-        if(lastChart==null||!File.Exists(lastChart))
-        {
-            lastChart=null;
-            Send(new {type="chartUnavailable",message="The chart is unavailable. Build reports again."});
-            return;
-        }
-        Process.Start(new ProcessStartInfo(lastChart){UseShellExecute=true});
-    }
+    void Open()=>OpenProject();
+    void OpenChart()=>OpenProjectChart();
     async Task Run()
     {
         if (selectedText==null&&!File.Exists(selectedPath)) { Send(new { type = "error", message = "Choose, paste or drop a configuration first." }); return; }
@@ -294,6 +278,8 @@ public sealed partial class MainForm : Form
             {
                 string? chart=lastOutput==null?null:Path.Combine(lastOutput,"wall-chart.png");
                 lastChart=chart!=null&&File.Exists(chart)?chart:null;
+                projects.RecordSingle(true,workspace.Selected is {} sourceItem?DisplayName(sourceItem).Length>0?DisplayName(sourceItem):sourceItem.Name:"Switch diagram",output,lastChart,"Reports created.\n\nOutput: "+output);
+                SendProject();
                 Send(new { type = "complete", message = "Reports created.", details = "", output,chartAvailable=lastChart!=null });
             }
             else Send(new { type = "blocked", message = "Generation blocked. Review the validation report.", details = text, output });
@@ -315,7 +301,7 @@ public sealed partial class MainForm : Form
             if(temporaryDetails!=null)try{File.Delete(temporaryDetails);}catch(IOException){}catch(UnauthorizedAccessException){}
             if(temporaryPalette!=null)try{File.Delete(temporaryPalette);}catch(IOException){}catch(UnauthorizedAccessException){}
             busy = false;
-            updater?.Publish();
+            SendProject();updater?.Publish();
         }
     }
     void Send(object value)

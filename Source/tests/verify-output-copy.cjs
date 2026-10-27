@@ -29,8 +29,9 @@ const path=require('path'),assert=require('assert');
   await page.click('#copyOutput');
   assert.deepStrictEqual(await page.evaluate(()=>window.__switchportMessages.at(-1)),{action:'copyOutput',text:'Reports created.\n\nOutput: C:/Reports'});
   await page.evaluate(()=>{window.__switchportDeliver({type:'outputCopied',message:'Copied.'});window.__switchportDeliver({type:'selected',name:'Next.txt'});});
-  assert(!(await page.locator('#outputSection').isVisible()));
-  assert(await page.locator('#copyOutput').isDisabled());
-  console.log('PASS Copy preserves displayed output, multiline errors, paths and Unicode; treats markup as text; handles success/retry without replacing results; resets for new input.');
+  assert(await page.locator('#outputSection').isVisible());
+  assert(!(await page.locator('#copyOutput').isDisabled()));
+  assert.equal(await page.locator('#status').textContent(),'Reports created.\n\nOutput: C:/Reports');
+  console.log('PASS Copy preserves displayed output, multiline errors, paths and Unicode; treats markup as text; handles success/retry without replacing results; preserves latest successful project across input selection.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1)});

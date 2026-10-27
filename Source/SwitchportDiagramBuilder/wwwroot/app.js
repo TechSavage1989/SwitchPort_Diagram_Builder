@@ -1,8 +1,9 @@
 const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[];
-let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null,batchOutput=false;
+let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null;
 let workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
+let project={available:false,chartAvailable:false,folderAvailable:false,combined:false,pageCount:0,pdfAvailable:false,label:'',output:'',stale:false,summary:''},projectKnown=false;
 const post=message=>window.chrome.webview.postMessage(message);
 const locked=()=>updating||busy||loading||deviceLoading;
 const editorOpen=()=>['deviceDialog','pasteDialog','workspaceLabelDialog','combinedPreviewDialog'].some(id=>el(id).open);
@@ -11,10 +12,9 @@ function controls(){
  el('run').disabled=locked()||!hasInput;
  el('saveWorkspace').disabled=locked()||(!workspaceItems.length&&!workspaceDirty);
  el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
- el('openBatch').disabled=locked()||!batchOutput;
+ el('openChart').disabled=locked()||!project.chartAvailable;el('open').disabled=updating||!project.folderAvailable;
  el('editWorkspaceLabel').disabled=locked();el('applyWorkspaceLabel').disabled=locked();el('workspaceLabelInput').disabled=locked();
- el('previewCombined').hidden=!combinedAvailable;el('previewCombined').disabled=locked()||!combinedAvailable;
- el('previousCombined').disabled=previewLoading||previewIndex<=0;el('nextCombined').disabled=previewLoading||previewIndex>=combinedPageCount-1;el('openCombined').disabled=locked()||!combinedAvailable;
+ el('previousCombined').disabled=previewLoading||previewIndex<=0;el('nextCombined').disabled=previewLoading||previewIndex>=combinedPageCount-1;el('openCombined').disabled=locked()||!project.pdfAvailable;
  el('workspaceList').querySelectorAll('button').forEach(button=>button.disabled=locked()||button.dataset.boundary==='true');
  el('workspaceList').querySelectorAll('li').forEach(row=>row.draggable=!locked());
  el('devices').disabled=locked()||!hasInput;el('saveDevices').disabled=deviceLoading||!deviceDraft;el('cancelDevices').disabled=deviceSaving;
@@ -22,10 +22,29 @@ function controls(){
  el('removeLogo').disabled=locked()||!hasLogo;
  el('usePaste').disabled=locked()||!el('pasteText').value.trim();
 }
+function showResult(type,message){
+ el('status').className=type;el('status').textContent=message;el('outputSection').hidden=!message;
+ el('copyOutput').disabled=copying||!message;el('copyFeedback').textContent='';document.body.classList.toggle('has-output',!!message);
+}
 function status(type,message){
- el('status').className=type;el('status').textContent=message;
- el('outputSection').hidden=!message;el('copyOutput').disabled=copying||!message;el('copyFeedback').textContent='';
- document.body.classList.toggle('has-output',!!message);
+ if(project.available){el('operationStatus').className=type;el('operationStatus').textContent=message;el('operationStatus').hidden=!message;}
+ else showResult(type,message);
+}
+function renderProject(message){
+ const changed=project.output!==message.output;
+ projectKnown=true;project={available:false,chartAvailable:false,folderAvailable:false,combined:false,pageCount:0,pdfAvailable:false,label:'',output:'',stale:false,summary:'',...message};
+ combinedAvailable=project.available&&project.combined&&project.chartAvailable;combinedPageCount=project.pageCount||0;
+ if((changed||!combinedAvailable)&&el('combinedPreviewDialog').open)el('combinedPreviewDialog').close();
+ el('projectName').textContent=project.available?(project.label||'Generated project'):'No project generated yet';el('projectName').title=project.output||'';
+ el('projectStale').hidden=!project.available||!project.stale;
+ if(project.available){showResult('complete',project.summary||[project.label,project.output?'Output: '+project.output:''].filter(Boolean).join('\n'));if(changed){el('operationStatus').hidden=true;el('operationStatus').textContent='';}}
+ controls();
+}
+// A complete event can also restore a previous host's single-project handoff.
+function legacyProject(message){
+ if(projectKnown)return;
+ const text=[message.message,message.details,message.output?'Output: '+message.output:''].filter(Boolean).join('\n\n');
+ renderProject({available:true,chartAvailable:!!message.chartAvailable,folderAvailable:!!message.output,label:message.label||'Generated project',output:message.output||'',summary:text,combined:false,pdfAvailable:false,stale:false});projectKnown=false;
 }
 function inputError(message){
  loading=false;controls();status('error',message);
@@ -35,7 +54,7 @@ function loadText(text,name){
  if(locked())return;
  if(!text.trim()){inputError('The configuration is empty.');return;}
  if(new TextEncoder().encode(text).length>MAX_INPUT_BYTES){inputError('Configuration exceeds the 20 MB limit.');return;}
- loading=true;controls();el('openChart').disabled=true;el('pasteError').textContent='';
+ loading=true;controls();el('pasteError').textContent='';
  status('status','Loading configuration...');post({action:'loadText',text,name});
 }
 el('choose').onclick=()=>{if(!locked())post({action:'choose'});};
@@ -48,7 +67,7 @@ el('usePaste').onclick=()=>loadText(el('pasteText').value,'Pasted configuration'
 el('chooseOutput').onclick=()=>{if(!locked())post({action:'chooseOutput'});};
 el('chooseLogo').onclick=()=>{if(!locked())post({action:'chooseLogo'});};
 el('removeLogo').onclick=()=>{if(!locked()&&hasLogo)post({action:'removeLogo'});};
-el('open').onclick=()=>post({action:'open'});
+el('open').onclick=()=>{if(!updating&&project.folderAvailable)post({action:'open'});};
 el('copyOutput').onclick=()=>{
  const text=el('status').textContent;if(copying||!text.trim())return;
  copying=true;el('copyOutput').disabled=true;el('copyFeedback').textContent='';post({action:'copyOutput',text});
@@ -56,7 +75,6 @@ el('copyOutput').onclick=()=>{
 el('openChart').onclick=()=>{if(!locked()&&!el('openChart').disabled)post({action:'openChart'});};
 el('openWorkspace').onclick=()=>{if(!locked())post({action:'openWorkspace'});};
 el('saveWorkspace').onclick=()=>{if(!locked()&&(workspaceItems.length||workspaceDirty))post({action:'saveWorkspace'});};
-el('openBatch').onclick=()=>{if(!locked()&&batchOutput)post({action:'openBatch'});};
 
 el('editWorkspaceLabel').onclick=()=>{
  if(locked()||editorOpen())return;
@@ -75,23 +93,23 @@ el('applyWorkspaceLabel').onclick=()=>{
 el('workspaceLabelInput').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();el('applyWorkspaceLabel').click();}});
 function requestCombinedPreview(index){
  if(!combinedAvailable||locked()||previewLoading)return;
- previewLoading=true;previewRequest++;el('combinedPreviewImage').hidden=true;el('combinedPreviewImage').removeAttribute('src');
+ previewIndex=index;previewLoading=true;previewRequest++;el('combinedPreviewPage').textContent='Page '+(index+1)+' of '+combinedPageCount;el('combinedPreviewImage').hidden=true;el('combinedPreviewImage').removeAttribute('src');
  el('combinedPreviewStatus').textContent='Loading combined sheet...';controls();post({action:'previewCombined',index,requestId:previewRequest});
 }
-el('previewCombined').onclick=()=>{
+function showProjectPreview(){
  if(!combinedAvailable||locked()||editorOpen())return;
- previewIndex=0;el('combinedPreviewName').textContent=workspaceEffectiveLabel;el('combinedPreviewPage').textContent='';
+ previewIndex=0;el('combinedPreviewName').textContent=project.label||workspaceEffectiveLabel;el('combinedPreviewPage').textContent='';
  el('combinedPreviewDialog').showModal();post({action:'updateEditing',enabled:true});requestCombinedPreview(0);
 };
 el('previousCombined').onclick=()=>{if(previewIndex>0)requestCombinedPreview(previewIndex-1);};
 el('nextCombined').onclick=()=>{if(previewIndex<combinedPageCount-1)requestCombinedPreview(previewIndex+1);};
-el('openCombined').onclick=()=>{if(combinedAvailable&&!locked())post({action:'openCombined'});};
+el('openCombined').onclick=()=>{if(project.pdfAvailable&&!locked())post({action:'openCombined'});};
 el('closeCombinedPreview').onclick=()=>el('combinedPreviewDialog').close();
 el('combinedPreviewImage').addEventListener('error',()=>{if(el('combinedPreviewDialog').open){el('combinedPreviewImage').hidden=true;el('combinedPreviewStatus').textContent='The saved PNG preview could not be displayed. Open the PDF or build the sheets again.';}});
 el('combinedPreviewDialog').addEventListener('close',()=>{previewRequest++;previewLoading=false;el('combinedPreviewImage').removeAttribute('src');el('combinedPreviewImage').hidden=true;post({action:'updateEditing',enabled:false});controls();});
 
 el('runAll').onclick=()=>{if(locked()||!workspaceItems.length)return;busy=true;controls();post({action:'runAll',combined:el('combinePdf').checked});};
-el('run').onclick=()=>{if(locked()||!hasInput)return;busy=true;el('openChart').disabled=true;controls();post({action:'run'});};
+el('run').onclick=()=>{if(locked()||!hasInput)return;busy=true;controls();post({action:'run'});};
 function closeDevices(){post({action:'updateEditing',enabled:false});deviceRequest++;deviceLoading=false;deviceSaving=false;deviceDraft=null;controls();}
 function renderDevices(rows){
  deviceDraft=rows.map(row=>({...row}));el('deviceRows').replaceChildren();
@@ -139,14 +157,11 @@ el('saveDevices').onclick=()=>{
 function renderWorkspace(message){
  const selectionChanged=selectedId!==(message.selectedId||null);
  workspaceItems=message.items||[];workspaceDirty=!!message.dirty;selectedId=message.selectedId||null;
- if(message.batchAvailable===false){batchOutput=false;combinedAvailable=false;combinedPageCount=0;el('batchResult').hidden=true;if(el('combinedPreviewDialog').open)el('combinedPreviewDialog').close();}
  if(typeof message.outputLabel==='string')workspaceOutputLabel=message.outputLabel;
  if(typeof message.suggestedLabel==='string')workspaceSuggestedLabel=message.suggestedLabel;
  if(typeof message.effectiveLabel==='string')workspaceEffectiveLabel=message.effectiveLabel;
- el('workspaceOutputName').textContent='Output: '+(workspaceEffectiveLabel||'Automatic');
+ el('workspaceOutputName').textContent='Project name: '+(workspaceEffectiveLabel||'Automatic');
  el('workspaceOutputName').title=(message.workspaceName?'Workspace: '+message.workspaceName+'\n':'')+'Output folder name: '+(workspaceEffectiveLabel||'Automatic');
- if(typeof message.combinedAvailable==='boolean')combinedAvailable=message.combinedAvailable;
- if(Number.isInteger(message.pageCount))combinedPageCount=message.pageCount;
  const active=document.activeElement,focusId=active?.dataset.itemId,focusAction=active?.dataset.workspaceAction,scrollTop=el('workspaceList').scrollTop;
  el('workspaceList').replaceChildren();el('workspaceCount').textContent=workspaceItems.length;
  el('workspaceDirty').hidden=!message.dirty;el('workspaceEmpty').hidden=workspaceItems.length>0;
@@ -232,6 +247,8 @@ window.chrome.webview.addEventListener('message',event=>{
  const m=event.data;
  if(m.type==='updateState'){renderUpdate(m);return;}
  if(m.type==='workspace'){renderWorkspace(m);return;}
+ if(m.type==='project'){renderProject(m);return;}
+ if(m.type==='openProjectPreview'){showProjectPreview();return;}
  if(m.type==='workspaceSaved'){el('importResult').textContent=m.message;el('importResult').className='import-result';el('importResult').hidden=!m.message;return;}
  if(m.type==='importComplete'){
   batchLoading=false;loading=false;controls();
@@ -240,8 +257,10 @@ window.chrome.webview.addEventListener('message',event=>{
   return;
  }
  if(m.type==='batchComplete'){
-  busy=false;loading=false;batchOutput=!!m.output;combinedAvailable=!!m.combinedAvailable;combinedPageCount=Number.isInteger(m.pageCount)?m.pageCount:0;el('batchResult').hidden=false;
-  el('batchStatus').textContent=[m.message,combinedPageCount?combinedPageCount+' shared A4 sheet'+(combinedPageCount===1?'':'s')+'.':'',...(m.warnings||[]),m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');controls();return;
+  busy=false;loading=false;
+  const details=[m.message,m.pageCount?m.pageCount+' A4 page'+(m.pageCount===1?'':'s')+'.':'',...(m.warnings||[]),m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');
+  if(!project.available||project.output!==m.output)status('status',details);
+  controls();return;
  }
  if(m.type==='combinedPreview'||m.type==='combinedPreviewError'){
   if(m.requestId!==previewRequest||!el('combinedPreviewDialog').open)return;
@@ -249,8 +268,8 @@ window.chrome.webview.addEventListener('message',event=>{
   if(m.type==='combinedPreviewError'||typeof m.src!=='string'||!m.src.startsWith('data:image/png;base64,')||!Number.isInteger(m.index)||!Number.isInteger(m.count)||m.index<0||m.index>=m.count){
    el('combinedPreviewStatus').textContent=m.message||'The combined preview could not be loaded. Open the PDF or build the sheets again.';el('combinedPreviewImage').hidden=true;
   }else{
-   previewIndex=m.index;combinedPageCount=m.count;el('combinedPreviewName').textContent=m.name||workspaceEffectiveLabel;el('combinedPreviewPage').textContent='Sheet '+(m.index+1)+' of '+m.count;
-   el('combinedPreviewImage').src=m.src;el('combinedPreviewImage').alt='Combined switchport diagram, sheet '+(m.index+1)+' of '+m.count;el('combinedPreviewImage').hidden=false;el('combinedPreviewStatus').textContent='';
+   previewIndex=m.index;combinedPageCount=m.count;el('combinedPreviewName').textContent=m.name||workspaceEffectiveLabel;el('combinedPreviewPage').textContent='Page '+(m.index+1)+' of '+m.count;
+   el('combinedPreviewImage').src=m.src;el('combinedPreviewImage').alt='Project switchport diagram, page '+(m.index+1)+' of '+m.count;el('combinedPreviewImage').hidden=false;el('combinedPreviewStatus').textContent='';
   }
   controls();return;
  }
@@ -258,7 +277,7 @@ window.chrome.webview.addEventListener('message',event=>{
   if(m.requestId!==deviceRequest)return;deviceLoading=false;deviceSaving=false;
   if(m.type==='devices'){el('deviceError').textContent='';renderDevices(m.devices);el('deviceRows').querySelector('input')?.focus();}
   if(m.type==='deviceError'){el('deviceError').textContent=m.message;if(!deviceDraft)el('deviceRows').textContent='No devices to edit.';controls();}
-  if(m.type==='devicesSaved'){el('deviceDialog').close();el('openChart').disabled=true;status('status',m.count?'Device details saved. Build reports to apply them.':'Device details cleared. Build reports to apply.');controls();}
+  if(m.type==='devicesSaved'){el('deviceDialog').close();status('status',m.count?'Device details saved. Build reports to apply them.':'Device details cleared. Build reports to apply.');controls();}
   return;
  }
  if(m.type==='outputCopied'||m.type==='outputCopyFailed'){
@@ -268,21 +287,21 @@ window.chrome.webview.addEventListener('message',event=>{
   hasLogo=!!m.preview;el('logoName').textContent=m.name||'No report logo';el('logoName').title=m.name||'';
   el('logoPreview').hidden=!hasLogo;el('removeLogo').hidden=!hasLogo;
   if(hasLogo)el('logoPreview').src=m.preview;else el('logoPreview').removeAttribute('src');
-  el('openChart').disabled=true;status('','');controls();return;
+  status('','');controls();return;
  }
  if(m.type==='models'){modelChoices=m.models;return;}
- if(m.type==='outputSelected'){el('outputFolder').textContent=m.path;el('openChart').disabled=true;return;}
+ if(m.type==='outputSelected'){el('outputFolder').textContent=m.path;controls();return;}
  if(m.type==='selected'){
   hasInput=m.id!==null;loading=batchLoading;selectedId=m.id||selectedId;
   if(el('deviceDialog').open)el('deviceDialog').close();deviceDraft=null;deviceLoading=false;deviceSaving=false;deviceRequest++;
   el('file').textContent=hasInput?(m.hostname?m.hostname+' - '+m.name:m.name):'No configuration loaded';el('file').title=m.path||m.name||'';
-  el('openChart').disabled=!m.chartAvailable;el('pasteError').textContent='';
+  el('pasteError').textContent='';
   if(el('pasteDialog').open)el('pasteDialog').close();
-  status(m.statusType||'',m.statusText||'');controls();return;
+  status('','');controls();return;
  }
- if(m.type==='complete')el('openChart').disabled=!m.chartAvailable;
- if(['blocked','error','chartUnavailable'].includes(m.type))el('openChart').disabled=true;
- status(m.type,[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n\n'));
+ if(m.type==='complete')legacyProject(m);
+ if(m.type==='chartUnavailable'&&!projectKnown){project.chartAvailable=false;controls();}
+ if(m.type!=='complete'||!project.available)status(m.type,[m.message,m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n\n'));
  if(['complete','blocked','error'].includes(m.type)){
   busy=false;loading=false;batchLoading=false;controls();
   if(m.type==='error'&&el('pasteDialog').open)el('pasteError').textContent=m.message;

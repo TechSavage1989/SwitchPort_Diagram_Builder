@@ -6,7 +6,7 @@ from PIL import Image, ImageChops
 from pypdf import PdfReader
 
 root = Path(sys.argv[1])
-for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet']:
+for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
     plan = json.loads((root / (prefix + '-plan.json')).read_text())
     pdf = PdfReader(root / (prefix + '.pdf'))
     assert len(pdf.pages) == plan['PageCount']
@@ -16,7 +16,10 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
         text = pdf.pages[0].extract_text()
         assert 'ALPHA-ACCESS' in text and 'BETA-ACCESS' in text
         assert text.index('ALPHA-ACCESS') < text.index('BETA-ACCESS')
-        assert text.count('VLAN key') == 2
+        assert text.count('VLAN key') == 1
+        assert text.count('10 Data') == 1
+        assert 'WORKSPACE PORT MAPS' not in text
+        assert plan['Placements'][0]['Y'] == 0
     if prefix == 'five-ordered':
         assert 1 < len(pdf.pages) < 5
         text = '\n'.join(page.extract_text() for page in pdf.pages)
@@ -26,7 +29,23 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
     for index, page in enumerate(pdf.pages, 1):
         assert abs(float(page.mediabox.width) - 841.89) < 0.5
         assert abs(float(page.mediabox.height) - 595.28) < 0.5
-        assert 'Confirm live link, LLDP/CDP, and MAC address table' in page.extract_text()
+        text = page.extract_text()
+        assert 'Confirm live link, LLDP/CDP, and MAC address table' in text
+        assert 'WORKSPACE PORT MAPS' not in text
+        assert text.count('VLAN key') == 1
+        compact = ''.join(text.split())
+        for entry in plan['LegendEntries']:
+            if entry['PageNumber'] == index:
+                assert ''.join(entry['Label'].split()) in compact, (prefix, index, entry)
+        if prefix == 'many-wrapped-key':
+            for vlan in [1] + list(range(100, 140)):
+                assert 'InfrastructureManagementBackPlaneSegment' + str(vlan) in compact
+        if prefix == 'conflicting-key':
+            assert 'CONFLICT-DATA' in text and 'CONFLICT-SERVERS' in text and 'CONFLICT-UNNAMED' in text
+            assert len({entry['Color'] for entry in plan['LegendEntries'] if entry['VlanId'] == 10}) == 3
+        if prefix == 'unnamed-key':
+            assert text.count('Native not supplied') == 1 and text.count('No native VLAN') == 1
+            assert len([entry for entry in plan['LegendEntries'] if entry['VlanId'] == 20]) == 2
         with Image.open(root / f'{prefix}-{index}.png') as image:
             assert image.size == (3508, 2480)
             assert abs(image.info['dpi'][0] - 300) < 0.1
@@ -42,4 +61,4 @@ for prefix in ['two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 
                 x = round((18 + 2) * sx)
                 pixel = image.convert('RGB').getpixel((x, y))
                 assert max(pixel) < 110, (prefix, item, pixel)
-print('PASS multi-switch same-page PDF content/order, capacity pagination, matched raster component placement, A4 and 300 DPI')
+print('PASS header-free multi-switch PDFs, single complete shared VLAN key, conflicts/unnamed scopes, full wrapped names, capacity pagination, matched raster geometry, A4 and 300 DPI')

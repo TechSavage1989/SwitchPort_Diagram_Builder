@@ -9,17 +9,20 @@ public sealed partial class MainForm
         string name=ReportText.DisplayName(item.Inventory);
         return name.Equals("Unknown",StringComparison.OrdinalIgnoreCase)?"":name;
     }
-    void SendWorkspace()=>Send(new
+    void SendWorkspace()
     {
-        type="workspace",selectedId=workspace.SelectedId,dirty=workspace.Dirty,batchAvailable=lastBatchOutput!=null&&Directory.Exists(lastBatchOutput),
-        combinedAvailable=lastCombinedPdf!=null&&File.Exists(lastCombinedPdf),pageCount=lastCombinedImages.Count,
+      Send(new
+      {
+        type="workspace",selectedId=workspace.SelectedId,dirty=workspace.Dirty,
         outputLabel=workspace.OutputLabel,effectiveLabel=WorkspaceNaming.Effective(workspace),suggestedLabel=WorkspaceNaming.Suggested(workspace),workspaceName=workspace.SavedWorkspaceName,
         items=workspace.Items.Select(item=>new
         {
             id=item.Id,name=item.Name,hostname=DisplayName(item),model=ReportText.SwitchModel(item.Inventory),
             error=string.Join("; ",item.Inventory.Blockers),dirty=item.Dirty
         }).ToArray()
-    });
+      });
+      SendProject();
+    }
     void SendSelection()
     {
         SendWorkspace();
@@ -89,20 +92,23 @@ public sealed partial class MainForm
         foreach(var item in workspace.Items){item.LastOutput=null;item.LastChart=null;item.Status="";item.StatusType="";}
         InvalidateBatch();
     }
-    void InvalidateBatch(){lastBatchOutput=null;lastCombinedPdf=null;lastCombinedImages.Clear();}
+    void InvalidateBatch()=>projects.MarkStale();
     void PreviewCombined(int index,int? requestId)
     {
         try
         {
-            if(index<0||index>=lastCombinedImages.Count||!File.Exists(lastCombinedImages[index]))throw new InvalidOperationException("Build shared sheets again to preview them.");
-            Send(new{type="combinedPreview",index,count=lastCombinedImages.Count,src="data:image/png;base64,"+Convert.ToBase64String(File.ReadAllBytes(lastCombinedImages[index])),name=Path.GetFileName(lastCombinedImages[index]),requestId});
+            var charts=projects.Current?.Charts??Array.Empty<string>();
+            if(index<0||index>=charts.Length)throw new InvalidOperationException("The last generated preview is unavailable. Build reports to create a new project.");
+            if(!File.Exists(charts[index]))throw new InvalidOperationException($"Page {index+1} preview is unavailable. Open the PDF if available, or rebuild the project. Other page numbers are unchanged.");
+            Send(new{type="combinedPreview",index,count=charts.Length,src="data:image/png;base64,"+Convert.ToBase64String(File.ReadAllBytes(charts[index])),name=projects.Current!.Label,requestId});
         }
         catch(Exception ex){Send(new{type="combinedPreviewError",message=ex.Message,requestId});}
     }
     void OpenCombined()
     {
-        if(lastCombinedPdf==null||!File.Exists(lastCombinedPdf))throw new InvalidOperationException("Build shared sheets again to open the PDF.");
-        Process.Start(new ProcessStartInfo(lastCombinedPdf){UseShellExecute=true});
+        SendProject();
+        if(!projects.PdfAvailable)throw new InvalidOperationException("This project has no available combined PDF.");
+        Process.Start(new ProcessStartInfo(projects.Current!.PdfPath!){UseShellExecute=true});
     }
     async Task RunAll(bool combined)
     {
@@ -112,20 +118,15 @@ public sealed partial class MainForm
         {
             Send(new{type="status",message="Building reports in workspace order..."});
             var result=await Task.Run(()=>WorkspaceExport.Export(workspace,outputRoot,reportLogo==null?null:LogoPath,combined));
-            lastBatchOutput=result.OutputDirectory;lastCombinedPdf=result.CombinedDiagramsPath;lastCombinedImages=result.CombinedImages.ToList();
+            string message=$"Build complete: {result.SuccessCount} of {result.Items.Count} configurations exported.";
+            string details=string.Join("\n",result.Items.Select((item,index)=>$"{index+1}. {workspace.Items.First(source=>source.Id==item.Id).Name}: "+(item.Success?"Exported":"Blocked: "+item.Error)))
+                +(result.CombinedError.Length>0?"\n\n"+result.CombinedError:combined?$"\n\n{result.PageCount} shared A4 sheet(s); complete switch blocks and one shared VLAN key per sheet.":"")
+                +(result.Warnings.Count>0?"\n\n"+string.Join("\n",result.Warnings):"");
+            bool accepted=projects.RecordBatch(result,combined,WorkspaceNaming.Effective(workspace),message+"\n\n"+details+"\n\nOutput: "+result.OutputDirectory);
             SendSelection();
-            Send(new
-            {
-                type="batchComplete",output=result.OutputDirectory,combinedAvailable=lastCombinedPdf!=null,pageCount=lastCombinedImages.Count,
-                message=$"Batch complete: {result.Items.Count(item=>item.Success)} of {result.Items.Count} configurations exported.",
-                details=string.Join("\n",result.Items.Select((item,index)=>$"{index+1}. {workspace.Items.First(source=>source.Id==item.Id).Name}: "+(item.Success?"Exported":"Blocked: "+item.Error)))+(result.CombinedError.Length>0?"\n\n"+result.CombinedError:combined?$"\n\n{result.PageCount} shared A4 sheet(s); multiple switches per sheet where readable. Successful configurations retain workspace order.":"")+ (result.Warnings.Count>0?"\n\n"+string.Join("\n",result.Warnings):"")
-            });
+            Send(new{type="batchComplete",output=result.OutputDirectory,message,details,success=accepted});
         }
-        finally{busy=false;updater?.Publish();}
+        finally{busy=false;SendProject();updater?.Publish();}
     }
-    void OpenBatch()
-    {
-        if(lastBatchOutput==null||!Directory.Exists(lastBatchOutput))return;
-        Process.Start(new ProcessStartInfo("explorer.exe"){UseShellExecute=true,ArgumentList={lastBatchOutput}});
-    }
+    void OpenBatch()=>OpenProject();
 }

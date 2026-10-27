@@ -50,10 +50,10 @@ public sealed partial class MainForm
     }
     string? SaveUpdateSession()
     {
-        if(workspace.Items.Count==0)return null;
+        if(workspace.Items.Count==0&&projects.Current==null)return null;
         string directory=UpdatePaths.InstallRoot(Environment.ProcessPath!);
         string path=Path.Combine(directory,"session-"+Guid.NewGuid().ToString("N")+".json");
-        AppUpdateController.AtomicJson(path,WorkspaceRestartState.Capture(workspace));
+        AppUpdateController.AtomicJson(path,WorkspaceRestartState.Capture(workspace,projects.Current));
         return path;
     }
     void RestoreUpdateSession()
@@ -63,7 +63,11 @@ public sealed partial class MainForm
         {
             string path=updateLaunch.SessionPath;
             if(new FileInfo(path).Length>WorkspaceRestartState.MaxBytes)throw new InvalidDataException("Saved restart workspace is too large.");
-            workspace=WorkspaceRestartState.Restore(File.ReadAllText(path),Directory.Exists,File.Exists);
+            string json=File.ReadAllText(path);
+            workspace=WorkspaceRestartState.Restore(json,Directory.Exists,File.Exists);
+            projects.Restore(WorkspaceRestartState.RestoreProject(json));
+            if(projects.Current==null&&workspace.Selected is {} selected&&selected.LastOutput!=null)
+                projects.RecordSingle(true,selected.Name,selected.LastOutput,selected.LastChart,selected.Status);
             SendSelection();
             // Keep the handoff until the helper commits healthy startup so rollback can restore it.
             if(updateLaunch.HealthPath.Length==0)File.Delete(path);

@@ -17,6 +17,12 @@ assert [entry["Id"] for entry in layout["Placements"]] == [item["Id"] for item i
 assert any(sum(entry["PageNumber"] == index + 1 for entry in layout["Placements"]) > 1 for index in range(len(diagrams.pages)))
 booklets = PdfReader(batch / "workspace-a4-booklets.pdf")
 for index, page in enumerate(diagrams.pages):
+    text = page.extract_text()
+    assert "WORKSPACE PORT MAPS" not in text
+    assert text.count("VLAN key") == 1
+    assert text.count("10 Data") == 1 and text.count("150 Voice (Voice)") == 1
+    page_entries = [entry for entry in layout["LegendEntries"] if entry["PageNumber"] == index + 1]
+    assert len({entry["Identity"] for entry in page_entries}) == len(page_entries)
     assert page.extract_text() == booklets.pages[index].extract_text()
 offset = len(diagrams.pages)
 for index, item in enumerate(successful):
@@ -24,6 +30,8 @@ for index, item in enumerate(successful):
     inv = json.loads((folder / "inventory.json").read_text())
     name = next((row["Name"] for row in inv["Devices"] if row["Name"]), inv["Hostname"])
     placement = layout["Placements"][index]
+    for vlan_id, color in inv.get("VlanColorOverrides", {}).items():
+        assert any(entry["VlanId"] == int(vlan_id) and entry["Color"] == color for entry in layout["LegendEntries"] if entry["PageNumber"] == placement["PageNumber"])
     assert name in diagrams.pages[placement["PageNumber"] - 1].extract_text(), (index, name)
     individual = PdfReader(folder / "a4-booklet.pdf")
     for local_index, page in enumerate(individual.pages[1:]):

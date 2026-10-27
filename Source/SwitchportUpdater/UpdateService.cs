@@ -111,7 +111,7 @@ public sealed class UpdateService : IDisposable
         {
             if(!AllowedRequest(current,initial,api))throw new UpdateException("The update download was redirected to an unapproved host.");
             using var request=new HttpRequestMessage(HttpMethod.Get,current);
-            request.Headers.UserAgent.Add(new ProductInfoHeaderValue("SwitchportDiagramBuilder-Updater","1.14.0"));
+            request.Headers.UserAgent.Add(new ProductInfoHeaderValue("SwitchportDiagramBuilder-Updater","1.14.1"));
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(api?"application/vnd.github+json":"application/octet-stream"));
             if(api)request.Headers.TryAddWithoutValidation("X-GitHub-Api-Version","2022-11-28");
             var response=await client.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,cancellationToken).ConfigureAwait(false);

@@ -123,7 +123,7 @@ public static class WorkspaceExport
                 string image=Path.Combine(result.OutputDirectory,$"workspace-sheet-{index+1:D3}.png");
                 Png.Save(sheets.Pages[index],image,3508,2480,true);result.CombinedImages.Add(image);
             }
-            File.WriteAllText(Path.Combine(result.OutputDirectory,"workspace-layout.json"),JsonSerializer.Serialize(new{PageCount=sheets.Pages.Count,sheets.GeometryScale,sheets.Placements,sheets.Warnings},new JsonSerializerOptions{WriteIndented=true}));
+            File.WriteAllText(Path.Combine(result.OutputDirectory,"workspace-layout.json"),JsonSerializer.Serialize(new{PageCount=sheets.Pages.Count,sheets.GeometryScale,sheets.Placements,sheets.LegendEntries,sheets.Warnings},new JsonSerializerOptions{WriteIndented=true}));
             result.CombinedDiagramsPath = diagramsPath; result.CombinedBookletPath = bookletPath;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or JsonException or OnePageCapacityException)
