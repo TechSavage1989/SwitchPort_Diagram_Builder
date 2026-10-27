@@ -54,4 +54,4 @@ label{font-size:13px;color:#dbeaf8}input{min-width:0;min-height:42px;width:100%;
 /* Keep generated-project results and the logo controls visible on very short windows. */
 @media(max-height:450px){.has-output .eyebrow{display:none}.has-output .app-brand{row-gap:4px}.has-output .app-brand h1{font-size:23px}.has-output main{gap:5px}.has-output .config-panel{gap:3px}.has-output .build-results #status{max-height:28px;padding:4px 7px}}
 
-.workspace-reset-actions{display:flex;gap:4px;margin-left:auto}.workspace-reset-actions button{padding:4px 7px;font-size:11px}.workspace-heading{flex-wrap:wrap}
+.workspace-reset-actions{display:flex;gap:4px;margin-left:auto}.workspace-reset-actions button{min-height:24px;padding:3px 6px;font-size:10px}.workspace-heading{flex-wrap:wrap}

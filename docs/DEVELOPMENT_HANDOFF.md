@@ -31,7 +31,9 @@ assertions, actual PDF/PNG checks and 34 packaging/root/branding tests. The supp
 configuration passed 320 atomic-layout checks including the optional title.
 Local compilation uses the standard Roslyn compiler with existing public runtime
 references because SDK/NuGet bootstrap is unavailable; hosted normal builds remain
-required. Focused local workspace/geometry/PDF checks and all enforced review CI
+required. Review caught a 6 px overflow only at 600×430 with generated output
+and a logo; compact 24 px reset/undo controls preserve the established layout
+without relaxing the viewport assertion. Focused local workspace/geometry/PDF checks and all enforced review CI
 are publication gates. No interactive native Windows dialogs were exercised.
 
 # Detail-key continuation correction — 1.14.5
