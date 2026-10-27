@@ -29,7 +29,7 @@ static class WorkspaceChecks
         var first = workspace.AddText(Aruba, "switch.cfg", "/no-longer-present/switch.cfg");
         var duplicate = workspace.AddText(Aruba, "switch.cfg");
         var router = workspace.AddText(RouterOs, "fiber.rsc");
-        var invalid = workspace.AddText("; Aruba Configuration Editor\nhostname BLOCKED-HEAVY\n"+string.Join('\n',Enumerable.Range(1,4094).Select(id=>$"vlan {id}\n name Invalid-{id}\n exit")), "invalid.txt");
+        var invalid = workspace.AddText("; JL256A Configuration Editor\nhostname BLOCKED-HEAVY\ninterface 999\n name Invalid-port\n exit\n"+string.Join('\n',Enumerable.Range(1,4094).Select(id=>$"vlan {id}\n name Invalid-{id}\n exit")), "invalid.txt");
         Check(workspace.Items.Count == 4 && first.Id != duplicate.Id, "Duplicate imports must be additive with distinct stable identities.");
         Check(!ReferenceEquals(first.Inventory, duplicate.Inventory), "Each item owns a distinct parsed inventory.");
         Check(first.Inventory.Blockers.Count == 0 && router.Inventory.Blockers.Count == 0 && invalid.Inventory.Blockers.Count > 0, "Mixed vendor inputs and invalid input retain independent validation.");

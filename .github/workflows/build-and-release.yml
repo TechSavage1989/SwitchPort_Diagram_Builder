@@ -74,6 +74,7 @@ jobs:
           dotnet run --project Source/tests/WorkspaceChecks/WorkspaceChecks.csproj --configuration Release -- build/workspace-fixtures
           python3 Source/tests/WorkspaceChecks/verify-pdfs.py build/workspace-fixtures
       - name: Check shared workspace palettes and multi-switch A4 geometry
+        if: success() || failure()
         run: |
           dotnet run --project Source/tests/WorkspacePaletteChecks/WorkspacePaletteChecks.csproj --configuration Release
           dotnet run --project Source/tests/WorkspaceSheetChecks/WorkspaceSheetChecks.csproj --configuration Release -- build/shared-sheet-fixtures
@@ -101,6 +102,7 @@ jobs:
         run: python3 Source/tests/verify-device-reports.py --generator Source/SwitchportGenerator/bin/Release/net8.0/SwitchportGenerator.dll --dotnet dotnet --report build/device-report-checks.txt
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: success() || failure()
         with:
           name: shared-sheet-preview
           path: |
