@@ -1,3 +1,20 @@
+# Cisco and 6200M validation update: 1.15.0
+
+Current source adds CiscoHardware/CiscoParser and the R8Q71A/R8V12A profiles.
+Read [Cisco support](CISCO_SUPPORT.md) for allowed-list semantics, full native
+C9500 signature matching, 3650 alias handling and the explicit pending 3560-E
+converter inventory. Do not infer X2/TwinGig sockets from unused interface stubs.
+The private show-inventory evidence confirms C9500-48Y4C; its installed optics
+do not change cage geometry. No private evidence is committed or uploaded.
+
+Local standard Roslyn compilation against a public .NET 8 runtime supports
+focused generator checks without retrying SDK/NuGet bootstrap. Complete existing
+CI plus new Cisco actual-PDF/CSV tests remain publication gates. Test actual
+private inputs only locally; never include their reports in CI artifacts.
+The six confirmed inputs comprise the two 6100s, one 6200M, one two-member
+3650 stack and two 9500s. The five 3560-E inputs remain deliberately blocked
+pending installed uplink modules. No interactive Windows dialogs are claimed.
+
 # Reversible workspace edits / complete fresh-page blocks — 1.14.6
 
 Removal is immediate with an in-memory undo stack. Exact item instances retain

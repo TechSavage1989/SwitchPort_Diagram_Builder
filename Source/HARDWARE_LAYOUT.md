@@ -321,3 +321,12 @@ Version 1.11.0 supersedes fixed 3 pt marker geometry with a 4.2 pt minimum,
 spaced packing and taller dense faces. Uniform diagram-body enlargement uses
 available A4 space. Hardware slot/bank ordering remains unchanged. The four
 MikroTik profiles and source references are documented in MIKROTIK_SUPPORT.md.
+
+6200M Smart Rate profiles (1.15.0)
+---------------------------------
+R8Q71A and its R8V12A TAA variant use the guide Figure 8/Table 10 layout.
+Ports 1-36 are 1G copper; 37-48 are Smart Rate 1G/2.5G/5G copper; all
+remain RJ-45. Ports 49/50 form the first right-hand SFP+ column, 51/52
+the second, with odd ports above even ports. The catalogue now enables
+151 entries. Cisco profiles are maintained separately in CiscoHardware.cs;
+see ../docs/CISCO_SUPPORT.md for references and converter uncertainty.

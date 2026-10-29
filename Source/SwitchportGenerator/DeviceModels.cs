@@ -3,7 +3,7 @@ namespace SwitchportGenerator;
 
 public static class DeviceModels
 {
-    public static IEnumerable<(string Sku,string Name,string Kind)> Choices=>Parser.SupportedModelCodes.Select(s=>(Sku:s,Name:HardwareCatalog.Find(s)?.Name??s,Kind:"Switch"))
+    public static IEnumerable<(string Sku,string Name,string Kind)> Choices=>Parser.SupportedModelCodes.Select(s=>(Sku:s,Name:HardwareCatalog.Find(s)?.Name??CiscoHardware.Find(s)?.Name??s,Kind:"Switch"))
         .Where(m=>!HardwareCatalog.IsModule(m.Sku))
         .Concat(MikroTikParser.Models.Select(m=>(Sku:m.Code,Name:m.Code,Kind:"Switch")))
         .Concat(HardwareProfiles.ChassisModels.Select(p=>(Sku:p.Key,Name:p.Value.Name,Kind:"Chassis"))).OrderBy(m=>m.Sku,StringComparer.OrdinalIgnoreCase);
@@ -13,7 +13,7 @@ public static class DeviceModels
         if(value.Length>100||value.Any(char.IsControl))throw new InvalidOperationException("Model must be 100 characters or fewer on one line.");
         return Parser.Safe(value);
     }
-    public static bool IsSku(string value)=>Regex.IsMatch(value,@"^(?:J(?:[A-Z]\d{3}|\d{4})|[RS]\d[A-Z]\d{2})[A-Z]$",RegexOptions.IgnoreCase);
+    public static bool IsSku(string value)=>CiscoHardware.IsModel(value)||Regex.IsMatch(value,@"^(?:J(?:[A-Z]\d{3}|\d{4})|[RS]\d[A-Z]\d{2})[A-Z]$",RegexOptions.IgnoreCase);
     public static List<DeviceIdentity> Describe(string source,Inventory inv)
     {
         var devices=DeviceIdentities.Describe(inv);
@@ -46,7 +46,7 @@ public static class DeviceModels
             if(device.Kind=="Module"&&model.Length>0)throw new InvalidOperationException("Model selection is available for switches, members and chassis. Module models come from the configuration.");
             if(inv.OS=="RouterOS"&&MikroTikParser.Models.Any(m=>m.Code.Equals(model,StringComparison.OrdinalIgnoreCase))){selections.Add(device.Id,model);continue;}
             if(!IsSku(model))continue;
-            string sku=model.ToUpperInvariant();
+            string sku=CiscoHardware.IsModel(model)?CiscoHardware.CanonicalModel(model):model.ToUpperInvariant();
             if(device.Kind=="Chassis")
             {
                 if(!HardwareProfiles.ChassisModels.TryGetValue(sku,out var profile))throw new InvalidOperationException("Choose a supported chassis SKU for "+device.Label+", or type a model name for its report label.");
@@ -61,6 +61,7 @@ public static class DeviceModels
                 if(group!=null&&!inv.OS.StartsWith("Instant On",StringComparison.Ordinal)&&group.Product!=Parser.SharedPl48Profile&&!group.Product.Equals(sku,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Selected model conflicts with configured hardware for "+device.Label+". Type a model name to change only its report label.");
                 var catalogue=HardwareCatalog.Find(sku);
                 if(catalogue!=null&&inv.OS!="Unknown"&&catalogue.OS!=inv.OS)throw new InvalidOperationException("Selected model uses a different operating system for "+device.Label+".");
+                if(CiscoHardware.Find(sku)!=null&&!inv.OS.StartsWith("Cisco IOS",StringComparison.Ordinal))throw new InvalidOperationException("Selected Cisco model uses a different operating system for "+device.Label+".");
                 selections.Add(device.Id,sku);
             }
         }

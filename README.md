@@ -32,12 +32,12 @@ Get **`SwitchportDiagramBuilder.exe`** or the versioned **Windows x64 ZIP** from
 | --- | --- |
 | Operating system | Windows 10 or 11, 64-bit x64 |
 | Runtime | Microsoft Edge WebView2 Runtime; no separate .NET installation for published builds |
-| Configuration input | Supported HPE/Aruba configurations and documented MikroTik RouterOS text/binary inputs |
+| Configuration input | Supported HPE/Aruba, Cisco IOS/IOS XE and documented MikroTik RouterOS inputs |
 | Coverage | Model, syntax and export-format support are bounded; check the guides below before relying on a diagram |
 
 > **Validate before sharing:** a researched model is not automatically a supported layout. Typing a model name does not bypass physical-layout validation. Unknown hardware, conflicting identity or layouts beyond readable A4 capacity can block export rather than silently omit information.
 
-See [hardware coverage](Source/SUPPORT_COVERAGE.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
+See [hardware coverage](Source/SUPPORT_COVERAGE.md), [Cisco support and inventory limits](docs/CISCO_SUPPORT.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
 
 ## Getting started
 
@@ -65,7 +65,7 @@ The generated workspace folder defaults to the **saved workspace filename**. Bef
 
 Invalid configurations are reported independently, while valid ones still export. **Build & results** keeps one latest-successful project: **Open chart**, **Open output folder** and **Copy** follow it, whether it was built from one configuration or all configurations. Selection never redirects these actions. Source/order/settings changes mark the result as an earlier build without removing access; failed or cancelled builds preserve it. **Open chart** opens the first available project PNG in the image viewer, never a PDF. **Open PDF** is a separate action. For multiple sheets, **Sheets…** previews the pages; **Open PNG** opens the displayed page. Output directory, report logo and update preferences remain app-wide; device/model details remain independent per configuration.
 
-See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.14.6 release notes](docs/releases/1.14.6.md).
+See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.15.0 release notes](docs/releases/1.15.0.md).
 
 ## How to use
 

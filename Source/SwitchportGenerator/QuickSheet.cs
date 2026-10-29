@@ -111,11 +111,11 @@ public static class QuickSheet
     }
     static string Ports(IEnumerable<Port> ports)
     {
-        if(ports.Any(p=>p.DisplayNumber.Length>0))return string.Join(", ",ports.Select(p=>p.Id));
+        if(ports.Any(p=>p.DisplayNumber.Length>0)&&!ports.All(p=>Regex.IsMatch(p.Id,@"^(?:GigabitEthernet|TenGigabitEthernet|TwentyFiveGigE|HundredGigE)\d+/")))return string.Join(", ",ports.Select(p=>p.Id));
         var result=new List<string>();
         foreach(var g in ports.GroupBy(p=>Regex.Match(p.Id,@"^(.*?)(\d+)$").Groups[1].Value))
         {
-            foreach(string range in Ranges(g.Select(p=>p.Number)).Split(',',StringSplitOptions.RemoveEmptyEntries))
+            foreach(string range in Ranges(g.Select(p=>int.Parse(Regex.Match(p.Id,@"(\d+)$").Value))).Split(',',StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] ends=range.Split('-');result.Add(g.Key+ends[0]+(ends.Length==2?"-"+g.Key+ends[1]:""));
             }
@@ -410,6 +410,9 @@ public static class QuickSheet
         var purposes=new Section{Title="Port descriptions",Columns=3};
         foreach(var d in inv.Ports.Where(p=>p.Description.Length>0).GroupBy(p=>p.Description))purposes.Entries.Add(Ports(d)+": "+d.Key);
         sections.Add(purposes);
+        var policies=new Section{Title="Trunk VLAN policies | dots show VLANs identified in the backup",Columns=1};
+        foreach(var policy in inv.Ports.Where(p=>p.TaggedVlanPolicy!=null).GroupBy(p=>p.TaggedVlanPolicy))policies.Entries.Add(Ports(policy)+": "+policy.Key);
+        sections.Add(policies);
         return sections;
     }
     static void AppendPagedDetails(Result result,Inventory inv,double bottom)

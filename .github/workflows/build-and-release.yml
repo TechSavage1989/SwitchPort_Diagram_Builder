@@ -87,6 +87,10 @@ jobs:
           python3 Source/tests/create-logo-fixtures.py build/logo-fixtures
           dotnet run --project Source/tests/ReportLogoChecks.csproj --configuration Release -- build/logo-fixtures
           dotnet run --project Source/tests/MikroTikChecks.csproj --configuration Release
+      - name: Check Cisco and 6200M inventory, aliases and complete PDF policies
+        run: |
+          dotnet run --project Source/tests/CiscoChecks/CiscoChecks.csproj --configuration Release -- build/cisco-fixtures
+          python3 Source/tests/CiscoChecks/verify-pdfs.py build/cisco-fixtures
       - name: Check all supported hardware and geometry
         run: dotnet run --project Source/tests/GeometryChecks.csproj --configuration Release
       - name: Check adaptive marker packing
@@ -108,6 +112,7 @@ jobs:
           name: shared-sheet-preview
           path: |
             build/shared-sheet-fixtures
+            build/cisco-fixtures
             build/workspace-fixtures
           if-no-files-found: error
           retention-days: 14

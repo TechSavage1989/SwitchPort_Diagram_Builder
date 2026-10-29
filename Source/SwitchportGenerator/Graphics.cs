@@ -482,7 +482,7 @@ public static class Charts
         {
             var p=inv.Ports[index];
             string native=p.StackLink?"Stack":p.UntaggedVlan?.ToString()??p.UntaggedState;
-            string tagged=p.Notes.Any(n=>n.StartsWith("Tagged VLANs:",StringComparison.Ordinal))?"All":string.Join(", ",p.TaggedVlans);
+            string tagged=ReportText.TaggedVlans(p);
             string[] values={p.Id,p.Description,p.Mode,native,tagged,p.Aggregate,p.VoiceVlan?.ToString()??"",p.Disabled.HasValue?p.Disabled.Value?"Disabled":"Enabled":"Unknown"};
             var lines=values.Select((value,col)=>InventoryLines(value,widths[col]-(col==3?24:8)-7,col==0)).ToList();
             int total=Math.Max(1,lines.Max(cell=>cell.Count)),offset=0;

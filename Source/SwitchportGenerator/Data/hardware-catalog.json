@@ -13016,10 +13016,434 @@
     "Name": "6200M 36G 12SR5 Class6 PoE 4SFP+ Switch",
     "Family": "6200",
     "OS": "AOS-CX",
-    "Status": "research-pending",
+    "Status": "supported",
     "Source": "https://arubanetworking.hpe.com/techdocs/new-central/content/cfg/profiles/intf-prof-mod-port-map.htm",
-    "LayoutSource": "",
-    "Notes": "Product identity researched. Exact socket/media layout is not yet enabled."
+    "LayoutSource": "https://arubanetworking.hpe.com/techdocs/hardware/switches/6200/IGSG/Aruba_6200_IGSG.pdf",
+    "Notes": "Installation guide Figure 8 and Table 10: ports 1-36 are 1G RJ-45; ports 37-48 are 1G/2.5G/5G Smart Rate RJ-45; ports 49-52 are SFP+. All 48 copper ports support Class 6 PoE. Optical cages form a right-hand 2x2 bank. Cage capability does not establish installed media or live speed.",
+    "Copper": 48,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 25,
+        "Column": 12,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 26,
+        "Column": 12,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 27,
+        "Column": 13,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 28,
+        "Column": 13,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 29,
+        "Column": 14,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 30,
+        "Column": 14,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 31,
+        "Column": 15,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 32,
+        "Column": 15,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 33,
+        "Column": 16,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 34,
+        "Column": 16,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 35,
+        "Column": 17,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 36,
+        "Column": 17,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 37,
+        "Column": 18,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 38,
+        "Column": 18,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 39,
+        "Column": 19,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 40,
+        "Column": 19,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 41,
+        "Column": 20,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 42,
+        "Column": 20,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 43,
+        "Column": 21,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 44,
+        "Column": 21,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 45,
+        "Column": 22,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 46,
+        "Column": 22,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 47,
+        "Column": 23,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 48,
+        "Column": 23,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 49,
+        "Column": 24,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 50,
+        "Column": 24,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 51,
+        "Column": 25,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 52,
+        "Column": 25,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
   },
   {
     "Sku": "R8Q72A",
@@ -14388,10 +14812,434 @@
     "Name": "6200M 36G 12SR5 Class6 PoE 4SFP+ TAA Switch",
     "Family": "6200",
     "OS": "AOS-CX",
-    "Status": "research-pending",
+    "Status": "supported",
     "Source": "https://arubanetworking.hpe.com/techdocs/new-central/content/cfg/profiles/intf-prof-mod-port-map.htm",
-    "LayoutSource": "",
-    "Notes": "Product identity researched. Exact socket/media layout is not yet enabled."
+    "LayoutSource": "https://arubanetworking.hpe.com/techdocs/hardware/switches/6200/IGSG/Aruba_6200_IGSG.pdf",
+    "Notes": "Installation guide Figure 8 and Table 10: ports 1-36 are 1G RJ-45; ports 37-48 are 1G/2.5G/5G Smart Rate RJ-45; ports 49-52 are SFP+. All 48 copper ports support Class 6 PoE. Optical cages form a right-hand 2x2 bank. Cage capability does not establish installed media or live speed.",
+    "Copper": 48,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 25,
+        "Column": 12,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 26,
+        "Column": 12,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 27,
+        "Column": 13,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 28,
+        "Column": 13,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 29,
+        "Column": 14,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 30,
+        "Column": 14,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 31,
+        "Column": 15,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 32,
+        "Column": 15,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 33,
+        "Column": 16,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 34,
+        "Column": 16,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 35,
+        "Column": 17,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 36,
+        "Column": 17,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 37,
+        "Column": 18,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 38,
+        "Column": 18,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 39,
+        "Column": 19,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 40,
+        "Column": 19,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 41,
+        "Column": 20,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 42,
+        "Column": 20,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 43,
+        "Column": 21,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 44,
+        "Column": 21,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 45,
+        "Column": 22,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 46,
+        "Column": 22,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 47,
+        "Column": 23,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 48,
+        "Column": 23,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 49,
+        "Column": 24,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 50,
+        "Column": 24,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 51,
+        "Column": 25,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 52,
+        "Column": 25,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
   },
   {
     "Sku": "R8V13A",

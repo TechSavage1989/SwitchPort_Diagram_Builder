@@ -1,3 +1,12 @@
+1.15.0 focused regression additions
+- R8Q71A/R8V12A exact counts, lower-case members, optical order and voice tags.
+- Cisco 3650 StackWise, complete C9500 native signatures, manual chassis PID,
+  inventory/provision conflicts, alternate aliases and management exclusion.
+- LACP/port-channel VLAN inheritance, access/voice/routed/DTP state and native tags.
+- Explicit complete all/except policy in actual CSV/PDF; PDF/PNG inventory checks.
+- Older Cisco inputs retain logical interface diagnostics and block unknown bays.
+- Required existing CI remains enabled; private inputs/reports stay outside Git.
+
 1.14.6 focused regression additions
 Local: 1,997 shared-sheet, 122 workspace/state, 320 original-input atomic-layout
 assertions, actual PDF/PNG verification and 34 packaging/root/branding tests passed.

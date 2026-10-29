@@ -75,7 +75,7 @@ public static class GeneratorEntry
                 string native=p.UntaggedVlan?.ToString()??p.UntaggedState;
                 string vlanName=inv.Vlans.FirstOrDefault(v=>v.Id==p.UntaggedVlan)?.Name??"";
                 string NoteValues(string prefix)=>string.Join(';',p.Notes.Where(n=>n.StartsWith(prefix,StringComparison.Ordinal)).Select(n=>n[prefix.Length..]).Distinct());
-                string tagged=p.Notes.Any(n=>n.StartsWith("Tagged VLANs:",StringComparison.Ordinal))?"All":string.Join(';',p.TaggedVlans);
+                string tagged=ReportText.TaggedVlans(p,";");
                 string connected=p.ConnectedDevice=="Unknown/Confirm before use"?"":p.ConnectedDevice;
                 csv.AppendLine(string.Join(',',new[]{p.Id,p.Description,p.Mode,native,vlanName,tagged,p.VoiceVlan?.ToString()??"",p.Aggregate,connected,p.Media,p.Speed,p.Disabled.HasValue?p.Disabled.Value?"Disabled":"Enabled":"Unknown",NoteValues("Configured ingress PVID: "),NoteValues("Address: "),NoteValues("Aggregation mode: "),deviceId,device?.Name??"",device?.SerialNumber??"",device?.AssetTag??"",device?.Notes??"",moduleId,module?.Name??"",module?.SerialNumber??"",module?.AssetTag??"",module?.Notes??"",device?.Model??"",module?.Model??"",string.Join(';',p.RelatedInterfaces)}.Select(Quote)));
             }

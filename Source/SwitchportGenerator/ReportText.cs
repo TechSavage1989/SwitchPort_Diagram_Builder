@@ -2,6 +2,7 @@ namespace SwitchportGenerator;
 
 public static class ReportText
 {
+    public static string TaggedVlans(Port port,string separator=", ")=>port.TaggedVlanPolicy??(port.Notes.Any(n=>n.StartsWith("Tagged VLANs:",StringComparison.Ordinal))?"All":string.Join(separator,port.TaggedVlans));
     public const string CableMoveDisclaimer="Confirm live link, LLDP/CDP, and MAC address table before moving production cables.";
     public static string ModelName(string product)=>product==Parser.SharedPl48Profile||product.StartsWith("MIKROTIK-SHARED-")?"":product;
     public static bool IsStack(Inventory inv)=>inv.Groups.Select(g=>g.Device).Distinct().Count()>1||inv.Groups.Any(g=>g.Id.StartsWith("Member ",StringComparison.OrdinalIgnoreCase))||inv.Topology.Contains("Stack",StringComparison.OrdinalIgnoreCase)||inv.Topology.Contains("VSF",StringComparison.OrdinalIgnoreCase)||inv.Topology=="IRF";

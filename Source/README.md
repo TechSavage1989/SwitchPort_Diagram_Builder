@@ -1,3 +1,9 @@
+1.15.0: Cisco support and Aruba 6200M inventory
+- R8Q71A/R8V12A verified copper/Smart Rate/SFP+ layouts.
+- Dedicated IOS/IOS XE parser with 3650 StackWise and C9500 Y4C profiles.
+- Full all/except policies in PDF/CSV; no duplicate alternate uplink cages.
+- See ../docs/CISCO_SUPPORT.md for precise inventory and 3560-E module limits.
+
 Switchport Diagram Builder 1.14.6 - Windows 10/11 x64
 
 1.14.6: Reversible workspace reset and complete switch blocks

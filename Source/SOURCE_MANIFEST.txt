@@ -1,4 +1,4 @@
-Source files for 1.14.6
+Source files for 1.15.0
 
 Branding/Palette.txt
 Branding/README.txt
@@ -31,6 +31,8 @@ SwitchportDiagramBuilder/wwwroot/app.css
 SwitchportDiagramBuilder/wwwroot/app.js
 SwitchportDiagramBuilder/wwwroot/index.html
 SwitchportGenerator/AggregatePalette.cs
+SwitchportGenerator/CiscoHardware.cs
+SwitchportGenerator/CiscoParser.cs
 SwitchportGenerator/ComwareParser.cs
 SwitchportGenerator/ConfigInput.cs
 SwitchportGenerator/ConfigurationWorkspace.cs

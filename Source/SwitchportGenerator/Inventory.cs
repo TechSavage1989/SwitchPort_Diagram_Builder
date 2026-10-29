@@ -65,6 +65,8 @@ public sealed class Port
     public string Description { get; set; } = "";
     public string DisplayNumber { get; set; } = "";
     public List<string> RelatedInterfaces { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string? TaggedVlanPolicy { get; set; }
     public string Media { get; set; } = "Unknown";
     public string Mode { get; set; } = "Unknown";
     public int? UntaggedVlan { get; set; }
@@ -110,7 +112,7 @@ public static class Parser
         foreach(var model in HardwareCatalog.Models)
             Models.TryAdd(model.Sku,(model.Copper,model.Optical,model.Side,model.OpticalType,model.SingleRow,model.BlankLeft));
     }
-    public static IEnumerable<string> SupportedModelCodes=>Models.Keys.Where(k=>k!=SharedPl48Profile).Order(StringComparer.OrdinalIgnoreCase);
+    public static IEnumerable<string> SupportedModelCodes=>Models.Keys.Where(k=>k!=SharedPl48Profile).Concat(CiscoHardware.Models.Select(m=>m.Code)).Order(StringComparer.OrdinalIgnoreCase);
     static string JoinPortLists(string source)
     {
         var lines=source.Split('\n').ToList();
@@ -148,6 +150,7 @@ public static class Parser
         }
         if(MikroTikParser.IsConfiguration(source))return MikroTikParser.Parse(source,selectedModels);
         if(ComwareParser.IsConfiguration(source))return ComwareParser.Parse(source,selectedModels);
+        if(CiscoParser.IsConfiguration(source))return CiscoParser.Parse(source,selectedModels);
         string text=JoinPortLists(source.Replace("\r",""));
         bool cx=Regex.IsMatch(text,@"(?i)(ArubaOS-CX|AOS-CX|!Version\s+\w+\.10\.)");
         bool aos=Regex.IsMatch(text,@"(?im)(Configuration Editor|^\s*module\s+\w+\s+type|^\s*untagged\s+|^\s*vlan\s+\d+)");
