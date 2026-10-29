@@ -1,12 +1,12 @@
 HPE / Aruba coverage and research status
 =======================================
 
-Current hardware catalogue: 1.15.0.
+Current hardware catalogue: 1.16.0.
 
 This release does not claim universal support for every HPE/Aruba product or
 backup format. It enables verified socket layouts and supported configuration
 fields. A catalogue identity with an unverified layout remains blocked.
-HARDWARE_CATALOG.csv lists 252 product identifiers, 151 enabled profiles and
+HARDWARE_CATALOG.csv lists 290 product identifiers, 189 enabled profiles and
 101 research-pending entries. The earlier legacy profiles remain available.
 The JSON embedded in the executable is the authoritative enabled catalogue;
 no online service or external catalogue file is required at runtime.
@@ -28,11 +28,25 @@ Enabled catalogue families
 | OfficeConnect 1950 | 5 | Comware text |
 | FlexNetwork 5130 EI | 5 | Comware text |
 | Instant On 1960 JL805A-JL809A | 5 | Instant On local text |
+| Aruba 2920 base switches | 5 | AOS-Switch |
+| 5300xl modules | 9 | AOS-Switch |
+| Original zl modules | 5 | AOS-Switch |
+| v2 zl modules | 11 | AOS-Switch |
+| v3 zl2 modules | 10 | AOS-Switch |
+| 3810M flexible modules | 4 | AOS-Switch |
+| 2920 rear modules | 2 | AOS-Switch |
 
 Existing profiles also cover the documented 3800, all six 3810M base variants
 and supported flex modules, 5304xl/5308xl, 5406/5412 zl/zl2, 8206/8212 chassis,
 validated XL/zl/zl2 line cards and all ten previously validated Instant On 1930
 SKUs. See HARDWARE_LAYOUT.md and README.md for their precise identities.
+
+Selected device details offers 41 compatible HPE/Aruba module PIDs, including
+16 newly enabled layouts. Options depend on the identified or selected parent
+and exact bay. Fourteen additional chassis/bundle aliases establish chassis
+capacity without establishing installed module inventory. Returning a bay to
+automatic restores configuration evidence. See [module support](../docs/MODULE_SUPPORT.md)
+for exact compatibility, numbering, layout sources and software-mode restrictions.
 
 Physical details preserved
 --------------------------

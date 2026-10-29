@@ -16,7 +16,7 @@ public static class ReportText
         string member=IsStack(inv)?"Member "+group.Device:"";
         string label=group.Slot.Length>0?(member.Length>0?member+" | ":"")+(group.Rear?"Rear module ":"Slot ")+group.Slot:member.Length>0?member:group.Id;
         string details=DeviceIdentities.Heading(inv,group.Slot.Length>0?DeviceIdentities.ModuleId(group):group.Device);
-        if(group.ConfiguredInterfaces)label="Uplink interfaces - module unconfirmed";
+        if(group.ConfiguredInterfaces)label=(member.Length>0?member+" | ":"")+(CiscoModuleCatalog.HasUnconfirmedModules(inv)?"Uplink interfaces - module unconfirmed":"Retained uplink alternatives");
         return label+(details.Length>0?" | "+details:"");
     }
     public static string SwitchModel(Inventory inv)=>inv.ReportModel.Length>0?inv.ReportModel:inv.Devices.Any(d=>d.ParentId.Length==0&&d.ModelSelection.Length>0)?string.Join(" / ",inv.Devices.Where(d=>d.ParentId.Length==0).Select(d=>d.Model).Where(s=>s.Length>0).Distinct()):inv.ChassisModel.Length>0?inv.ChassisModel:string.Join(" / ",inv.Groups.Where(g=>g.Slot.Length==0).Select(g=>ModelName(g.Product)).Where(s=>s.Length>0).Distinct());

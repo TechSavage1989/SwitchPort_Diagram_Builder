@@ -144,7 +144,7 @@ public static class GeneratorEntry
             foreach(string line in items)s.AppendLine("  "+line);
         }
         if(inv.Devices.Any(d=>d.HasDetails))Section("Device details",inv.Devices.Where(d=>d.HasDetails).Select(d=>string.Join(" | ",new[]{d.Label,d.Model,d.Name.Length>0?"Name: "+d.Name:"",d.SerialNumber.Length>0?"S/N: "+d.SerialNumber:"",d.AssetTag.Length>0?"Asset: "+d.AssetTag:"",d.Notes.Length>0?d.Notes:""}.Where(s=>s.Length>0))));
-        Section("Inventory",inv.Groups.Select(g=>string.Join("  |  ",new[]{ReportText.GroupLabel(inv,g),ReportText.ModelName(g.Product),g.Expected+(g.ConfiguredInterfaces?" configured interfaces; installed sockets unconfirmed":" physical ports")}.Where(s=>s.Length>0))));
+        Section("Inventory",inv.Groups.Select(g=>string.Join("  |  ",new[]{ReportText.GroupLabel(inv,g),ReportText.ModelName(g.Product),g.Expected+(g.ConfiguredInterfaces?CiscoModuleCatalog.HasUnconfirmedModules(inv)?" configured interfaces; installed sockets unconfirmed":" configured alternatives; not additional installed sockets":" physical ports")}.Where(s=>s.Length>0))));
         if(inv.SVIs.Count>0)Section("Layer 3 interfaces",inv.SVIs.Select(v=>v.Interface+"  |  "+v.Address));
         if(inv.Routes.Count>0)Section("Routes",inv.Routes);
         if(inv.Management.Count>0)Section("Management",inv.Management);

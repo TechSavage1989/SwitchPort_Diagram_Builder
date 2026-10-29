@@ -13,6 +13,7 @@ public sealed class HardwareModel
     public string Source {get;set;}="";
     public string LayoutSource {get;set;}="";
     public string Notes {get;set;}="";
+    public string[] ModuleFamilies {get;set;}=Array.Empty<string>();
     public int Copper {get;set;}
     public int Optical {get;set;}
     public string Side {get;set;}="right";
@@ -24,12 +25,32 @@ public sealed class HardwareModel
 
 public static class HardwareCatalog
 {
-    static readonly HashSet<string> moduleCodes=new(new[]{"J4820A","J4878A","J4907A","J9534A","J9535A","J9536A","J9537A","J9538A","J9548A","J9549A","J9550A","J9986A","J9987A","J9990A","J9993A","J9995A","J9731A","J9732A","J8702A","J8705A","J8706A","JL083A","JL078A","JL079A","JL081A"},StringComparer.OrdinalIgnoreCase);
     static readonly List<HardwareModel> all=Read();
     public static IReadOnlyList<HardwareModel> All=>all;
     public static IEnumerable<HardwareModel> Models=>all.Where(m=>m.Status=="supported");
     public static HardwareModel? Find(string sku)=>Models.FirstOrDefault(m=>m.Sku.Equals(sku,StringComparison.OrdinalIgnoreCase));
-    public static bool IsModule(string sku)=>moduleCodes.Contains(sku);
+    public static IEnumerable<HardwareModel> Modules=>Models.Where(m=>m.ModuleFamilies.Length>0);
+    public static bool IsModule(string sku)=>Find(sku)?.ModuleFamilies.Length>0;
+    public static string ModuleFamily(string parentSku,string chassisModel="")
+    {
+        string code=parentSku.Trim().ToUpperInvariant();
+        if(new[]{"JL071A","JL072A","JL073A","JL074A","JL075A","JL076A"}.Contains(code))return "3810M";
+        if(HardwareProfiles.Is2920(code))return "2920";
+        string name=HardwareProfiles.ChassisModels.TryGetValue(code,out var profile)?profile.Name:chassisModel;
+        name=Regex.Replace(name.ToUpperInvariant(),@"[\s-]","");
+        if(Regex.IsMatch(name,@"^(?:5400R|5406R|5412R)(?:ZL2)?$"))return "5400R";
+        if(Regex.IsMatch(name,@"^(?:5400|5406|5412)(?:ZL)?$"))return "5400zl";
+        if(Regex.IsMatch(name,@"^(?:8200|8206|8212)(?:ZL)?$"))return "8200zl";
+        if(Regex.IsMatch(name,@"^(?:5300|5304|5308)(?:XL)?$"))return "5300xl";
+        return "";
+    }
+    public static bool IsCompatibleModule(string moduleSku,string parentSku,string chassisModel="")
+    {
+        string family=ModuleFamily(parentSku,chassisModel);
+        if(moduleSku.Equals("JL079A",StringComparison.OrdinalIgnoreCase)
+            &&!new[]{"JL072A","JL074A","JL076A"}.Contains(parentSku.Trim(),StringComparer.OrdinalIgnoreCase))return false;
+        return family.Length>0&&Find(moduleSku)?.ModuleFamilies.Contains(family,StringComparer.OrdinalIgnoreCase)==true;
+    }
     public static bool IsSelection(string value)=>value.Contains('=')||Regex.IsMatch(value.Trim(),@"^(?:J(?:[A-Z]\d{3}|\d{4})|[RS]\d[A-Z]\d{2})[A-Z]$",RegexOptions.IgnoreCase);
     static List<HardwareModel> Read()
     {
@@ -55,12 +76,25 @@ public static class HardwareCatalog
             string id=match.Groups[1].Success?match.Groups[1].Value.ToUpperInvariant():"1",sku=match.Groups[2].Value.ToUpperInvariant();
             if(!Parser.SupportedModelCodes.Contains(sku,StringComparer.OrdinalIgnoreCase)){inv.Blockers.Add("Hardware model has no verified port layout: "+sku);return;}
             bool slot=Regex.IsMatch(id,@"^(?:\d+/)?[A-L]$",RegexOptions.IgnoreCase);
-            if(moduleCodes.Contains(sku)!=slot){inv.Blockers.Add(moduleCodes.Contains(sku)?"Select an explicit module slot, for example A="+sku+".":"Selected SKU is a fixed switch, not a module for slot "+id+".");return;}
+            if(IsModule(sku)!=slot){inv.Blockers.Add(IsModule(sku)?"Select an explicit module slot, for example A="+sku+".":"Selected SKU is a fixed switch, not a module for slot "+id+".");return;}
             if(!choices.TryAdd(id,sku)){inv.Blockers.Add("Duplicate selected hardware member/slot: "+id);return;}
         }
         var explicitCodes=ProductCodes(text);
-        if(declared.Count==0&&explicitCodes.Count>0&&(choices.Count!=1||explicitCodes.Count!=1||!explicitCodes.Contains(choices.Values.Single(),StringComparer.OrdinalIgnoreCase)))
-        {inv.Blockers.Add("Selected hardware conflicts with product identity in the configuration.");return;}
+        if(declared.Count==0&&explicitCodes.Count>0)
+        {
+            var bases=choices.Where(c=>!IsModule(c.Value)).ToList();
+            // A known fixed base or chassis header may accompany additional
+            // operator-supplied module bays. Modules never replace that identity.
+            if(explicitCodes.Count!=1||bases.Any(c=>c.Key!="1"||!c.Value.Equals(explicitCodes[0],StringComparison.OrdinalIgnoreCase)))
+            {inv.Blockers.Add("Selected hardware conflicts with product identity in the configuration.");return;}
+            string identity=explicitCodes[0];
+            if(!HardwareProfiles.ChassisModels.ContainsKey(identity))
+            {
+                if(!Parser.SupportedModelCodes.Contains(identity,StringComparer.OrdinalIgnoreCase)||IsModule(identity))
+                {inv.Blockers.Add("Selected hardware conflicts with product identity in the configuration.");return;}
+                declared["1"]=identity;
+            }
+        }
         foreach(var choice in choices)
         {
             if(declared.TryGetValue(choice.Key,out var existing)&&!existing.Equals(choice.Value,StringComparison.OrdinalIgnoreCase))inv.Blockers.Add("Selected hardware conflicts with the configured member/slot: "+choice.Key);

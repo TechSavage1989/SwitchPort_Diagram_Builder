@@ -19,6 +19,7 @@
 - **Read VLAN membership at a glance:** native VLAN fills, tagged-VLAN circles and voice-VLAN diamonds use configuration-aware colors.
 - **Keep the complete inventory:** PDF tables retain full tagged-VLAN lists, with wrapped cells and continuation pages for long rows.
 - **Share one sheet:** place switches from different configurations together on readable A4 sheets in workspace order, with shared VLAN/LAG colors, one combined VLAN legend and exact-sheet previews.
+- **Choose installed modules:** compatible per-slot module selectors supply missing expansion-card inventory for supported switches, stack members and chassis. Automatic detection remains available.
 - **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
@@ -37,14 +38,14 @@ Get **`SwitchportDiagramBuilder.exe`** or the versioned **Windows x64 ZIP** from
 
 > **Validate before sharing:** a researched model is not automatically a supported layout. Typing a model name does not bypass physical-layout validation. Unknown hardware, conflicting identity or layouts beyond readable A4 capacity can block export rather than silently omit information.
 
-See [hardware coverage](Source/SUPPORT_COVERAGE.md), [Cisco support and inventory limits](docs/CISCO_SUPPORT.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
+See [hardware coverage](Source/SUPPORT_COVERAGE.md), [module support and compatibility](docs/MODULE_SUPPORT.md), [Cisco module references](docs/CISCO_MODULE_REFERENCES.md), [Cisco support and inventory limits](docs/CISCO_SUPPORT.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
 
 ## Getting started
 
 1. Open [the latest release](https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest). Download **`SwitchportDiagramBuilder.exe`** or extract the **Windows x64 ZIP**.
 2. Launch the executable from a writable local folder. **Microsoft Edge WebView2 Runtime** must be installed.
 3. Choose one or more saved configurations, drop files into the window, or use **Paste new → Add configuration**. Imports add items; duplicate names stay separate.
-4. Select a configuration in the workspace. Open **Device details**, leave its model empty for automatic detection, or supply an exact supported SKU when hardware identity is missing. Each item retains its own member/module details.
+4. Select a configuration in the workspace. Open **Device details**, leave its model empty for automatic detection, or supply an exact supported SKU when hardware identity is missing. Choose installed modules from the compatible dropdown for each available slot. Leave a slot automatic to use the configuration; unconfirmed hardware stays labeled. Each item retains its own member/module details.
 5. Set shared output-folder/logo preferences and the selected switch's **Device details**, then choose **Build selected** or **Build all**. The unified **Open chart** and **Open output folder** always open the latest successful project, regardless of which configuration is selected.
 
 Reports are saved in a child folder named for the switch hostname or identified model. Repeated exports create numbered folders rather than replacing earlier results.
@@ -65,7 +66,7 @@ The generated workspace folder defaults to the **saved workspace filename**. Bef
 
 Invalid configurations are reported independently, while valid ones still export. **Build & results** keeps one latest-successful project: **Open chart**, **Open output folder** and **Copy** follow it, whether it was built from one configuration or all configurations. Selection never redirects these actions. Source/order/settings changes mark the result as an earlier build without removing access; failed or cancelled builds preserve it. **Open chart** opens the first available project PNG in the image viewer, never a PDF. **Open PDF** is a separate action. For multiple sheets, **Sheets…** previews the pages; **Open PNG** opens the displayed page. Output directory, report logo and update preferences remain app-wide; device/model details remain independent per configuration.
 
-See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.15.1 release notes](docs/releases/1.15.1.md).
+See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.16.0 release notes](docs/releases/1.16.0.md).
 
 ## How to use
 

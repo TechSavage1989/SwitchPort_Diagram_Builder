@@ -35,6 +35,8 @@ jobs:
       - name: Check configuration loading and report controls
         run: node Source/tests/verify-ui.cjs
       - name: Check independent device and module editing
+        env:
+          Switchport_TEST_SCREENSHOT: build/device-details.png
         run: node Source/tests/verify-device-details-ui.cjs
 
       - name: Check ordered multi-configuration workspace
@@ -91,6 +93,10 @@ jobs:
         run: |
           dotnet run --project Source/tests/CiscoChecks/CiscoChecks.csproj --configuration Release -- build/cisco-fixtures
           python3 Source/tests/CiscoChecks/verify-pdfs.py build/cisco-fixtures
+      - name: Check installed module selection, compatibility, persistence and complete reports
+        run: |
+          dotnet run --project Source/tests/ModuleChecks/ModuleChecks.csproj --configuration Release -- build/module-fixtures
+          python3 Source/tests/ModuleChecks/verify-pdfs.py build/module-fixtures
       - name: Check all supported hardware and geometry
         run: dotnet run --project Source/tests/GeometryChecks.csproj --configuration Release
       - name: Check adaptive marker packing
@@ -113,6 +119,7 @@ jobs:
           path: |
             build/shared-sheet-fixtures
             build/cisco-fixtures
+            build/module-fixtures
             build/workspace-fixtures
           if-no-files-found: error
           retention-days: 14

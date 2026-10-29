@@ -15,6 +15,8 @@ public sealed class Inventory
     public bool FlexibleUplinks { get; set; }
     public List<Group> Groups { get; set; } = new();
     public List<DeviceIdentity> Devices { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<InstalledModule>? ModuleInventory { get; set; }
     public List<Port> Ports { get; set; } = new();
     public List<Port> LogicalInterfaces { get; set; } = new();
     public List<Vlan> Vlans { get; set; } = new();

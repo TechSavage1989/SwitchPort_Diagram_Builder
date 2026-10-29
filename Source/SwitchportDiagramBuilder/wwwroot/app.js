@@ -1,7 +1,7 @@
 let workspaceCanUndo=false;
 const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
-let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[];
+let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[],moduleSlotChoices={},moduleRequest=0,modulePending=false,deviceSaveQueued=false;
 let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null;
 let workspaceShowTitle=false,workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
 let project={available:false,chartAvailable:false,folderAvailable:false,combined:false,pageCount:0,pdfAvailable:false,label:'',output:'',stale:false,summary:''},projectKnown=false;
@@ -20,7 +20,7 @@ function controls(){
  el('workspaceList').querySelectorAll('button').forEach(button=>button.disabled=locked()||button.dataset.boundary==='true');
  el('workspaceList').querySelectorAll('li').forEach(row=>row.draggable=!locked());
  el('devices').disabled=locked()||!hasInput;el('saveDevices').disabled=deviceLoading||!deviceDraft;el('cancelDevices').disabled=deviceSaving;
- el('deviceRows').querySelectorAll('input,textarea').forEach(input=>input.disabled=deviceLoading);
+ el('deviceRows').querySelectorAll('input,textarea,select,button').forEach(input=>input.disabled=deviceLoading);
  el('removeLogo').disabled=locked()||!hasLogo;
  el('usePaste').disabled=locked()||!el('pasteText').value.trim();
 }
@@ -120,9 +120,52 @@ el('combinedPreviewDialog').addEventListener('close',()=>{previewRequest++;previ
 
 el('runAll').onclick=()=>{if(locked()||!workspaceItems.length)return;busy=true;controls();post({action:'runAll',combined:el('combinePdf').checked});};
 el('run').onclick=()=>{if(locked()||!hasInput)return;busy=true;controls();post({action:'run'});};
-function closeDevices(){post({action:'updateEditing',enabled:false});deviceRequest++;deviceLoading=false;deviceSaving=false;deviceDraft=null;controls();}
+function closeDevices(){post({action:'updateEditing',enabled:false});deviceRequest++;moduleRequest++;moduleSlotChoices={};modulePending=false;deviceSaveQueued=false;deviceLoading=false;deviceSaving=false;deviceDraft=null;controls();}
+function draftDevices(){return deviceDraft.filter(row=>!row.PreviewOrphan||row.Name||row.SerialNumber||row.AssetTag||row.Notes).map(({Id,Name,SerialNumber,AssetTag,Notes,ModelSelection,ModuleSelections})=>({Id,Name:Name||'',SerialNumber:SerialNumber||'',AssetTag:AssetTag||'',Notes:Notes||'',ModelSelection:ModelSelection||'',ModuleSelections:(ModuleSelections||[]).map(({Slot,Sku})=>({Slot,Sku}))}));}
+function previewDeviceModules(){
+ if(deviceLoading||!deviceDraft||!el('deviceDialog').open)return;
+ moduleRequest++;modulePending=true;post({action:'previewDeviceModules',devices:draftDevices(),requestId:deviceRequest,moduleRequest});
+}
+function refreshDeviceDescriptors(rows){
+ const active=document.activeElement,activeId=active?.id,deviceId=active?.closest('.device-card')?.dataset.deviceId,field=active?.dataset.field,slot=active?.dataset.slot,scroll=el('deviceRows').scrollTop;
+ const start=typeof active?.selectionStart==='number'?active.selectionStart:null,end=typeof active?.selectionEnd==='number'?active.selectionEnd:null;
+ const current=new Map(deviceDraft.map(row=>[row.Id,row]));
+ const merged=rows.map(row=>{const old=current.get(row.Id);if(!old)return row;return {...row,Name:old.Name,SerialNumber:old.SerialNumber,AssetTag:old.AssetTag,Notes:old.Notes,ModelSelection:old.ModelSelection,ModuleSelections:row.ModuleSelections||old.ModuleSelections||[]};});
+ for(const old of deviceDraft){
+  if(!old.ParentId||merged.some(row=>row.Id===old.Id)||!(old.Name||old.SerialNumber||old.AssetTag||old.Notes))continue;
+  const slot=old.Id.slice(old.Id.lastIndexOf('/')+1),available=(moduleSlotChoices[old.ParentId]||[]).some(choice=>choice.Slot===slot);
+  merged.push({...old,PreviewOrphan:!available,Label:'Module '+slot+(available?' (hardware unconfirmed)':' (review details)'),Model:'Installed hardware unconfirmed'});
+ }
+ renderDevices(merged);el('deviceRows').scrollTop=scroll;
+ const card=deviceId?Array.from(el('deviceRows').children).find(card=>card.dataset.deviceId===deviceId):null;
+ const target=card?Array.from(card.querySelectorAll('input,textarea,select')).find(input=>slot?input.dataset.slot===slot:field&&input.dataset.field===field):activeId?document.getElementById(activeId):null;
+ if(target){target.focus({preventScroll:true});if(start!==null&&typeof target.setSelectionRange==='function')target.setSelectionRange(start,end);}
+}
+function renderModuleSlots(){
+ if(!deviceDraft)return;
+ for(const [index,row] of deviceDraft.entries()){
+  const container=el('device-modules-'+index);if(!container)continue;container.replaceChildren();
+  const slots=moduleSlotChoices[row.Id]||[];
+  if(!slots.length){const hint=document.createElement('small');hint.textContent='No selectable modules for the current model.';container.append(hint);continue;}
+  const heading=document.createElement('legend');heading.textContent='Modules';container.append(heading);
+  for(const slot of slots){
+   const wrapper=document.createElement('label');wrapper.textContent=slot.Label||'Module '+slot.Slot;
+   const select=document.createElement('select');select.id='device-'+index+'-module-'+slot.Slot;select.dataset.slot=slot.Slot;
+   const automatic=document.createElement('option');automatic.value='';automatic.textContent=slot.DetectedSku?'Automatic: '+slot.DetectedSku:slot.SelectedSku?'Automatic (use configuration)':'Automatic / unconfirmed';select.append(automatic);
+   for(const choice of slot.Options||[]){const option=document.createElement('option');option.value=choice.Sku;option.textContent=choice.Sku+' - '+choice.Name;option.title=choice.Notes||choice.Name;select.append(option);}
+   const current=(row.ModuleSelections||[]).find(selection=>selection.Slot===slot.Slot)?.Sku||'';
+   if(current&&!Array.from(select.options).some(option=>option.value===current)){const option=document.createElement('option');option.value=current;option.textContent=current+' (review compatibility)';select.append(option);}
+   select.value=current;
+   select.title=(slot.Options||[]).find(choice=>choice.Sku===current)?.Notes||select.selectedOptions[0]?.textContent||'';
+   select.onchange=()=>{row.ModuleSelections=(row.ModuleSelections||[]).filter(selection=>selection.Slot!==slot.Slot);if(select.value)row.ModuleSelections.push({Slot:slot.Slot,Sku:select.value});el('deviceError').textContent='';previewDeviceModules();};
+   wrapper.append(select);container.append(wrapper);
+  }
+  const help=document.createElement('small');help.textContent='Choose installed hardware for each slot. Automatic uses the configuration and keeps unconfirmed hardware labeled.';container.append(help);
+ }
+ controls();
+}
 function renderDevices(rows){
- deviceDraft=rows.map(row=>({...row}));el('deviceRows').replaceChildren();
+ deviceDraft=rows.map(row=>({...row,ModuleSelections:(row.ModuleSelections||[]).map(selection=>({...selection}))}));el('deviceRows').replaceChildren();
  const fields=[['Name','Name',80],['SerialNumber','Serial number',80],['AssetTag','Asset tag',80],['Notes','Other details',400]];
  deviceDraft.forEach((row,index)=>{
   const card=document.createElement('div');card.className='device-card'+(row.Kind==='Module'?' device-module':'');card.dataset.deviceId=row.Id;
@@ -137,18 +180,24 @@ function renderDevices(rows){
   card.append(title);
   if(row.ParentId){const parent=document.createElement('div');parent.className='device-parent';parent.textContent='Installed in '+(rows.find(d=>d.Id===row.ParentId)?.Label||row.ParentId);card.append(parent);}
   card.append(model);
+  if(row.PreviewOrphan){
+   const hint=document.createElement('p');hint.className='module-review';hint.textContent='This slot is unavailable for the current model. Restore the model or remove these module details before saving.';
+   const remove=document.createElement('button');remove.type='button';remove.className='secondary compact';remove.textContent='Remove these details';remove.onclick=()=>{deviceDraft=deviceDraft.filter(d=>d.Id!==row.Id);renderDevices(deviceDraft);};card.append(hint,remove);
+  }
   if(row.Kind!=='Module'){
    const wrapper=document.createElement('label');wrapper.className='device-model-input';wrapper.textContent='Model (optional)';
-   const input=document.createElement('input');input.id='device-'+index+'-ModelSelection';input.value=row.ModelSelection||'';input.maxLength=100;input.autocomplete='off';input.spellcheck=false;
+   const input=document.createElement('input');input.id='device-'+index+'-ModelSelection';input.dataset.field='ModelSelection';input.value=row.ModelSelection||'';input.maxLength=100;input.autocomplete='off';input.spellcheck=false;
    input.placeholder=row.DetectedModel||row.Model?'Auto detect: '+(row.DetectedModel||row.Model):'Choose a supported SKU or type a model name';
    const list=document.createElement('datalist');list.id='device-model-options-'+index;input.setAttribute('list',list.id);
    for(const choice of modelChoices.filter(choice=>!choice.kind||choice.kind===row.Kind)){
     const option=document.createElement('option');option.value=choice.sku;option.label=choice.name;list.append(option);
    }
-   input.oninput=()=>{deviceDraft[index].ModelSelection=input.value;el('deviceError').textContent='';};wrapper.append(input,list);card.append(wrapper);
+   input.oninput=()=>{deviceDraft[index].ModelSelection=input.value;el('deviceError').textContent='';};
+   input.onchange=previewDeviceModules;wrapper.append(input,list);card.append(wrapper);
+   const modules=document.createElement('fieldset');modules.id='device-modules-'+index;modules.className='device-modules';card.append(modules);
   }
   card.append(values);el('deviceRows').append(card);
- });controls();
+ });renderModuleSlots();controls();
 }
 el('devices').onclick=()=>{
  if(locked()||!hasInput)return;deviceLoading=true;deviceDraft=null;deviceRequest++;controls();
@@ -158,10 +207,15 @@ el('devices').onclick=()=>{
 el('cancelDevices').onclick=()=>el('deviceDialog').close();
 el('deviceDialog').addEventListener('close',closeDevices);
 el('deviceDialog').addEventListener('cancel',event=>{if(deviceSaving)event.preventDefault();});
-el('saveDevices').onclick=()=>{
+function saveDeviceDraft(){
  if(deviceLoading||!deviceDraft)return;deviceLoading=true;deviceSaving=true;controls();
- const devices=deviceDraft.map(({Id,Name,SerialNumber,AssetTag,Notes,ModelSelection})=>({Id,Name:Name||'',SerialNumber:SerialNumber||'',AssetTag:AssetTag||'',Notes:Notes||'',ModelSelection:ModelSelection||''}));
+ moduleRequest++;const devices=draftDevices();
  post({action:'saveDevices',devices,requestId:deviceRequest});
+}
+el('saveDevices').onclick=()=>{
+ if(deviceLoading||!deviceDraft)return;
+ if(modulePending){deviceSaveQueued=true;deviceLoading=true;controls();return;}
+ saveDeviceDraft();
 };
 
 function renderWorkspace(message){
@@ -285,9 +339,16 @@ window.chrome.webview.addEventListener('message',event=>{
   }
   controls();return;
  }
+ if(['deviceModuleSlots','deviceModuleError'].includes(m.type)){
+  if(m.requestId!==deviceRequest||m.moduleRequest!==moduleRequest||deviceSaving||!deviceDraft||!el('deviceDialog').open)return;
+  modulePending=false;
+  if(m.type==='deviceModuleError'){el('deviceError').textContent=m.message;deviceSaveQueued=false;deviceLoading=false;controls();return;}
+  moduleSlotChoices=m.moduleSlots||{};if(m.devices)refreshDeviceDescriptors(m.devices);else renderModuleSlots();
+  if(deviceSaveQueued){deviceSaveQueued=false;deviceLoading=false;saveDeviceDraft();}return;
+ }
  if(['devices','devicesSaved','deviceError'].includes(m.type)){
   if(m.requestId!==deviceRequest)return;deviceLoading=false;deviceSaving=false;
-  if(m.type==='devices'){el('deviceError').textContent='';renderDevices(m.devices);el('deviceRows').querySelector('input')?.focus();}
+  if(m.type==='devices'){el('deviceError').textContent='';moduleSlotChoices=m.moduleSlots||{};renderDevices(m.devices);el('deviceRows').querySelector('input')?.focus();}
   if(m.type==='deviceError'){el('deviceError').textContent=m.message;if(!deviceDraft)el('deviceRows').textContent='No devices to edit.';controls();}
   if(m.type==='devicesSaved'){el('deviceDialog').close();status('status',m.count?'Device details saved. Build reports to apply them.':'Device details cleared. Build reports to apply.');controls();}
   return;

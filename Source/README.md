@@ -1,3 +1,17 @@
+Switchport Diagram Builder 1.16.0 - Windows 10/11 x64
+
+1.16.0: Compatible installed-module selections
+- Selected device details includes module dropdowns for each supported slot.
+- Switches, stack members and chassis retain independent installed-card choices.
+- Choices are filtered by researched model/family and affect the validated port layout.
+- Automatic detection remains available; unconfirmed sockets stay clearly qualified.
+- Workspace saves, update restoration and device reports retain module selections.
+- Coverage: 41 HPE/Aruba and 29 Cisco module PIDs, with 46 added Cisco base profiles.
+- See ../docs/MODULE_SUPPORT.md and ../docs/CISCO_MODULE_REFERENCES.md for exact compatibility.
+
+Historical release notes
+========================
+
 Switchport Diagram Builder 1.15.1 - Windows 10/11 x64
 
 1.15.1: Qualified Catalyst 3560-E configuration views
@@ -7,9 +21,6 @@ Switchport Diagram Builder 1.15.1 - Windows 10/11 x64
 - Reports, JSON, CSV and validation distinguish physical base ports from software alternatives.
 - Module uncertainty remains visible; conflicting or insufficient identity still blocks.
 - See ../docs/CISCO_SUPPORT.md for the exact qualified-view scope.
-
-Historical release notes
-========================
 
 1.15.0: Cisco support and Aruba 6200M inventory
 - R8Q71A/R8V12A verified copper/Smart Rate/SFP+ layouts.

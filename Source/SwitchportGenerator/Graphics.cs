@@ -456,7 +456,7 @@ public static class Charts
         void FinishPage()
         {
             if(page==null)return;
-            page.Text(30,55,inv.OS+"  |  "+inv.Firmware+"  |  "+(InventoryBasis.HasConfiguredInterfaces(inv)?InventoryBasis.CountLabel(inv)+" | Module unconfirmed":"Ports "+(firstPort+1)+"-"+(lastPort+1)+" of "+inv.Ports.Count)+(pageContinued?"  |  Continued":""),12,"#c6d7e6");
+            page.Text(30,55,inv.OS+"  |  "+inv.Firmware+"  |  "+(InventoryBasis.HasConfiguredInterfaces(inv)||CiscoModuleCatalog.HasUnconfirmedModules(inv)?InventoryBasis.CountLabel(inv)+" | "+(CiscoModuleCatalog.HasUnconfirmedModules(inv)?"Module unconfirmed":"Configured alternatives"):"Ports "+(firstPort+1)+"-"+(lastPort+1)+" of "+inv.Ports.Count)+(pageContinued?"  |  Continued":""),12,"#c6d7e6");
             page.Rect(30,737,1140,1,"#d9e3ec","#d9e3ec");
             string identities=string.Join("; ",pagePorts.Select(index=>inv.Groups.FirstOrDefault(g=>g.Id==inv.Ports[index].Group)).Where(g=>g!=null).Cast<Group>()
                 .SelectMany(g=>new[]{g.Device,DeviceIdentities.ModuleId(g)}).Where(id=>id.Length>0).Distinct().Select(id=>

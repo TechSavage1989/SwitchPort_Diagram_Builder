@@ -1,3 +1,21 @@
+1.16.0 focused regression scope
+Final integrated local verification: 1,858 ModuleChecks assertions, 358 existing
+CiscoChecks assertions, all 34 packaging/root/branding tests and JS syntax passed.
+The sweep covers 41 HPE module PIDs, 46 added Cisco base profiles and 29 Cisco
+module PIDs. Actual PDF/PNG/CSV verification passed four selected-module exports,
+including complete 40-ID tagged lists and physical/configured count separation.
+Save/open, update/rollback, Undo, legacy defaults and preview normalization passed.
+Complete hosted browser/Linux/Windows checks remain required before promotion.
+- Compatible per-slot module selection for independent switches, members and chassis.
+- Selected modules change installed socket counts/media without merging interface state.
+- Automatic/unknown and inactive software alternatives remain visibly qualified.
+- Invalid SKUs, incompatible cards, slot limits and configured-identity conflicts.
+- Independent names/serials/details plus explicit-save and update/rollback persistence.
+- Browser slot controls, live model preview, literal labels, cancellation and compact layout.
+- Existing complete VLAN, layout, updater, packaging and branding gates remain required.
+- Final validation evidence is recorded in docs/DEVELOPMENT_HANDOFF.md and CI.
+- No interactive Windows UI or real user update/restart is claimed here.
+
 1.15.1 focused regression additions
 Local verification: 132 focused C# assertions and synthetic PDF/PNG/CSV/JSON
 checks passed. All five original backups generated eight deliverables each without

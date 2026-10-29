@@ -9,6 +9,7 @@ public sealed class DeviceIdentity
     public string Model {get;set;}="";
     public string DetectedModel {get;set;}="";
     public string ModelSelection {get;set;}="";
+    public List<DeviceModuleSelection> ModuleSelections {get;set;}=new();
     public string Kind {get;set;}="";
     public string ParentId {get;set;}="";
     public string GroupId {get;set;}="";
@@ -16,7 +17,7 @@ public sealed class DeviceIdentity
     public string SerialNumber {get;set;}="";
     public string AssetTag {get;set;}="";
     public string Notes {get;set;}="";
-    [JsonIgnore] public bool HasDetails=>Name.Length+SerialNumber.Length+AssetTag.Length+Notes.Length+ModelSelection.Length>0;
+    [JsonIgnore] public bool HasDetails=>Name.Length+SerialNumber.Length+AssetTag.Length+Notes.Length+ModelSelection.Length>0||ModuleSelections.Count>0;
 }
 
 public static class DeviceIdentities
@@ -66,6 +67,7 @@ public static class DeviceIdentities
             device.Name=Clean(row.Name,80,"Device name");device.SerialNumber=Clean(row.SerialNumber,80,"Serial number");
             device.AssetTag=Clean(row.AssetTag,80,"Asset tag");device.Notes=Clean(row.Notes,400,"Other details");
             device.ModelSelection=DeviceModels.Clean(row.ModelSelection);
+            device.ModuleSelections=DeviceModules.Copy(row.ModuleSelections);
             if(device.ModelSelection.Length>0)device.Model=device.ModelSelection;
         }
         inv.Devices=devices;
@@ -93,7 +95,7 @@ public static class DeviceIdentities
         }
         foreach(var device in inv.Devices.Where(d=>d.HasDetails))
         {
-            var fields=new[]{("Model",device.ModelSelection),("Name",device.Name),("Serial number",device.SerialNumber),("Asset tag",device.AssetTag),("Other details",device.Notes)}
+            var fields=new[]{("Model",device.ModelSelection),("Modules",string.Join("; ",device.ModuleSelections.Select(s=>s.Slot+" = "+s.Sku))),("Name",device.Name),("Serial number",device.SerialNumber),("Asset tag",device.AssetTag),("Other details",device.Notes)}
                 .Where(f=>f.Item2.Length>0).Select(f=>(Name:f.Item1,Lines:Wrap(f.Item2,965))).ToList();
             double height=46+fields.Sum(f=>Math.Max(1,f.Lines.Count)*17+5);
             if(page==null||y+height>726)

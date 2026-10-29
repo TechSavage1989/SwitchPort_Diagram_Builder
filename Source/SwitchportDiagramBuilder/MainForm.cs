@@ -119,7 +119,7 @@ public sealed partial class MainForm : Form
             else if (message?.action == "chooseOutput" && !busy) ChooseOutput();
             else if (message?.action == "chooseLogo" && !busy) ChooseLogo();
             else if (message?.action == "removeLogo" && !busy) RemoveLogo();
-            else if (message?.action is "inspectDevices" or "saveDevices" && !busy) DeviceAction(message);
+            else if (message?.action is "inspectDevices" or "previewDeviceModules" or "saveDevices" && !busy) DeviceAction(message);
             else if (message?.action == "ready")
             {
                 Send(new {type="outputSelected",path=outputRoot});
@@ -169,7 +169,7 @@ public sealed partial class MainForm : Form
         try
         {
             string source=SelectedSource();
-            var inv=DeviceModels.Parse(source,message.action=="saveDevices"?(message.devices??Array.Empty<DeviceIdentity>()):deviceDetails);
+            var inv=message.action=="previewDeviceModules"?DeviceModels.Preview(source,message.devices??Array.Empty<DeviceIdentity>()):DeviceModels.Parse(source,message.action=="saveDevices"?(message.devices??Array.Empty<DeviceIdentity>()):deviceDetails);
             if(message.action=="saveDevices")
             {
                 workspace.SetDevices(workspace.SelectedId!,inv.Devices.Where(d=>d.HasDetails));
@@ -178,9 +178,13 @@ public sealed partial class MainForm : Form
                 SendWorkspace();
                 Send(new {type="devicesSaved",count=deviceDetails.Count,requestId=message.requestId});
             }
-            else Send(new {type="devices",devices=inv.Devices,requestId=message.requestId});
+            else
+            {
+                var slots=inv.Devices.Where(d=>d.Kind!="Module").ToDictionary(d=>d.Id,d=>DeviceModules.Slots(inv,d));
+                Send(new {type=message.action=="previewDeviceModules"?"deviceModuleSlots":"devices",devices=inv.Devices,moduleSlots=slots,requestId=message.requestId,moduleRequest=message.moduleRequest});
+            }
         }
-        catch(Exception ex){Send(new {type="deviceError",message=ex.Message,requestId=message.requestId});}
+        catch(Exception ex){Send(new {type=message.action=="previewDeviceModules"?"deviceModuleError":"deviceError",message=ex.Message,requestId=message.requestId,moduleRequest=message.moduleRequest});}
     }
     void ChooseOutput()
     {
@@ -313,5 +317,5 @@ public sealed partial class MainForm : Form
         if (!IsDisposed && web.CoreWebView2 != null) web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(value));
     }
     sealed record IncomingFile(string? name,string? text,string? encoding,string? error);
-    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null);
+    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null,int? moduleRequest=null);
 }

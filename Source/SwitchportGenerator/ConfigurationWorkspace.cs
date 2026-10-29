@@ -213,7 +213,7 @@ public sealed class ConfigurationWorkspace
     }
     static List<DeviceIdentity> CloneDevices(IEnumerable<DeviceIdentity> devices) => devices.Select(device => device == null
         ? throw new InvalidOperationException("Device details contain an empty row.")
-        : new DeviceIdentity { Id = device.Id ?? "", Name = device.Name ?? "", SerialNumber = device.SerialNumber ?? "", AssetTag = device.AssetTag ?? "", Notes = device.Notes ?? "", ModelSelection = device.ModelSelection ?? "" }).ToList();
+        : new DeviceIdentity { Id = device.Id ?? "", Name = device.Name ?? "", SerialNumber = device.SerialNumber ?? "", AssetTag = device.AssetTag ?? "", Notes = device.Notes ?? "", ModelSelection = device.ModelSelection ?? "", ModuleSelections=DeviceModules.Copy(device.ModuleSelections) }).ToList();
 
     sealed class WorkspaceDocument
     {

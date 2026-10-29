@@ -4,7 +4,10 @@ Version 1.15.0 adds a dedicated Cisco parser. It keeps Cisco interface names,
 physical member boundaries, native VLANs, voice VLANs and port-channel membership.
 It does not send the backup to an online service. Version 1.15.1 adds a qualified
 3560-E configuration view when the base layout is established but the installed
-uplink converters are unconfirmed.
+uplink converters are unconfirmed. Version 1.16.0 adds per-slot installed-module
+choices and 46 base profiles across Catalyst 3560-X/3750-X, 3850, 9200 and 9300.
+See [the Cisco module catalogue](CISCO_MODULE_REFERENCES.md) for 29 selectable
+module PIDs, exact base/slot compatibility and manufacturer sources.
 
 ## Verified layouts
 
@@ -13,12 +16,21 @@ uplink converters are unconfirmed.
 | WS-C3650-48PD | 48 RJ-45, two SFP and two SFP+ per member | Explicit switch provisioning, chassis PID or per-device model selection |
 | C9500-24Y4C | 24 SFP28 and four QSFP28 | Explicit chassis PID/model selection, or an exact complete native interface signature |
 | C9500-48Y4C | 48 SFP28 and four QSFP28 | Explicit chassis PID/model selection, or an exact complete native interface signature |
+| Documented WS-C3560X / WS-C3750X variants | 24/48 RJ-45 or supported 12/24 SFP bases; optional network module | Exact supported base SKU plus detected or selected network module |
+| Documented WS-C3850 variants | Supported 24/48 RJ-45, 12/24 SFP or 12/24 SFP+ bases; optional network module | Exact supported base SKU plus compatible detected or selected network module |
+| Documented C9200 / C9300 modular variants | Supported 24/48 base ports; optional network module | Exact supported non-multigigabit base SKU plus compatible detected or selected network module |
 
 License suffixes do not change these socket layouts. A hostname, boot filename,
 partial interface list or last configured interface cannot identify hardware.
 Conflicts with explicit provisioning/PIDs block generation. Management interfaces,
 SVIs, loopbacks and logical port channels do not become physical front-panel ports.
 Rear StackWise connections and live adjacency are not invented from provisioning.
+For the modular families, an unknown uplink module leaves configured alternatives
+explicitly qualified instead of claiming installed sockets. A module selection
+establishes its actual count/media while retaining independent unused software
+interface settings. A named BLANK insert establishes no uplink sockets; Automatic
+returns to the configuration evidence. Fixed-uplink 3650/9500 models do not gain
+interchangeable network-module slots.
 
 The 3650 has four horizontally arranged uplink cages. G3/TE3 and G4/TE4 are
 alternative software names for the same cages. Empty alternative stubs are allowed;
@@ -42,9 +54,11 @@ respected. A configured access VLAN without static access mode is marked dynamic
 and its DTP operational mode remains unconfirmed. Completely unconfigured ports
 remain unknown; explicit trunk/access mode uses the documented VLAN 1 default.
 
-Unsupported ranges, breakout, subinterfaces, private VLAN modes, ISL encapsulation
+Unsupported ranges, colon/slash breakout syntax, subinterfaces, private VLAN modes, ISL encapsulation
 and unrecognized VLAN-changing commands fail explicitly. These are coverage limits,
-not invitations to infer a compatible layout.
+not invitations to infer a compatible layout. Supported native QSFP modules may
+retain separately configured TenGigabitEthernet software alternatives; those
+entries do not establish breakout sockets or live breakout mode.
 
 ## Appended hardware inventory
 
@@ -74,7 +88,8 @@ software interface independently:
 | Upper X2 bay 1 | GigabitEthernet0/49 and GigabitEthernet0/50, or TenGigabitEthernet0/1 |
 | Lower X2 bay 2 | GigabitEthernet0/51 and GigabitEthernet0/52, or TenGigabitEthernet0/2 |
 
-A bay can hold an X2 transceiver or a TwinGig converter with two SFP sockets.
+A bay can hold an X2 transceiver, a TwinGig converter with two SFP sockets, or
+a OneX converter with one SFP+ socket.
 The six configured interfaces therefore do not mean six installed uplink
 sockets. Old settings may coexist for both modes. Each interface keeps its own
 native/tagged/voice VLANs, LAG membership, description and administrative state;
@@ -84,8 +99,10 @@ The uplink section states that installed modules are unconfirmed. Diagram,
 PDF inventory, CSV, JSON, summary and validation counts distinguish 48 confirmed
 base ports from six configured uplink alternatives. This is a configuration view,
 not a claim that a complete physical uplink inventory has been established.
-Provide show inventory or equivalent bay/PID evidence before treating its
-alternative entries as installed sockets.
+Supply show inventory or choose the installed hardware independently for the
+upper/lower X2 bays in Selected device details. The selected bay becomes a
+physical module group with its actual sockets; other saved alternatives retain
+their own settings and remain clearly identified as configured entries.
 
 Automatic family inference still requires the complete signature. Contradictory
 explicit product identity and unsupported configuration syntax continue to block

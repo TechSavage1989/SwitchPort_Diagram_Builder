@@ -114,7 +114,8 @@ static class CiscoChecks
             string version=model.Code.StartsWith("WS-C3560E-",StringComparison.Ordinal)?"15.0":"17.3";
             var inv=Parser.Parse("version "+version+"\nhostname MODEL-LAB\ninterface "+(version=="15.0"?"FastEthernet0":"GigabitEthernet0/0")+"\n shutdown\n!\n",model.Code);
             Check(inv.Blockers.Count==0,model.Code+" imports by explicit model.");
-            Check(inv.Ports.Count==model.Sockets.Count,model.Code+" represented interface count.");
+            int expected=CiscoModuleCatalog.IsModular(model.Code)&&!CiscoHardware.Is3560E48(model.Code)?model.Sockets.Count(s=>!s.ConfiguredInterface):model.Sockets.Count;
+            Check(inv.Ports.Count==expected,model.Code+" represented interface count excludes unreported optional modules.");
             var map=Charts.Layout(inv);Check(Charts.Validate(inv,map).Count==0,model.Code+" base geometry.");
             var sheet=QuickSheet.Build(inv,map,"CISCO-CHECK");Check(Charts.ValidateScene(sheet.Scene).Count==0,model.Code+" A4 scene.");
             Check(sheet.Sockets.Count==inv.Ports.Count,model.Code+" each represented entry appears once.");

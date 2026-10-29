@@ -136,7 +136,7 @@ public static class QuickSheet
     static string PanelTitle(Inventory inv,Group g)
     {
         string identity=ReportText.GroupLabel(inv,g);
-        if(g.ConfiguredInterfaces)return identity+" | X2 / TwinGig alternatives";
+        if(g.ConfiguredInterfaces)return identity+(inv.Groups.Any(b=>b.Device==g.Device&&CiscoHardware.Is3560E48(b.Product))?" | X2 / TwinGig alternatives":" | Configured interfaces");
         string prefix=!ReportText.IsStack(inv)&&g.Slot.Length==0&&g.Prefix.Length>0?" | "+g.Prefix+"x":"";
         string media=g.Copper==0?g.Optical+" "+g.OpticalType:g.Optical==0?g.Copper+" RJ-45":g.Copper+" RJ-45 + "+g.Optical+" "+g.OpticalType;
         if(inv.OS=="RouterOS"&&g.OpticalType.Contains("QSFP"))media="1 RJ-45 + 24 SFP+ + 2 QSFP+";
@@ -416,8 +416,9 @@ public static class QuickSheet
         sections.Add(policies);
         if(InventoryBasis.HasConfiguredInterfaces(inv))
         {
-            var basis=new Section{Title="Uplink configuration - installed sockets unconfirmed",Columns=1};
-            basis.Entries.Add("Upper bay: Te1 OR Gi49/Gi50. Lower bay: Te2 OR Gi51/Gi52. All six entries retain their own saved settings; they do not represent six installed sockets.");
+            var basis=new Section{Title=CiscoModuleCatalog.HasUnconfirmedModules(inv)?"Uplink configuration - installed sockets unconfirmed":"Uplink configuration - retained alternatives",Columns=1};
+            if(inv.Groups.Any(g=>CiscoHardware.Is3560E48(g.Product)))basis.Entries.Add("Upper bay: Te1 OR Gi49/Gi50. Lower bay: Te2 OR Gi51/Gi52. Each interface retains its own saved settings; alternatives do not add installed sockets.");
+            else basis.Entries.Add("Installed module inventory determines sockets. Other saved uplink interfaces remain configured alternatives; confirm active interface modes before moving cables.");
             sections.Add(basis);
         }
         return sections;
@@ -662,7 +663,7 @@ public static class QuickSheet
         scene.Text(12,5,InventoryBasis.HasConfiguredInterfaces(inv)?"PORT MAP + CONFIGURED UPLINK ALTERNATIVES":"NETWORK PORT MAP",8.5,"#d5e7f4",true,390);
         scene.Text(12,17,ReportText.DisplayName(inv),14,"#ffffff",true,390);
         if(model.Length>0)scene.Text(420,7,model,9,"#ffffff",true,PageWidth-432);
-        scene.Text(420,model.Length>0?22:14,InventoryBasis.HasConfiguredInterfaces(inv)?InventoryBasis.CountLabel(inv)+" | Module unconfirmed":(inv.Firmware=="Unknown"?"":inv.Firmware+"  |  ")+inv.Ports.Count+" interfaces",8,"#d5e7f4",false,PageWidth-432);
+        scene.Text(420,model.Length>0?22:14,InventoryBasis.HasConfiguredInterfaces(inv)||CiscoModuleCatalog.HasUnconfirmedModules(inv)?InventoryBasis.CountLabel(inv)+" | "+(CiscoModuleCatalog.HasUnconfirmedModules(inv)?"Module unconfirmed":"Configured alternatives"):(inv.Firmware=="Unknown"?"":inv.Firmware+"  |  ")+inv.Ports.Count+" interfaces",8,"#d5e7f4",false,PageWidth-432);
         scene.Text(0,PageHeight-10,ReportText.CableMoveDisclaimer,7,"#52677c",false,PageWidth);
         scene.DiagramBodyWidth=includeVlanKey?keyX+keyWidth:diagramWidth;
         return output;

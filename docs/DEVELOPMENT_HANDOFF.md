@@ -1,3 +1,79 @@
+# Installed module selection: 1.16.0
+
+Selected device details provides compatible per-slot module dropdowns for each
+supported parent switch, stack member or chassis. Read [module support](MODULE_SUPPORT.md)
+and [Cisco module references](CISCO_MODULE_REFERENCES.md) before extending the
+catalogue. Manufacturer sources establish card compatibility, numbering and socket
+geometry; a product-name match alone is not enough.
+
+`DeviceIdentity.ModuleSelections` is an optional list of `{Slot,Sku}` values on
+the parent device, limited to 12 slots per device. Old workspaces need no new field.
+Empty selections use automatic configuration evidence. Choices
+belong to their exact parent and slot, remain independent across stack members,
+and survive explicit workspace saves and protected update restoration. Existing
+module rows retain independent names, serials, asset tags and other details.
+Saved module details remain when reverting to automatic removes a selected card,
+provided its parent/slot still exists; those rows explicitly show hardware as
+unconfirmed. Module selection must affect the parser's hardware inventory, not
+just its label.
+
+`DeviceModules.Slots(inv,device)` exposes slot labels, detected/selected SKUs and
+compatible options with source references. The host includes these in the device
+inspection bridge and previews changed model/module drafts without saving them.
+Preview normalizes newly introduced module detail rows while retaining current
+field values and focus. Save waits for the latest preview; stale replies cannot
+replace a newer draft. Cancel leaves the saved workspace unchanged, and orphaned
+selections remain visible for review instead of being dropped.
+Model changes must refresh compatible module options. The backend validates all
+operator choices again before replacing the selected workspace item's inventory.
+Slot keys are opaque bridge values: HPE letters, Cisco `X2-1`/`X2-2` and `NM`.
+2920 rear slots are A/B; 3810M has A, with B additionally available on JL075A.
+Do not place power supplies, fans or generic pluggable optics into network-card
+slot choices or use them to infer physical port counts.
+
+Unknown Cisco uplink modes retain qualified configured-interface entries rather
+than inventing sockets. Known selected modules do not retain an inaccurate
+unconfirmed-module label; only saved software alternatives stay qualified. When a known module establishes physical interfaces,
+independent settings on unused software alternatives must remain available and
+clearly distinguished. Never merge independent VLAN, voice, LAG, description or
+administrative state just because interfaces share an uplink bay. Complete PDF/
+CSV values and physical/configured counts remain required.
+
+HPE/Aruba coverage includes 41 module PIDs, 16 newly added: J4820B, J4821A,
+J4821B, J4878B, J4852A, J8161A, J8707A, J8708A, J9546A, J9547A, J9637A,
+J9988A, J9989A, J9991A, J9992A and J9996A. Family choice counts overlap because
+some cards support more than one chassis family; use the explicit compatibility
+metadata rather than adding those counts. Fourteen additional chassis/bundle
+aliases establish chassis capacity without claiming installed card inventory.
+Existing detected declarations keep
+their prior parser semantics; compatibility checks constrain new operator choices.
+
+Cisco coverage includes 29 module PIDs, four of which are blank inserts, and
+46 added base profiles: 16 Catalyst 3560-X/3750-X, 11 Catalyst 3850, seven
+Catalyst 9200 and 12 Catalyst 9300. 3560-E adds TwinGig and OneX converter
+choices plus researched X2 transceiver inventory. Existing 3650 and 9500 fixed
+uplinks remain unchanged. PXG multigigabit/9300X profiles and restricted modules
+without verified interface numbering remain outside selectable coverage. Native
+QSFP mode does not establish breakout inventory. See the Cisco reference for
+exact per-model restrictions; never offer every family module indiscriminately.
+
+New module regression coverage supplements all existing parser, report, layout,
+workspace, browser, updater and Windows package checks. Do not relax existing gates.
+Final integrated local verification passed 1,858 ModuleChecks assertions,
+358 existing CiscoChecks assertions, all 34 packaging/root/branding tests and
+JavaScript syntax checks. The module sweep exercised all 41 HPE cards, all 46
+added Cisco base profiles and all 29 Cisco module PIDs, including nine 3560-E
+choices in both bays and 20 other network-module PIDs. Actual PDF/PNG/CSV checks
+passed for mixed TwinGig/X2, 5400R, dense 9300 SFP28 and 3850 blank-module exports.
+Exact 40-ID tagged lists were complete in CSV and actual PDF text. Checks cover
+physical/qualified counts, independent state, known-module headings, generic
+alternative labels, compatible preview normalization, save/open, update/rollback,
+Undo, old workspaces without module fields and invalid inventory boundaries.
+
+The complete hosted browser, Linux and Windows review remains required on the
+exact integrated commit before non-force main promotion. No interactive native
+Windows/WebView2 dialogs or real user update/restart are claimed exercised here.
+
 # Qualified 3560-E configuration views: 1.15.1
 
 This update supersedes the blanket 3560-E block described in the 1.15.0 section

@@ -11,7 +11,7 @@ public static class CiscoHardware
     public const string Model3560E48="WS-C3560E-48PD-SF";
     const string Guide3560E="https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst3750x_3560x/software/release/15-2_1_e/configuration/guide/scg3750x/swint.html";
     static readonly Model shared3560=Build3560E(Shared3560E48Profile,"Catalyst 3560-E 48-port shared layout; uplink module unconfirmed");
-    public static IReadOnlyList<Model> Models {get;}=new[]{Build3650(),Build9500(24),Build9500(48),Build3560E(Model3560E48,"Catalyst 3560E-48PD-SF; uplink module unconfirmed")};
+    public static IReadOnlyList<Model> Models {get;}=new[]{Build3650(),Build9500(24),Build9500(48),Build3560E(Model3560E48,"Catalyst 3560E-48PD-SF; uplink module unconfirmed")}.Concat(CiscoModuleCatalog.BaseModels).ToArray();
     public static string CanonicalModel(string value)=>Regex.Replace(value.Trim().ToUpperInvariant(),@"-(?:L|S|E|A)$","");
     public static Model? Find(string code)=>code.Equals(Shared3560E48Profile,StringComparison.OrdinalIgnoreCase)?shared3560:Models.FirstOrDefault(m=>m.Code==CanonicalModel(code));
     public static bool Is3560E48(string code)=>code.Equals(Shared3560E48Profile,StringComparison.OrdinalIgnoreCase)||CanonicalModel(code)==Model3560E48;

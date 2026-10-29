@@ -3,7 +3,7 @@ namespace SwitchportGenerator;
 
 public static class CiscoParser
 {
-    const string Physical=@"(?:FastEthernet|GigabitEthernet|TenGigabitEthernet|TwentyFiveGigE|FortyGigabitEthernet|HundredGigE)\d+(?:/\d+){0,2}(?::\d+)?(?:\.\d+)?";
+    const string Physical=@"(?:FastEthernet|GigabitEthernet|TenGigabitEthernet|TwentyFiveGigabitEthernet|TwentyFiveGigE|FortyGigabitEthernet|HundredGigE)\d+(?:/\d+){0,2}(?::\d+)?(?:\.\d+)?";
     const string Secret=@"(?i)\b(?:password|passwd|secret|community|private-key|credential|token|cipher|certificate|key-string)\b";
     public static bool IsConfiguration(string source)=>Regex.IsMatch(source,@"(?im)^version (?:12|15|16|17)\.\d+")&&Regex.IsMatch(source,@"(?im)^hostname\s+\S+")&&Regex.IsMatch(source,@"(?im)^(?:interface\s+(?:"+Physical+@"|Port-channel\d+)|switch\s+\d+\s+provision\s+)");
     sealed class Settings
@@ -14,9 +14,24 @@ public static class CiscoParser
         public HashSet<int> Allowed=new();
         public bool AllowedSet,All=true,Routed,Meaningful;
     }
+    public static string EvidenceText(string source)
+    {
+        var lines=new List<string>();string delimiter="";bool certificate=false;
+        foreach(string raw in source.Split('\n'))
+        {
+            string line=raw.Trim();
+            if(certificate){if(line.Equals("quit",StringComparison.OrdinalIgnoreCase))certificate=false;continue;}
+            if(delimiter.Length>0){if(line.Contains(delimiter,StringComparison.Ordinal))delimiter="";continue;}
+            if(Regex.IsMatch(line,@"^crypto pki certificate chain\b",RegexOptions.IgnoreCase)){certificate=true;continue;}
+            var banner=Regex.Match(line,@"^banner\s+\S+\s+(\^.|.)(.*)$",RegexOptions.IgnoreCase);
+            if(banner.Success){delimiter=banner.Groups[2].Value.Contains(banner.Groups[1].Value,StringComparison.Ordinal)?"":banner.Groups[1].Value;continue;}
+            lines.Add(raw);
+        }
+        return string.Join('\n',lines);
+    }
     public static Inventory Parse(string source,string? selectedModels=null)
     {
-        string text=source.Replace("\r","");
+        string text=EvidenceText(source.Replace("\r",""));
         var inv=new Inventory{Vendor="Cisco",OS=Regex.IsMatch(text,@"(?m)^version (?:16|17)\.")?"Cisco IOS XE":"Cisco IOS",Topology="Fixed"};
         inv.Hostname=Parser.Safe(Regex.Match(text,@"(?m)^hostname\s+(.+)$").Groups[1].Value);
         inv.Firmware=Parser.Safe(Regex.Match(text,@"(?m)^version\s+(.+)$").Groups[1].Value);
@@ -29,12 +44,13 @@ public static class CiscoParser
         }
         // Only trusted identity lines can supply a PID. Hostnames, descriptions and
         // boot filenames are not evidence of installed switch or module hardware.
-        var pids=Regex.Matches(text,@"(?im)^\s*(?:[!#;]\s*(?:PID:|model\s+)|license udi pid\s+)([\w-]+)").Select(m=>CiscoHardware.CanonicalModel(m.Groups[1].Value)).Distinct().ToList();
+        var pids=Regex.Matches(text,@"(?im)^\s*(?:[!#;]\s*(?:PID:|model\s+)|license udi pid\s+)([\w-]+)").Select(m=>CiscoHardware.CanonicalModel(m.Groups[1].Value)).Where(sku=>!CiscoModuleCatalog.IsNetworkModulePid(sku)).Distinct().ToList();
         if(declared.Count==0&&pids.Count==1)declared["1"]=pids[0];
         if(pids.Count>1)inv.Blockers.Add("Multiple Cisco product identities need explicit member assignments.");
-        foreach(Match record in Regex.Matches(text,@"(?im)^NAME:\s*""([^""]+)""[^\n]*\nPID:\s*((?:WS-C(?:3650|3560E)-|C9500-)[\w-]+)\s*,"))
+        foreach(Match record in Regex.Matches(text,@"(?im)^[ \t]*NAME:\s*""([^""]+)""[^\n]*\n[ \t]*PID:\s*((?:WS-C(?:3650|3560E|3560X|3750X|3850)-|C9(?:200|300|500)-)[\w-]+)\s*,"))
         {
             string sku=CiscoHardware.CanonicalModel(record.Groups[2].Value);
+            if(CiscoModuleCatalog.IsNetworkModulePid(sku))continue;
             var member=Regex.Match(record.Groups[1].Value,@"^(?:Switch|Slot)\s+(\d+)\b",RegexOptions.IgnoreCase);
             string id=member.Success?member.Groups[1].Value:"1";
             if(declared.TryGetValue(id,out var old)&&old!=sku)inv.Blockers.Add("Show inventory chassis PID conflicts with configured Cisco member "+id+".");
@@ -69,18 +85,18 @@ public static class CiscoParser
         {
             var model=CiscoHardware.Find(entry.Value);
             if(model==null||!int.TryParse(entry.Key,out int member)||member<1||member>9){inv.Blockers.Add("Unsupported Cisco member/model assignment: "+entry.Key+"="+entry.Value);continue;}
-            if(CiscoHardware.Is3560E48(model.Code)&&(declared.Count>1||member!=1))
-            {inv.Blockers.Add("Catalyst 3560-E is standalone; its Gi0/ and Te0/ interfaces cannot be assigned to multiple members. Import each switch separately.");continue;}
+            if(CiscoModuleCatalog.IsStandalone(model.Code)&&(declared.Count>1||member!=1))
+            {inv.Blockers.Add("This Catalyst model is standalone; its interfaces cannot be assigned to multiple members. Import each switch separately.");continue;}
             if(model.Code.StartsWith("C9500-")&&declared.Count>1&&!Regex.IsMatch(text,@"(?im)^stackwise-virtual\b"))inv.Blockers.Add("Multiple C9500 members require explicit StackWise Virtual configuration.");
             foreach(var section in model.Sockets.GroupBy(s=>s.ConfiguredInterface))
             {
-                var sockets=section.ToList();bool configured=section.Key;
-                var group=new Group{Id=configured?"Uplink interfaces - module unconfirmed":declared.Count>1?"Member "+member:"Switch",Device=entry.Key,Product=configured?"":model.Code,ConfiguredInterfaces=configured,Copper=sockets.Count(s=>s.Media=="RJ-45"),Optical=sockets.Count(s=>s.Media!="RJ-45"),OpticalType=configured?"Unspecified":model.Code.StartsWith("C9500-")?"SFP28 / QSFP28":"SFP / SFP+"};
+                bool configured=section.Key;var sockets=section.Where(s=>!configured||CiscoHardware.Is3560E48(model.Code)||CiscoHardware.Names(s,entry.Key).Any(names.Contains)).ToList();if(sockets.Count==0)continue;
+                var group=new Group{Id=configured?(declared.Count>1?"Member "+member+" / ":"")+"Uplink interfaces - module unconfirmed":declared.Count>1?"Member "+member:"Switch",Device=entry.Key,Product=configured?"":model.Code,ConfiguredInterfaces=configured,Copper=sockets.Count(s=>s.Media=="RJ-45"),Optical=sockets.Count(s=>s.Media!="RJ-45"),OpticalType=configured?"Unspecified":model.Code.StartsWith("C9500-")?"SFP28 / QSFP28":"SFP / SFP+"};
                 for(int index=0;index<sockets.Count;index++)
                 {
                     var socket=sockets[index];int number=index+1;string name=CiscoHardware.Interface(socket,entry.Key);
                     var p=new Port{Id=name,Group=group.Id,Number=number,DisplayNumber=socket.Label,Media=socket.Media,RelatedInterfaces=CiscoHardware.Names(socket,entry.Key).Skip(1).ToList()};
-                    if(configured)p.Notes.Add("Configured uplink interface only; installed X2/TwinGig module and active alternative are unconfirmed.");
+                    if(configured)p.Notes.Add("Configured uplink interface only; installed uplink module and active alternative are unconfirmed.");
                     var state=new Settings{Port=p};states[name]=state;
                     foreach(string alias in CiscoHardware.Names(socket,entry.Key))aliases[alias]=(state,alias);
                     group.SocketLayout.Add(new(){Number=number,Column=socket.Column,Row=socket.Row,Media=socket.Media});inv.Ports.Add(p);
@@ -244,6 +260,8 @@ public static class CiscoParser
         {Finish(pair.Value);inv.LogicalInterfaces.Add(pair.Value.Port);if(!inv.Ports.Any(p=>p.Aggregate==pair.Key))inv.Assumptions.Add("Configured "+pair.Key+" has no declared physical members; retained as a logical interface only.");}
         inv.Vlans=vlans.Values.ToList();
         inv.Assumptions.Add("Saved Cisco configuration describes intended settings, not live links, DTP negotiation, installed transceivers or forwarding state. Unconfigured ports remain unknown. Management, loopback and SVI interfaces are not front-panel data sockets.");
+        CiscoModuleCatalog.ApplyDetected(inv,text);
+        if(CiscoModuleCatalog.HasUnconfirmedModules(inv)&&!inv.Groups.Any(g=>g.ConfiguredInterfaces))inv.Assumptions.Add("Optional uplink module inventory is unconfirmed. No additional sockets are inferred from missing or unused software interface stubs.");
         inv.Blockers=inv.Blockers.Distinct().ToList();return inv;
     }
     static bool IsManagement(string name)=>Regex.IsMatch(name,@"^(?:GigabitEthernet0/0|FastEthernet0)$",RegexOptions.IgnoreCase);

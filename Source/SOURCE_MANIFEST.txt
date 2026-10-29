@@ -1,4 +1,4 @@
-Source files for 1.15.1
+Source files for 1.16.0
 
 Branding/Palette.txt
 Branding/README.txt
@@ -32,6 +32,7 @@ SwitchportDiagramBuilder/wwwroot/app.js
 SwitchportDiagramBuilder/wwwroot/index.html
 SwitchportGenerator/AggregatePalette.cs
 SwitchportGenerator/CiscoHardware.cs
+SwitchportGenerator/CiscoModuleCatalog.cs
 SwitchportGenerator/CiscoParser.cs
 SwitchportGenerator/ComwareParser.cs
 SwitchportGenerator/ConfigInput.cs
@@ -39,6 +40,7 @@ SwitchportGenerator/ConfigurationWorkspace.cs
 SwitchportGenerator/Data/hardware-catalog.json
 SwitchportGenerator/DeviceIdentities.cs
 SwitchportGenerator/DeviceModels.cs
+SwitchportGenerator/DeviceModules.cs
 SwitchportGenerator/Fonts/LICENSE.txt
 SwitchportGenerator/Fonts/Report-Bold.ttf
 SwitchportGenerator/Fonts/Report-Regular.ttf
@@ -88,6 +90,9 @@ tests/LayoutQualityChecks/LayoutQualityChecks.csproj
 tests/LayoutQualityChecks/Program.cs
 tests/MikroTikChecks.cs
 tests/MikroTikChecks.csproj
+tests/ModuleChecks/ModuleChecks.csproj
+tests/ModuleChecks/Program.cs
+tests/ModuleChecks/verify-pdfs.py
 tests/PaletteChecks.cs
 tests/PaletteChecks.csproj
 tests/PreviousVlanPalette.cs

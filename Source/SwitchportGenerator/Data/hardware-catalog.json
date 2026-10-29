@@ -48553,6 +48553,9 @@
         "InterfaceKind": "",
         "Suffix": ""
       }
+    ],
+    "ModuleFamilies": [
+      "2920"
     ]
   },
   {
@@ -48587,6 +48590,9 @@
         "InterfaceKind": "",
         "Suffix": ""
       }
+    ],
+    "ModuleFamilies": [
+      "2920"
     ]
   },
   {
@@ -48666,6 +48672,5730 @@
         "Column": 7,
         "Row": 0,
         "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ],
+    "ModuleFamilies": [
+      "5400R"
+    ]
+  },
+  {
+    "Sku": "J4820A",
+    "Name": "ProCurve xl, 24-port 10/100 RJ45 module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300-Module-Install-59912130-0305.PDF",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300-Module-Install-59912130-0305.PDF",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4820B",
+    "Name": "ProCurve xl, 24-port 10/100 RJ45 module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4821A",
+    "Name": "ProCurve xl, 4-port 100/1000 RJ45 module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300-Module-Install-59912130-0305.PDF",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300-Module-Install-59912130-0305.PDF",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 4,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4821B",
+    "Name": "ProCurve xl, 4-port 100/1000 RJ45 module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 4,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4878A",
+    "Name": "ProCurve xl, 4-port mini-GBIC/SFP module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300-Module-Install-59912130-0305.PDF",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300-Module-Install-59912130-0305.PDF",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 0,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4878B",
+    "Name": "ProCurve xl, 4-port mini-GBIC/SFP module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 0,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4852A",
+    "Name": "ProCurve xl, 12-port 100-FX MT-RJ module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 0,
+    "Optical": 12,
+    "Side": "right",
+    "OpticalType": "MT-RJ",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 6,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 7,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 8,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 9,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 10,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 11,
+        "Row": 0,
+        "Media": "MT-RJ",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J4907A",
+    "Name": "ProCurve xl, 14 RJ45 + 2 RJ45/SFP combo module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 2. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 16,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7.5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": "T"
+      },
+      {
+        "Number": 15,
+        "Column": 8.5,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": "M"
+      },
+      {
+        "Number": 16,
+        "Column": 9.5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": "T"
+      },
+      {
+        "Number": 16,
+        "Column": 10.5,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": "M"
+      }
+    ]
+  },
+  {
+    "Sku": "J8161A",
+    "Name": "ProCurve xl, 24-port 10/100 RJ45 PoE module",
+    "Family": "5300xl module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5300xl-ModulesInstall-May2006-59912130.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 2. For 5300xl line-card bays only; gl/vl modules are not interchangeable.",
+    "ModuleFamilies": [
+      "5300xl"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J8702A",
+    "Name": "ProCurve zl, 24-port Gigabit RJ45 PoE module",
+    "Family": "zl v1 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5400zl and 8200zl line-card bays; firmware and compatibility mode remain operating requirements.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J8705A",
+    "Name": "ProCurve zl, 20 RJ45 PoE + 4 SFP module",
+    "Family": "zl v1 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 1. For 5400zl and 8200zl line-card bays; firmware and compatibility mode remain operating requirements.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl"
+    ],
+    "Copper": 20,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 12,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 12,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J8706A",
+    "Name": "ProCurve zl, 24-port SFP module",
+    "Family": "zl v1 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 2. For 5400zl and 8200zl line-card bays; firmware and compatibility mode remain operating requirements.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl"
+    ],
+    "Copper": 0,
+    "Optical": 24,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J8707A",
+    "Name": "ProCurve zl, 4-port 10GbE X2 module",
+    "Family": "zl v1 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 2. For 5400zl and 8200zl line-card bays; firmware and compatibility mode remain operating requirements.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl"
+    ],
+    "Copper": 0,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "X2",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "X2",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "X2",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "X2",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "X2",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J8708A",
+    "Name": "ProCurve zl, 4-port 10GbE CX4 module",
+    "Family": "zl v1 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "LayoutSource": "https://ftp.hp.com/pub/networking/software/5400zl-ModuleInstall-Apr2006-59914714.pdf",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 2. For 5400zl and 8200zl line-card bays; firmware and compatibility mode remain operating requirements.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl"
+    ],
+    "Copper": 0,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "CX4",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "CX4",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "CX4",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "CX4",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "CX4",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9534A",
+    "Name": "HPE v2 zl, 24-port Gigabit RJ45 PoE+ module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9535A",
+    "Name": "HPE v2 zl, 20 RJ45 PoE+ + 4 SFP module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 20,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 12,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 12,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9536A",
+    "Name": "HPE v2 zl, 20 RJ45 PoE+ + 2 SFP+ module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 20,
+    "Optical": 2,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9537A",
+    "Name": "HPE v2 zl, 24-port SFP module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 0,
+    "Optical": 24,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9538A",
+    "Name": "HPE v2 zl, 8-port 10GbE SFP+ module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 0,
+    "Optical": 8,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 6,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9546A",
+    "Name": "HPE v2 zl, 8-port 10GBASE-T RJ45 module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 8,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9547A",
+    "Name": "HPE v2 zl, 24-port 10/100 RJ45 PoE+ module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9548A",
+    "Name": "HPE v2 zl, 20 Gigabit RJ45 + 2 SFP+ module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 7. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 20,
+    "Optical": 2,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9549A",
+    "Name": "HPE v2 zl, 20 Gigabit RJ45 + 4 SFP module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 7. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 20,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 12,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 12,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9550A",
+    "Name": "HPE v2 zl, 24-port Gigabit RJ45 module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 7. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9637A",
+    "Name": "HPE v2 zl, 12 RJ45 PoE+ + 12 SFP module",
+    "Family": "zl v2 module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/emr_na-c04344577?docLocale=en_US",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 7. For 5400zl, 8200zl and 5400R zl2 line-card bays; firmware/mode compatibility must be checked on the switch.",
+    "ModuleFamilies": [
+      "5400zl",
+      "8200zl",
+      "5400R"
+    ],
+    "Copper": 12,
+    "Optical": 12,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 7,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 9,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 10,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 10,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 12,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 12,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9986A",
+    "Name": "Aruba v3 zl2, 24-port Gigabit RJ45 PoE+ module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9987A",
+    "Name": "Aruba v3 zl2, 24-port Gigabit RJ45 module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9988A",
+    "Name": "Aruba v3 zl2, 24-port Gigabit SFP module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 0,
+    "Optical": 24,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9989A",
+    "Name": "Aruba v3 zl2, 12 RJ45 PoE+ + 12 SFP module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 12,
+    "Optical": 12,
+    "Side": "right",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 7,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 9,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 10,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 10,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 12,
+        "Row": 0,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 12,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9990A",
+    "Name": "Aruba v3 zl2, 20 RJ45 PoE+ + 4 SFP+ module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 20,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 11,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 11,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 12,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 12,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9991A",
+    "Name": "Aruba v3 zl2, 20 Gigabit + 4 Smart Rate RJ45 PoE+ module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 24,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 22,
+        "Column": 10,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 23,
+        "Column": 11,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 24,
+        "Column": 11,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9992A",
+    "Name": "Aruba v3 zl2, 20 RJ45 PoE+ + 1 QSFP+ module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 6. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 20,
+    "Optical": 1,
+    "Side": "right",
+    "OpticalType": "QSFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 17,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 18,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 19,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 20,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 21,
+        "Column": 10,
+        "Row": 1,
+        "Media": "QSFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9993A",
+    "Name": "Aruba v3 zl2, 8-port SFP+ module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 7. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 0,
+    "Optical": 8,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 4,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 5,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 6,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 7,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "J9996A",
+    "Name": "Aruba v3 zl2, 2-port 40GbE QSFP+ module",
+    "Family": "5400R module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04654886",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 7. For 5400R zl2 line-card bays only. v3 support is not inferred for older zl chassis.",
+    "ModuleFamilies": [
+      "5400R"
+    ],
+    "Copper": 0,
+    "Optical": 2,
+    "Side": "right",
+    "OpticalType": "QSFP+",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "QSFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "QSFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "JL078A",
+    "Name": "Aruba 3810M, 1-port 40GbE QSFP+ module",
+    "Family": "3810M module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04948676",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04948676",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 9-10. 3810M front flexible uplink bay A, or A/B on JL075A. Stacking module is separate.",
+    "ModuleFamilies": [
+      "3810M"
+    ],
+    "Copper": 0,
+    "Optical": 1,
+    "Side": "right",
+    "OpticalType": "QSFP+",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "QSFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "JL079A",
+    "Name": "Aruba 3810M, 2-port 40GbE QSFP+ module",
+    "Family": "3810M module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04948676",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04948676",
+    "Notes": "3810M 2QSFP+ module: only JL072A, JL074A and JL076A. Not supported in JL071A, JL073A or JL075A. Manufacturer installation guide printed page 20, Table 10. No breakout inferred.",
+    "ModuleFamilies": [
+      "3810M"
+    ],
+    "Copper": 0,
+    "Optical": 2,
+    "Side": "right",
+    "OpticalType": "QSFP+",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "QSFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "QSFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "JL081A",
+    "Name": "Aruba 3810M, 4-port Smart Rate RJ45 module",
+    "Family": "3810M module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://arubanetworking.hpe.com/techdocs/AOS-S/16.10/ATMG/KB/content/kb/fle-upl-mod-kb-16..htm",
+    "LayoutSource": "https://www.arubanetworks.com/assets/ds/DS_3810SwitchSeries.pdf",
+    "Notes": "Four Smart Rate RJ45 data ports. PoE+ requires a PoE+ base switch and PoE-capable supply; non-PoE bases provide data only. Minimum KB.16.04.0008. Uses A, or A/B on JL075A.",
+    "ModuleFamilies": [
+      "3810M"
+    ],
+    "Copper": 4,
+    "Optical": 0,
+    "Side": "right",
+    "OpticalType": "",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
+  },
+  {
+    "Sku": "JL083A",
+    "Name": "Aruba 3810M, 4-port SFP+ module",
+    "Family": "3810M module",
+    "OS": "AOS-Switch",
+    "Status": "supported",
+    "Source": "https://support.hpe.com/hpesc/public/api/document/c04948676",
+    "LayoutSource": "https://support.hpe.com/hpesc/public/api/document/c04948676",
+    "Notes": "Manufacturer module illustration and port specifications, printed page 9-10. 3810M front flexible uplink bay A, or A/B on JL075A. Stacking module is separate.",
+    "ModuleFamilies": [
+      "3810M"
+    ],
+    "Copper": 0,
+    "Optical": 4,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": true,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 1,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 2,
+        "Row": 0,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 3,
+        "Row": 0,
+        "Media": "SFP+",
         "InterfaceKind": "",
         "Suffix": ""
       }

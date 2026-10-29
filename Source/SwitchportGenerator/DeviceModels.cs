@@ -30,6 +30,22 @@ public static class DeviceModels
         return devices.OrderBy(d=>d.ParentId.Length>0?d.ParentId.Length:d.Id.Length).ThenBy(d=>d.ParentId.Length>0?d.ParentId:d.Id,StringComparer.OrdinalIgnoreCase)
             .ThenBy(d=>d.ParentId.Length>0?1:0).ThenBy(d=>d.Id,StringComparer.OrdinalIgnoreCase).ToList();
     }
+    /// <summary>Preview compatible hardware controls without saving or discarding child device edits.</summary>
+    public static Inventory Preview(string source,IEnumerable<DeviceIdentity> details)
+    {
+        var rows=details.ToList();
+        if(rows.Count>128||rows.Any(r=>r==null||string.IsNullOrWhiteSpace(r.Id)))throw new InvalidOperationException("Device details are invalid.");
+        var parents=rows.Where(r=>!r.Id.Contains('/')).Select(r=>new DeviceIdentity{Id=r.Id,Name=r.Name,SerialNumber=r.SerialNumber,AssetTag=r.AssetTag,Notes=r.Notes,ModelSelection=r.ModelSelection}).ToList();
+        var automatic=Parse(source,parents);
+        foreach(var parent in parents)
+        {
+            var device=automatic.Devices.First(d=>d.Id.Equals(parent.Id,StringComparison.OrdinalIgnoreCase));
+            var slots=DeviceModules.Slots(automatic,device);
+            var requested=DeviceModules.Copy(rows.First(r=>r.Id.Equals(parent.Id,StringComparison.OrdinalIgnoreCase)).ModuleSelections);
+            parent.ModuleSelections=requested.Where(choice=>slots.Any(s=>s.Slot.Equals(choice.Slot,StringComparison.OrdinalIgnoreCase)&&s.Options.Any(o=>o.Sku.Equals(choice.Sku,StringComparison.OrdinalIgnoreCase)))).ToList();
+        }
+        return Parse(source,parents);
+    }
     public static Inventory Parse(string source,IEnumerable<DeviceIdentity> details,string? legacyModels=null)
     {
         var rows=details.ToList();
@@ -41,7 +57,11 @@ public static class DeviceModels
         foreach(var row in rows)
         {
             if(row==null||string.IsNullOrWhiteSpace(row.Id)||!seen.Add(row.Id))throw new InvalidOperationException("Device details contain an empty or duplicate device ID.");
-            var device=devices.FirstOrDefault(d=>d.Id.Equals(row.Id,StringComparison.OrdinalIgnoreCase))??throw new InvalidOperationException("Device details no longer match the inventory. Reopen Device details and review the current devices.");
+            var device=devices.FirstOrDefault(d=>d.Id.Equals(row.Id,StringComparison.OrdinalIgnoreCase));
+            // A supplied module can introduce its own child details row. Validate
+            // those stable parent/slot IDs after the hardware choices are applied.
+            if(device==null&&row.Id.Contains('/'))continue;
+            if(device==null)throw new InvalidOperationException("Device details no longer match the inventory. Reopen Device details and review the current devices.");
             string model=Clean(row.ModelSelection);
             if(device.Kind=="Module"&&model.Length>0)throw new InvalidOperationException("Model selection is available for switches, members and chassis. Module models come from the configuration.");
             if(inv.OS=="RouterOS"&&MikroTikParser.Models.Any(m=>m.Code.Equals(model,StringComparison.OrdinalIgnoreCase))){selections.Add(device.Id,model);continue;}
@@ -65,6 +85,7 @@ public static class DeviceModels
                 selections.Add(device.Id,sku);
             }
         }
+        string? selectedModels=legacyModels;
         if(selections.Count>0)
         {
             // Instant On mixed-member selection needs the complete known base inventory.
@@ -75,8 +96,8 @@ public static class DeviceModels
                 if(selections.TryGetValue(id,out string? existing)&&!existing.Equals(sku,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Conflicting model selections for member/slot "+id+".");
                 selections.TryAdd(id,sku);
             }
-            string selected=string.Join(',',selections.Select(p=>p.Key+"="+p.Value));
-            inv=Parser.Parse(source,selected);
+            selectedModels=string.Join(',',selections.Select(p=>p.Key+"="+p.Value));
+            inv=Parser.Parse(source,selectedModels);
         }
         if(chassisSelections.Count>0&&inv.ChassisSlots==0)
         {
@@ -88,9 +109,15 @@ public static class DeviceModels
             HardwareProfiles.Validate(inv);
             inv.Assumptions.Add("Chassis hardware supplied by the operator: "+string.Join(", ",chassisSelections.Select(p=>p.Key+"="+p.Value.Sku))+". Confirm against chassis labels.");
         }
-        DeviceIdentities.Apply(inv,rows,Describe(source,inv));
+        inv=DeviceModules.Apply(source,inv,rows,selectedModels);
+        var finalDevices=Describe(source,inv);
+        DeviceModules.RetainDetails(inv,finalDevices,rows);
+        DeviceIdentities.Apply(inv,rows,finalDevices);
         foreach(var device in inv.Devices.Where(d=>d.ModelSelection.Length>0))
-            inv.Assumptions.Add("Model supplied for "+device.Label+": "+device.ModelSelection+(IsSku(device.ModelSelection)?InventoryBasis.HasConfiguredInterfaces(inv)?" (verified base-model selection; installed uplink module remains unconfirmed).":" (verified hardware selection).":" (report label; validated physical layout is unchanged)."));
+            inv.Assumptions.Add("Model supplied for "+device.Label+": "+device.ModelSelection+(IsSku(device.ModelSelection)?InventoryBasis.HasConfiguredInterfaces(inv)?" (verified base-model selection; "+InventoryBasis.Qualifier(inv).ToLowerInvariant()+").":" (verified hardware selection).":" (report label; validated physical layout is unchanged)."));
+        foreach(var device in inv.Devices)
+            foreach(var module in device.ModuleSelections)
+                inv.Assumptions.Add("Module supplied for "+device.Label+" slot "+module.Slot+": "+module.Sku+". Confirm against installed module labels; configuration alternatives retain their independent settings.");
         return inv;
     }
     public static string GroupModel(Inventory inv,Group group)=>group.Slot.Length==0?DeviceIdentities.For(inv,group.Device)?.Model??ReportText.ModelName(group.Product):ReportText.ModelName(group.Product);
