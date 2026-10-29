@@ -276,20 +276,21 @@ public sealed partial class MainForm : Form
                 if(parent.TrimEnd(Path.DirectorySeparatorChar).Equals(Path.GetFullPath(outputRoot).TrimEnd(Path.DirectorySeparatorChar),StringComparison.OrdinalIgnoreCase)&&Directory.Exists(actual))
                     output=lastOutput=actual;
             }
+            string qualification=workspace.Selected is {} qualified&&InventoryBasis.HasConfiguredInterfaces(qualified.Inventory)?InventoryBasis.CountLabel(qualified.Inventory)+". "+InventoryBasis.Qualifier(qualified.Inventory)+"; uplink entries are configuration alternatives, not confirmed installed sockets.":"";
             string text = process.ExitCode == 0 ? string.Join('\n',normal.Split('\n').Where(line=>!line.StartsWith("OUTPUT_DIRECTORY=",StringComparison.Ordinal))).Trim() : error;
             if (process.ExitCode == 0)
             {
                 string? chart=lastOutput==null?null:Path.Combine(lastOutput,"wall-chart.png");
                 lastChart=chart!=null&&File.Exists(chart)?chart:null;
-                projects.RecordSingle(true,workspace.Selected is {} sourceItem?DisplayName(sourceItem).Length>0?DisplayName(sourceItem):sourceItem.Name:"Switch diagram",output,lastChart,"Reports created.\n\nOutput: "+output);
+                projects.RecordSingle(true,workspace.Selected is {} sourceItem?DisplayName(sourceItem).Length>0?DisplayName(sourceItem):sourceItem.Name:"Switch diagram",output,lastChart,"Reports created."+(qualification.Length>0?"\n\n"+qualification:"")+"\n\nOutput: "+output);
                 SendProject();
-                Send(new { type = "complete", message = "Reports created.", details = "", output,chartAvailable=lastChart!=null });
+                Send(new { type = "complete", message = "Reports created.", details = qualification, output,chartAvailable=lastChart!=null });
             }
             else Send(new { type = "blocked", message = "Generation blocked. Review the validation report.", details = text, output });
             if(workspace.Selected is {} selected)
             {
                 selected.StatusType=process.ExitCode==0?"complete":"blocked";
-                selected.Status=(process.ExitCode==0?"Reports created.":"Generation blocked. Review the validation report.\n\n"+text)+"\n\nOutput: "+output;
+                selected.Status=(process.ExitCode==0?"Reports created."+(qualification.Length>0?"\n\n"+qualification:""):"Generation blocked. Review the validation report.\n\n"+text)+"\n\nOutput: "+output;
             }
             SendWorkspace();
         }

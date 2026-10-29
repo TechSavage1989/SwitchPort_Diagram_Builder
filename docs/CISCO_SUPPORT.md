@@ -2,7 +2,9 @@
 
 Version 1.15.0 adds a dedicated Cisco parser. It keeps Cisco interface names,
 physical member boundaries, native VLANs, voice VLANs and port-channel membership.
-It does not send the backup to an online service.
+It does not send the backup to an online service. Version 1.15.1 adds a qualified
+3560-E configuration view when the base layout is established but the installed
+uplink converters are unconfirmed.
 
 ## Verified layouts
 
@@ -53,19 +55,43 @@ PIDs do not identify a switch model. Installed optics do not change cage geometr
 or establish live speed. This release does not import transceiver serial numbers
 into device identity fields automatically.
 
-## Catalyst 3560-E limitation
+## Qualified Catalyst 3560-E configuration view
 
-The supplied 48-port 3560-E backups contain both GigabitEthernet0/49-52 and
-TenGigabitEthernet0/1-2 stubs. WS-C3560E-48PD-SF confirms the base switch, but each
-X2 bay can hold an X2 transceiver or a TwinGig converter with two independent SFP
-sockets. The installed converters cannot be recovered reliably from old interface
-settings, descriptions or a switch-only asset screenshot.
+A complete IOS 15 signature containing FastEthernet0, GigabitEthernet0/1-52 and
+TenGigabitEthernet0/1-2 establishes the shared 48-port 3560-E base layout. This
+qualified match does not establish the exact PID, PoE/PSU variant, installed
+converter modules, live links or active uplink mode. The exact
+WS-C3560E-48PD-SF model can also be supplied through device details or trusted
+chassis identity without claiming that its uplink modules are known.
 
-These inputs are recognized as Cisco and their configured interfaces are retained
-under `LogicalInterfaces` in the blocked inventory JSON. Physical diagrams remain
-blocked until each bay's installed module is established. A typed report model
-does not bypass this requirement. Supply `show inventory` or equivalent bay/PID
-evidence for those switches before enabling a specific converter layout.
+These inputs now export a qualified view instead of being blocked solely because
+the uplink modules are unknown. The diagram draws the 48 base RJ-45 ports and a
+separate, clearly labeled uplink configuration table. Neutral entries show each
+software interface independently:
+
+| Bay relationship | Configured interface alternatives |
+| --- | --- |
+| Upper X2 bay 1 | GigabitEthernet0/49 and GigabitEthernet0/50, or TenGigabitEthernet0/1 |
+| Lower X2 bay 2 | GigabitEthernet0/51 and GigabitEthernet0/52, or TenGigabitEthernet0/2 |
+
+A bay can hold an X2 transceiver or a TwinGig converter with two SFP sockets.
+The six configured interfaces therefore do not mean six installed uplink
+sockets. Old settings may coexist for both modes. Each interface keeps its own
+native/tagged/voice VLANs, LAG membership, description and administrative state;
+alternative settings are not merged or discarded.
+
+The uplink section states that installed modules are unconfirmed. Diagram,
+PDF inventory, CSV, JSON, summary and validation counts distinguish 48 confirmed
+base ports from six configured uplink alternatives. This is a configuration view,
+not a claim that a complete physical uplink inventory has been established.
+Provide show inventory or equivalent bay/PID evidence before treating its
+alternative entries as installed sockets.
+
+Automatic family inference still requires the complete signature. Contradictory
+explicit product identity and unsupported configuration syntax continue to block
+generation. A hostname, description or last configured interface alone cannot
+enable this view. The verified 3650 and 9500 socket layouts above retain their
+existing physical-inventory behavior.
 
 ## Hardware references
 

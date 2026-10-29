@@ -1,3 +1,16 @@
+Switchport Diagram Builder 1.15.1 - Windows 10/11 x64
+
+1.15.1: Qualified Catalyst 3560-E configuration views
+- Complete 48-port 3560-E interface signatures can export without guessing X2/TwinGig modules.
+- Draw 48 base RJ-45 ports separately from six configured uplink alternatives.
+- Retain each alternative's VLANs, voice, LAG, description and administrative settings.
+- Reports, JSON, CSV and validation distinguish physical base ports from software alternatives.
+- Module uncertainty remains visible; conflicting or insufficient identity still blocks.
+- See ../docs/CISCO_SUPPORT.md for the exact qualified-view scope.
+
+Historical release notes
+========================
+
 1.15.0: Cisco support and Aruba 6200M inventory
 - R8Q71A/R8V12A verified copper/Smart Rate/SFP+ layouts.
 - Dedicated IOS/IOS XE parser with 3650 StackWise and C9500 Y4C profiles.

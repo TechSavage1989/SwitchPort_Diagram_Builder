@@ -39,7 +39,7 @@ class BrandingChecks(unittest.TestCase):
             for reference in root.iter('ProjectReference'):
                 self.assertTrue((path.parent / reference.attrib['Include']).is_file(), str(path))
             versions.update(n.text for n in root.iter('Version'))
-        self.assertEqual(versions, {'1.15.0'})
+        self.assertEqual(versions, {'1.15.1'})
         for line in (ROOT / 'Source/SOURCE_MANIFEST.txt').read_text().splitlines()[2:]:
             if line.strip():
                 self.assertTrue((ROOT / 'Source' / line).is_file(), line)

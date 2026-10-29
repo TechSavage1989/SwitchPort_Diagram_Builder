@@ -1,3 +1,44 @@
+# Qualified 3560-E configuration views: 1.15.1
+
+This update supersedes the blanket 3560-E block described in the 1.15.0 section
+below. Read [Cisco support](CISCO_SUPPORT.md) for the precise scope. A complete
+IOS 15 / FastEthernet0 / Gi0/1-52 / Te0/1-2 signature can establish a shared
+48-port 3560-E base layout. Exact WS-C3560E-48PD-SF selection is also recognized.
+Neither path establishes installed X2/TwinGig modules or the active uplink mode.
+
+The qualified diagram retains 48 base RJ-45 ports and a separate group of six
+independent configured uplink alternatives. The upper bay relates Gi49/Gi50 to
+Te1; the lower relates Gi51/Gi52 to Te2. Neutral software entries and a visible
+module-uncertainty label prevent the view from claiming six physical uplinks.
+Do not reuse the 3650 alias merge: the two Gi interfaces in each bay are independent
+and may retain different VLANs, voice settings, LAGs, descriptions and admin state.
+
+Group.ConfiguredInterfaces and InventoryBasis separate configured alternatives
+from confirmed physical-base counts. Keep that distinction in UI, diagram headers,
+PDF inventories, CSV, JSON, summaries and validation. Never advertise the 54
+configured entries as 54 confirmed physical sockets. Automatic family inference
+requires the complete signature; conflicting explicit identity and invalid
+syntax/ranges remain genuine blockers.
+
+Focused local checks passed 132 C# assertions and the synthetic PDF/PNG/CSV/JSON
+verifier. Each of the five supplied original backups produced eight deliverables
+without blockers: 48 confirmed base ports plus six configured uplink alternatives.
+Together, those individual reports retain 270 interface entries, comprising 240
+confirmed base ports and 30 alternatives. Booklets span four to eight pages;
+complete interface IDs, tagged VLAN/policy text and qualification were checked in
+every PDF. Representative original-input charts were visually reviewed without
+ellipsis or clipping. All five also exported together successfully on three
+shared A4 diagram sheets with 22 combined booklet pages; qualification remains
+visible on the shared sheets.
+
+Local packaging/root/branding passed all 34 tests, and JavaScript syntax checks
+passed. The local headless-browser bootstrap could not download its browser, so
+no local UI run is claimed. Required hosted browser, Linux and Windows checks,
+native updater checks and compiled icon checks remain publication gates. No
+interactive Windows UI or real user update/restart is claimed here. Private
+backups, model screenshots, inventory output and generated reports remain outside
+Git and CI.
+
 # Cisco and 6200M validation update: 1.15.0
 
 Current source adds CiscoHardware/CiscoParser and the R8Q71A/R8V12A profiles.

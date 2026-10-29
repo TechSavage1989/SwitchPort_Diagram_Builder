@@ -1,3 +1,23 @@
+1.15.1 focused regression additions
+Local verification: 132 focused C# assertions and synthetic PDF/PNG/CSV/JSON
+checks passed. All five original backups generated eight deliverables each without
+blockers, retaining 240 confirmed base ports plus 30 configured alternatives
+(270 interface entries). Every booklet retained complete interface IDs, tagged
+VLAN/policy text and qualification; representative charts had no ellipsis/clipping.
+Individual booklets span four to eight pages. All five combined exports passed
+on three shared A4 diagram sheets with 22 combined booklet pages, retaining qualification.
+All 34 packaging/root/branding tests and JavaScript syntax checks passed. Local
+headless-browser bootstrap could not download the browser; hosted browser CI is
+still required, and no local UI or interactive native Windows run is claimed.
+- Complete 3560-E family detection and exact manual model selection with unknown uplink modules.
+- Separate counts for 48 confirmed base ports and six configured uplink alternatives.
+- Independent Gi0/49-52 and Te0/1-2 state, including stale or differing alternative settings.
+- Qualification visible in diagrams, PDF inventories, CSV, JSON, summaries and validation.
+- Complete interface/VLAN/LAG/description preservation in individual and shared exports.
+- Insufficient or conflicting model evidence, malformed syntax and invalid ranges remain blocked.
+- Existing CI remains required; current test results and release receipts are recorded by the build.
+- Private input and report checks stay local and are never uploaded as CI fixtures.
+
 1.15.0 focused regression additions
 - R8Q71A/R8V12A exact counts, lower-case members, optical order and voice tags.
 - Cisco 3650 StackWise, complete C9500 native signatures, manual chassis PID,

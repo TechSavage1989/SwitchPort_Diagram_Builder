@@ -67,7 +67,7 @@ public static class GeneratorEntry
             var placements=Charts.Layout(inv);inv.Blockers.AddRange(Charts.Validate(inv,placements));inv.Blockers=inv.Blockers.Distinct().ToList();
             string json=JsonSerializer.Serialize(inv,JsonOptions);byte[] jsonBytes=new UTF8Encoding(false).GetBytes(json);string hash=Hash(jsonBytes);
             File.WriteAllBytes(Path.Combine(output,"inventory.json"),jsonBytes);
-            var csv=new StringBuilder();csv.AppendLine("Port,Description,Mode,Untagged VLAN,Untagged VLAN Name,Tagged VLANs,Voice VLAN,Trunk/LAG,Connected Device,Media,Configured Speed,Admin State,Ingress PVID,Configured Addresses,Aggregation Mode,Device ID,Device Name,Serial Number,Asset Tag,Device Details,Module ID,Module Name,Module Serial Number,Module Asset Tag,Module Details,Device Model,Module Model,Logical interfaces");
+            var csv=new StringBuilder();csv.AppendLine("Port,Description,Mode,Untagged VLAN,Untagged VLAN Name,Tagged VLANs,Voice VLAN,Trunk/LAG,Connected Device,Media,Configured Speed,Admin State,Ingress PVID,Configured Addresses,Aggregation Mode,Device ID,Device Name,Serial Number,Asset Tag,Device Details,Module ID,Module Name,Module Serial Number,Module Asset Tag,Module Details,Device Model,Module Model,Logical interfaces,Inventory basis");
             foreach(var p in inv.Ports)
             {
                 var group=inv.Groups.FirstOrDefault(g=>g.Id==p.Group);string deviceId=group?.Device??"";var device=DeviceIdentities.For(inv,deviceId);
@@ -77,7 +77,7 @@ public static class GeneratorEntry
                 string NoteValues(string prefix)=>string.Join(';',p.Notes.Where(n=>n.StartsWith(prefix,StringComparison.Ordinal)).Select(n=>n[prefix.Length..]).Distinct());
                 string tagged=ReportText.TaggedVlans(p,";");
                 string connected=p.ConnectedDevice=="Unknown/Confirm before use"?"":p.ConnectedDevice;
-                csv.AppendLine(string.Join(',',new[]{p.Id,p.Description,p.Mode,native,vlanName,tagged,p.VoiceVlan?.ToString()??"",p.Aggregate,connected,p.Media,p.Speed,p.Disabled.HasValue?p.Disabled.Value?"Disabled":"Enabled":"Unknown",NoteValues("Configured ingress PVID: "),NoteValues("Address: "),NoteValues("Aggregation mode: "),deviceId,device?.Name??"",device?.SerialNumber??"",device?.AssetTag??"",device?.Notes??"",moduleId,module?.Name??"",module?.SerialNumber??"",module?.AssetTag??"",module?.Notes??"",device?.Model??"",module?.Model??"",string.Join(';',p.RelatedInterfaces)}.Select(Quote)));
+                csv.AppendLine(string.Join(',',new[]{p.Id,p.Description,p.Mode,native,vlanName,tagged,p.VoiceVlan?.ToString()??"",p.Aggregate,connected,p.Media,p.Speed,p.Disabled.HasValue?p.Disabled.Value?"Disabled":"Enabled":"Unknown",NoteValues("Configured ingress PVID: "),NoteValues("Address: "),NoteValues("Aggregation mode: "),deviceId,device?.Name??"",device?.SerialNumber??"",device?.AssetTag??"",device?.Notes??"",moduleId,module?.Name??"",module?.SerialNumber??"",module?.AssetTag??"",module?.Notes??"",device?.Model??"",module?.Model??"",string.Join(';',p.RelatedInterfaces),InventoryBasis.PortBasis(inv,p)}.Select(Quote)));
             }
             File.WriteAllText(Path.Combine(output,"port-map.csv"),csv.ToString(),new UTF8Encoding(true));
             string summary=Summary(inv);
@@ -104,7 +104,7 @@ public static class GeneratorEntry
                 foreach(string file in Visuals){if(new FileInfo(Path.Combine(staging,file)).Length<100)throw new InvalidOperationException("Generated chart is empty.");}
                 foreach(string file in Visuals)File.Move(Path.Combine(staging,file),Path.Combine(output,file));
                 WriteReport(output,inv,hash,true,scene);
-                Console.WriteLine("Created 8 deliverables. Physical interfaces: "+inv.Ports.Count+". Inventory SHA256: "+hash);return 0;
+                Console.WriteLine("Created 8 deliverables. "+(InventoryBasis.HasConfiguredInterfaces(inv)?InventoryBasis.CountLabel(inv):"Physical interfaces: "+inv.Ports.Count)+". Inventory SHA256: "+hash);return 0;
             }
             catch
             {
@@ -134,7 +134,8 @@ public static class GeneratorEntry
         s.AppendLine("Device:       "+inv.Hostname);s.AppendLine("Platform:     "+inv.OS);
         s.AppendLine("Firmware:     "+inv.Firmware);s.AppendLine("Topology:     "+inv.Topology);
         string model=ReportText.SwitchModel(inv);if(model.Length>0)s.AppendLine("Model:        "+model);
-        s.AppendLine("Physical:     "+inv.Ports.Count+" ports across "+inv.Groups.Count+" inventory groups");
+        s.AppendLine("Inventory:    "+InventoryBasis.CountLabel(inv)+" across "+inv.Groups.Count+" inventory groups");
+        if(InventoryBasis.HasConfiguredInterfaces(inv))s.AppendLine("Qualification: "+InventoryBasis.Qualifier(inv)+". Uplink entries are saved configuration alternatives, not an installed socket count.");
         s.AppendLine("Stack links:  "+inv.Ports.Count(p=>p.StackLink));
         s.AppendLine("Aggregations: "+inv.Ports.Where(p=>p.Aggregate.Length>0).Select(p=>p.Aggregate).Distinct().Count());
         void Section(string name,IEnumerable<string> items)
@@ -143,7 +144,7 @@ public static class GeneratorEntry
             foreach(string line in items)s.AppendLine("  "+line);
         }
         if(inv.Devices.Any(d=>d.HasDetails))Section("Device details",inv.Devices.Where(d=>d.HasDetails).Select(d=>string.Join(" | ",new[]{d.Label,d.Model,d.Name.Length>0?"Name: "+d.Name:"",d.SerialNumber.Length>0?"S/N: "+d.SerialNumber:"",d.AssetTag.Length>0?"Asset: "+d.AssetTag:"",d.Notes.Length>0?d.Notes:""}.Where(s=>s.Length>0))));
-        Section("Physical inventory",inv.Groups.Select(g=>string.Join("  |  ",new[]{ReportText.GroupLabel(inv,g),ReportText.ModelName(g.Product),g.Expected+" ports"}.Where(s=>s.Length>0))));
+        Section("Inventory",inv.Groups.Select(g=>string.Join("  |  ",new[]{ReportText.GroupLabel(inv,g),ReportText.ModelName(g.Product),g.Expected+(g.ConfiguredInterfaces?" configured interfaces; installed sockets unconfirmed":" physical ports")}.Where(s=>s.Length>0))));
         if(inv.SVIs.Count>0)Section("Layer 3 interfaces",inv.SVIs.Select(v=>v.Interface+"  |  "+v.Address));
         if(inv.Routes.Count>0)Section("Routes",inv.Routes);
         if(inv.Management.Count>0)Section("Management",inv.Management);
@@ -155,11 +156,20 @@ public static class GeneratorEntry
     static void WriteReport(string output,Inventory inv,string hash,bool success,Scene? scene=null)
     {
         var report=new StringBuilder();report.AppendLine("VALIDATION REPORT");report.AppendLine(new string('=',72));report.AppendLine("RENDER_BLOCKED="+(success?"FALSE":"TRUE"));
-        report.AppendLine("Inventory SHA256: "+hash);report.AppendLine("Expected physical count: "+inv.Groups.Sum(g=>g.Expected));report.AppendLine("Generated physical count: "+inv.Ports.Count);
+        report.AppendLine("Inventory SHA256: "+hash);
+        if(InventoryBasis.HasConfiguredInterfaces(inv))
+        {
+            report.AppendLine("Inventory basis: Configured interface view");
+            report.AppendLine("Confirmed physical ports: "+InventoryBasis.ConfirmedPhysicalPortCount(inv));
+            report.AppendLine("Configured uplink interfaces: "+InventoryBasis.ConfiguredInterfaceCount(inv));
+            report.AppendLine("Installed uplink socket count: Unconfirmed");
+            report.AppendLine("Expected interface count: "+inv.Groups.Sum(g=>g.Expected));report.AppendLine("Generated interface count: "+inv.Ports.Count);
+        }
+        else {report.AppendLine("Expected physical count: "+inv.Groups.Sum(g=>g.Expected));report.AppendLine("Generated physical count: "+inv.Ports.Count);}
         report.AppendLine("Count delta: "+(inv.Ports.Count-inv.Groups.Sum(g=>g.Expected)));
         report.AppendLine("CSV data row count: "+inv.Ports.Count);
-        report.AppendLine("Geometry: physical rows and port-bank placement follow the identified hardware; single-row modules retain their row.");
-        report.AppendLine("Odd/even row, bounds, uniqueness, ordering, non-overlap, centering, spacing, text/port/marker collision, and marker clearance checks: "+(success?"PASS":"BLOCKED"));
+        report.AppendLine(InventoryBasis.HasConfiguredInterfaces(inv)?"Geometry: confirmed base ports retain their physical rows. Separate uplink entries show saved configuration alternatives grouped by bay, not installed socket placement.":"Geometry: physical rows and port-bank placement follow the identified hardware; single-row modules retain their row.");
+        report.AppendLine((InventoryBasis.HasConfiguredInterfaces(inv)?"Base port rows, configured-interface table bounds, uniqueness, ordering, non-overlap, centering, spacing, text/marker collision, and marker clearance checks: ":"Odd/even row, bounds, uniqueness, ordering, non-overlap, centering, spacing, text/port/marker collision, and marker clearance checks: ")+(success?"PASS":"BLOCKED"));
         report.AppendLine($"Working page: interface reference faces are {QuickSheet.PortWidth:0.###} x {QuickSheet.PortHeight:0.###} pt for RJ45 and {QuickSheet.PortWidth:0.###} x {QuickSheet.OpticalHeight:0.###} pt for optical cages. One geometry factor preserves both aspect ratios across all interfaces. The solver first uses normal spacing, then tighter padding and readable role-wide typography. Port number labels stay at least {QuickSheet.MinimumPortFont:0.###} printed pt; key/panel/body text stays at least {QuickSheet.MinimumBodyFont:0.###} printed pt. Preferred VLAN circles and voice diamonds scale with the interface geometry from a {2*QuickSheet.DotRadius:0.###} pt reference diameter, capped at {2*QuickSheet.MaximumDotRadius:0.###} printed pt. The VLAN key reserves a readable text column before bank enlargement, and body/key/panel typography has printed upper bounds. If proportional growth and compaction cannot fit them, one global marker size is reduced only as much as needed, including guide and VLAN-key symbols. Markers are never omitted, and PDF inventory lists still wrap in full.");
         if(scene!=null)report.AppendLine($"Adaptive sizing: interface geometry {scene.DiagramScale:0.###}x; printed marker diameter {2*scene.MarkerRadius:0.###} pt; compaction level {scene.CompactionLevel}. Interface faces are never stretched independently in width or height. FitToPage leaves the solved layout unchanged.");
         if(success)

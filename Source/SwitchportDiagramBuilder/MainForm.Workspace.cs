@@ -18,7 +18,7 @@ public sealed partial class MainForm
         items=workspace.Items.Select(item=>new
         {
             id=item.Id,name=item.Name,hostname=DisplayName(item),model=ReportText.SwitchModel(item.Inventory),
-            error=string.Join("; ",item.Inventory.Blockers),dirty=item.Dirty
+            error=string.Join("; ",item.Inventory.Blockers),dirty=item.Dirty,qualification=InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.Qualifier(item.Inventory):""
         }).ToArray()
       });
       SendProject();
@@ -30,7 +30,9 @@ public sealed partial class MainForm
         Send(new
         {
             type="selected",id=item?.Id,path=item?.SourcePath??"",name=item?.Name??"",hostname=item==null?"":DisplayName(item),
-            chartAvailable=item?.LastChart is {} chart&&File.Exists(chart),statusType=item?.StatusType??"",statusText=item?.Status??""
+            chartAvailable=item?.LastChart is {} chart&&File.Exists(chart),statusType=item?.StatusType??"",statusText=item?.Status??"",
+            qualification=item!=null&&InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.Qualifier(item.Inventory):"",
+            inventoryDetails=item!=null&&InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.CountLabel(item.Inventory)+". Uplink entries show saved alternatives, not confirmed installed sockets.":""
         });
     }
     void SendImportResult(int added,List<string> errors)=>Send(new

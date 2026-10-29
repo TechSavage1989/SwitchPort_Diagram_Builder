@@ -1,4 +1,4 @@
-Source files for 1.15.0
+Source files for 1.15.1
 
 Branding/Palette.txt
 Branding/README.txt
@@ -48,6 +48,7 @@ SwitchportGenerator/HardwareCatalog.cs
 SwitchportGenerator/HardwareProfiles.cs
 SwitchportGenerator/InstantOnParser.cs
 SwitchportGenerator/Inventory.cs
+SwitchportGenerator/InventoryBasis.cs
 SwitchportGenerator/MikroTikBackup.cs
 SwitchportGenerator/MikroTikParser.cs
 SwitchportGenerator/PerceptualColor.cs

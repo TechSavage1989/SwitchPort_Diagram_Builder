@@ -136,6 +136,7 @@ public static class QuickSheet
     static string PanelTitle(Inventory inv,Group g)
     {
         string identity=ReportText.GroupLabel(inv,g);
+        if(g.ConfiguredInterfaces)return identity+" | X2 / TwinGig alternatives";
         string prefix=!ReportText.IsStack(inv)&&g.Slot.Length==0&&g.Prefix.Length>0?" | "+g.Prefix+"x":"";
         string media=g.Copper==0?g.Optical+" "+g.OpticalType:g.Optical==0?g.Copper+" RJ-45":g.Copper+" RJ-45 + "+g.Optical+" "+g.OpticalType;
         if(inv.OS=="RouterOS"&&g.OpticalType.Contains("QSFP"))media="1 RJ-45 + 24 SFP+ + 2 QSFP+";
@@ -413,6 +414,12 @@ public static class QuickSheet
         var policies=new Section{Title="Trunk VLAN policies | dots show VLANs identified in the backup",Columns=1};
         foreach(var policy in inv.Ports.Where(p=>p.TaggedVlanPolicy!=null).GroupBy(p=>p.TaggedVlanPolicy))policies.Entries.Add(Ports(policy)+": "+policy.Key);
         sections.Add(policies);
+        if(InventoryBasis.HasConfiguredInterfaces(inv))
+        {
+            var basis=new Section{Title="Uplink configuration - installed sockets unconfirmed",Columns=1};
+            basis.Entries.Add("Upper bay: Te1 OR Gi49/Gi50. Lower bay: Te2 OR Gi51/Gi52. All six entries retain their own saved settings; they do not represent six installed sockets.");
+            sections.Add(basis);
+        }
         return sections;
     }
     static void AppendPagedDetails(Result result,Inventory inv,double bottom)
@@ -652,10 +659,10 @@ public static class QuickSheet
         }
         scene.Rect(0,0,PageWidth,37,"#13283d","#13283d",4);
         scene.Rect(0,35,PageWidth,2,"#4ca6ce","#4ca6ce");
-        scene.Text(12,5,"NETWORK PORT MAP",8.5,"#d5e7f4",true,390);
+        scene.Text(12,5,InventoryBasis.HasConfiguredInterfaces(inv)?"PORT MAP + CONFIGURED UPLINK ALTERNATIVES":"NETWORK PORT MAP",8.5,"#d5e7f4",true,390);
         scene.Text(12,17,ReportText.DisplayName(inv),14,"#ffffff",true,390);
         if(model.Length>0)scene.Text(420,7,model,9,"#ffffff",true,PageWidth-432);
-        scene.Text(420,model.Length>0?22:14,(inv.Firmware=="Unknown"?"":inv.Firmware+"  |  ")+inv.Ports.Count+" interfaces",8,"#d5e7f4",false,PageWidth-432);
+        scene.Text(420,model.Length>0?22:14,InventoryBasis.HasConfiguredInterfaces(inv)?InventoryBasis.CountLabel(inv)+" | Module unconfirmed":(inv.Firmware=="Unknown"?"":inv.Firmware+"  |  ")+inv.Ports.Count+" interfaces",8,"#d5e7f4",false,PageWidth-432);
         scene.Text(0,PageHeight-10,ReportText.CableMoveDisclaimer,7,"#52677c",false,PageWidth);
         scene.DiagramBodyWidth=includeVlanKey?keyX+keyWidth:diagramWidth;
         return output;

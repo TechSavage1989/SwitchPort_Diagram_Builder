@@ -183,7 +183,7 @@ function renderWorkspace(message){
   function button(label,action,className){const control=document.createElement('button');control.type='button';control.className=className;control.setAttribute('aria-label',label);control.title=label;control.dataset.itemId=item.id;control.dataset.workspaceAction=action;return control;}
   const choose=button('Select '+name,'select','workspace-select');choose.setAttribute('aria-current',item.id===selectedId?'true':'false');
   const title=document.createElement('strong');title.textContent=(index+1)+'. '+name+(item.dirty?' *':'');
-  const detail=document.createElement('small');detail.textContent=[item.name,item.model,item.error].filter(Boolean).join(' · ');choose.title=[name,detail.textContent].filter(Boolean).join('\n');choose.append(title,detail);
+  const detail=document.createElement('small');detail.textContent=[item.qualification,item.name,item.model,item.error].filter(Boolean).join(' · ');choose.title=[name,detail.textContent].filter(Boolean).join('\n');choose.append(title,detail);
   choose.onclick=()=>{if(locked()||item.id===selectedId)return;loading=true;controls();post({action:'selectItem',id:item.id});};
   const order=document.createElement('div');order.className='workspace-order';
   for(const [action,delta,label,glyph] of [['up',-1,'Move up','↑'],['down',1,'Move down','↓']]){
@@ -307,6 +307,7 @@ window.chrome.webview.addEventListener('message',event=>{
   hasInput=m.id!==null;loading=batchLoading;selectedId=m.id||selectedId;
   if(el('deviceDialog').open)el('deviceDialog').close();deviceDraft=null;deviceLoading=false;deviceSaving=false;deviceRequest++;
   el('file').textContent=hasInput?(m.hostname?m.hostname+' - '+m.name:m.name):'No configuration loaded';el('file').title=m.path||m.name||'';
+  el('selectedInventoryBasis').textContent=m.qualification||'Models, names and serial numbers';el('selectedInventoryBasis').title=m.inventoryDetails||'';el('selectedInventoryBasis').style.color=m.qualification?'#e4bc61':'';
   el('pasteError').textContent='';
   if(el('pasteDialog').open)el('pasteDialog').close();
   status('','');controls();return;

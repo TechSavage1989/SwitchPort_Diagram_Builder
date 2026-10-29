@@ -256,7 +256,7 @@ public static class Charts
         var failures=new List<string>();
         if(inv.Groups.Count==0)failures.Add("No validated physical inventory.");
         if(inv.Ports.Count>2000||inv.Groups.Count>48)failures.Add("Inventory exceeds chart safety limits (2000 ports / 48 groups).");
-        if(inv.Ports.Select(p=>p.Id.ToUpperInvariant()).Distinct().Count()!=inv.Ports.Count)failures.Add("Duplicate physical interface identifiers.");
+        if(inv.Ports.Select(p=>p.Id.ToUpperInvariant()).Distinct().Count()!=inv.Ports.Count)failures.Add("Duplicate interface identifiers.");
         if(places.Count!=inv.Ports.Count+inv.Groups.Sum(g=>g.SocketLayout.Count>0?g.SocketLayout.Count-g.Expected:g.Product=="J4907A"?2:0))failures.Add("Generated interface count differs from normalized inventory.");
         int i=0;var physical=PhysicalView(inv);
         foreach(var g in inv.Groups)
@@ -456,7 +456,7 @@ public static class Charts
         void FinishPage()
         {
             if(page==null)return;
-            page.Text(30,55,inv.OS+"  |  "+inv.Firmware+"  |  Ports "+(firstPort+1)+"-"+(lastPort+1)+" of "+inv.Ports.Count+(pageContinued?"  |  Continued":""),12,"#c6d7e6");
+            page.Text(30,55,inv.OS+"  |  "+inv.Firmware+"  |  "+(InventoryBasis.HasConfiguredInterfaces(inv)?InventoryBasis.CountLabel(inv)+" | Module unconfirmed":"Ports "+(firstPort+1)+"-"+(lastPort+1)+" of "+inv.Ports.Count)+(pageContinued?"  |  Continued":""),12,"#c6d7e6");
             page.Rect(30,737,1140,1,"#d9e3ec","#d9e3ec");
             string identities=string.Join("; ",pagePorts.Select(index=>inv.Groups.FirstOrDefault(g=>g.Id==inv.Ports[index].Group)).Where(g=>g!=null).Cast<Group>()
                 .SelectMany(g=>new[]{g.Device,DeviceIdentities.ModuleId(g)}).Where(id=>id.Length>0).Distinct().Select(id=>
@@ -472,7 +472,7 @@ public static class Charts
         {
             FinishPage();page=new Scene{Width=1190,Height=842};pages.Add(page);
             page.Rect(0,0,1190,84,"#13283d","#13283d");
-            page.Text(30,17,ReportText.DisplayName(inv)+"  /  Port inventory",23,"#ffffff",true,1130);
+            page.Text(30,17,ReportText.DisplayName(inv)+(InventoryBasis.HasConfiguredInterfaces(inv)?"  /  Configured interface inventory":"  /  Port inventory"),23,"#ffffff",true,1130);
             page.Rect(30,102,1140,28,"#e7eef5","#e7eef5",3);
             double x=30;
             for(int col=0;col<headers.Length;col++){page.Text(x+8,110,headers[col],11,"#29445d",true,widths[col]-16);x+=widths[col];}

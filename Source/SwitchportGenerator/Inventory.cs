@@ -45,6 +45,8 @@ public sealed class Group
     public bool OpticalOnly { get; set; }
     public bool BlankLeft { get; set; }
     public bool Rear { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool ConfiguredInterfaces { get; set; }
     public List<HardwareSocket> SocketLayout { get; set; } = new();
     public int Expected => Copper + Optical;
 }

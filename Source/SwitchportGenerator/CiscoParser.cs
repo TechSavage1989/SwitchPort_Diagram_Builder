@@ -57,6 +57,8 @@ public static class CiscoParser
             foreach(var model in CiscoHardware.Models.Where(m=>m.Code.StartsWith("C9500-")))
                 if(dataNames.SetEquals(model.Sockets.Select(s=>CiscoHardware.Interface(s,"1"))))
                 {declared["1"]=model.Code;inv.Assumptions.Add("Cisco "+model.Code+" socket layout matched from the complete native interface inventory. License bundle, installed optics and live speeds remain unconfirmed.");break;}
+            if(declared.Count==0&&CiscoHardware.Complete3560E48Signature(text,dataNames,names))
+            {declared["1"]=CiscoHardware.Shared3560E48Profile;inv.Assumptions.Add("Complete IOS 15 / FastEthernet0 / Gi0/1-52 / Te0/1-2 signature matches the 48-port 3560-E shared base layout. Exact SKU and PoE are unconfirmed unless supplied separately; software uplink entries do not confirm installed sockets.");}
         }
         if(declared.Count==0)inv.Blockers.Add("Cisco backup does not establish a verified physical model and uplink module. Supply show inventory (switch PID and installed uplink/converter PIDs); hostnames and unused interface stubs do not confirm installed sockets.");
         if(declared.Count>1)inv.Topology="StackWise";
@@ -67,17 +69,26 @@ public static class CiscoParser
         {
             var model=CiscoHardware.Find(entry.Value);
             if(model==null||!int.TryParse(entry.Key,out int member)||member<1||member>9){inv.Blockers.Add("Unsupported Cisco member/model assignment: "+entry.Key+"="+entry.Value);continue;}
+            if(CiscoHardware.Is3560E48(model.Code)&&(declared.Count>1||member!=1))
+            {inv.Blockers.Add("Catalyst 3560-E is standalone; its Gi0/ and Te0/ interfaces cannot be assigned to multiple members. Import each switch separately.");continue;}
             if(model.Code.StartsWith("C9500-")&&declared.Count>1&&!Regex.IsMatch(text,@"(?im)^stackwise-virtual\b"))inv.Blockers.Add("Multiple C9500 members require explicit StackWise Virtual configuration.");
-            var group=new Group{Id=declared.Count>1?"Member "+member:"Switch",Device=entry.Key,Product=model.Code,Copper=model.Sockets.Count(s=>s.Media=="RJ-45"),Optical=model.Sockets.Count(s=>s.Media!="RJ-45"),OpticalType=model.Code.StartsWith("C9500-")?"SFP28 / QSFP28":"SFP / SFP+"};
-            foreach(var socket in model.Sockets)
+            foreach(var section in model.Sockets.GroupBy(s=>s.ConfiguredInterface))
             {
-                string name=CiscoHardware.Interface(socket,entry.Key);
-                var p=new Port{Id=name,Group=group.Id,Number=socket.Number,DisplayNumber=socket.Label,Media=socket.Media,RelatedInterfaces=CiscoHardware.Names(socket,entry.Key).Skip(1).ToList()};
-                var state=new Settings{Port=p};states[name]=state;
-                foreach(string alias in CiscoHardware.Names(socket,entry.Key))aliases[alias]=(state,alias);
-                group.SocketLayout.Add(new(){Number=socket.Number,Column=socket.Column,Row=socket.Row,Media=socket.Media});inv.Ports.Add(p);
+                var sockets=section.ToList();bool configured=section.Key;
+                var group=new Group{Id=configured?"Uplink interfaces - module unconfirmed":declared.Count>1?"Member "+member:"Switch",Device=entry.Key,Product=configured?"":model.Code,ConfiguredInterfaces=configured,Copper=sockets.Count(s=>s.Media=="RJ-45"),Optical=sockets.Count(s=>s.Media!="RJ-45"),OpticalType=configured?"Unspecified":model.Code.StartsWith("C9500-")?"SFP28 / QSFP28":"SFP / SFP+"};
+                for(int index=0;index<sockets.Count;index++)
+                {
+                    var socket=sockets[index];int number=index+1;string name=CiscoHardware.Interface(socket,entry.Key);
+                    var p=new Port{Id=name,Group=group.Id,Number=number,DisplayNumber=socket.Label,Media=socket.Media,RelatedInterfaces=CiscoHardware.Names(socket,entry.Key).Skip(1).ToList()};
+                    if(configured)p.Notes.Add("Configured uplink interface only; installed X2/TwinGig module and active alternative are unconfirmed.");
+                    var state=new Settings{Port=p};states[name]=state;
+                    foreach(string alias in CiscoHardware.Names(socket,entry.Key))aliases[alias]=(state,alias);
+                    group.SocketLayout.Add(new(){Number=number,Column=socket.Column,Row=socket.Row,Media=socket.Media});inv.Ports.Add(p);
+                }
+                inv.Groups.Add(group);
             }
-            inv.Groups.Add(group);inv.Assumptions.Add("Cisco physical layout: "+model.Code+". Hardware reference: "+model.Source);
+            inv.Assumptions.Add("Cisco base layout reference: "+model.Code+". Hardware reference: "+model.Source);
+            if(CiscoHardware.Is3560E48(model.Code))inv.Assumptions.Add("The 3560-E uplink table preserves six independent software interface settings, not six installed sockets. Top bay: Te0/1 OR Gi0/49 and Gi0/50. Bottom bay: Te0/2 OR Gi0/51 and Gi0/52. Installed X2/TwinGig modules and active alternatives are unconfirmed; stale settings are not merged or discarded.");
         }
         if(inv.Groups.Count==0)
         {

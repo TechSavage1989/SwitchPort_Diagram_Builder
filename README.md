@@ -65,7 +65,7 @@ The generated workspace folder defaults to the **saved workspace filename**. Bef
 
 Invalid configurations are reported independently, while valid ones still export. **Build & results** keeps one latest-successful project: **Open chart**, **Open output folder** and **Copy** follow it, whether it was built from one configuration or all configurations. Selection never redirects these actions. Source/order/settings changes mark the result as an earlier build without removing access; failed or cancelled builds preserve it. **Open chart** opens the first available project PNG in the image viewer, never a PDF. **Open PDF** is a separate action. For multiple sheets, **Sheets…** previews the pages; **Open PNG** opens the displayed page. Output directory, report logo and update preferences remain app-wide; device/model details remain independent per configuration.
 
-See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.15.0 release notes](docs/releases/1.15.0.md).
+See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.15.1 release notes](docs/releases/1.15.1.md).
 
 ## How to use
 

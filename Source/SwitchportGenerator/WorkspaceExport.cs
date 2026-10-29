@@ -39,6 +39,8 @@ public static class WorkspaceExport
             for (int index = 0; index < items.Length; index++)
             {
                 var item = items[index]; item.InvalidateOutput();
+                string qualification=InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.CountLabel(item.Inventory)+". "+InventoryBasis.Qualifier(item.Inventory)+"; uplink entries are configuration alternatives, not confirmed installed sockets.":"";
+                if(qualification.Length>0)result.Warnings.Add(ReportText.DisplayName(item.Inventory)+": "+qualification);
                 string output = Path.Combine(batchDirectory, (index + 1).ToString("D3") + "-" + ItemName(item));
                 try
                 {
@@ -53,7 +55,7 @@ public static class WorkspaceExport
                     string error = success ? "" : ReadFailure(output);
                     item.LastOutput = Directory.Exists(output) ? output : null;
                     item.LastChart = success ? Path.Combine(output, "wall-chart.png") : null;
-                    item.Status = (success ? "Reports created." : error) + (item.LastOutput == null ? "" : "\n\nOutput: " + item.LastOutput);
+                    item.Status = (success ? "Reports created."+(qualification.Length>0?"\n\n"+qualification:"") : error) + (item.LastOutput == null ? "" : "\n\nOutput: " + item.LastOutput);
                     item.StatusType = success ? "complete" : "blocked";
                     result.Items.Add(new(item.Id, item.Name, output, success, error));
                 }

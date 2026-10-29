@@ -58,7 +58,7 @@ public static class DeviceModels
             {
                 if(!Parser.SupportedModelCodes.Contains(sku,StringComparer.OrdinalIgnoreCase)||HardwareCatalog.IsModule(sku))throw new InvalidOperationException("Hardware model has no verified switch layout: "+sku+".");
                 var group=inv.Groups.FirstOrDefault(g=>g.Device.Equals(device.Id,StringComparison.OrdinalIgnoreCase)&&g.Slot.Length==0);
-                if(group!=null&&!inv.OS.StartsWith("Instant On",StringComparison.Ordinal)&&group.Product!=Parser.SharedPl48Profile&&!group.Product.Equals(sku,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Selected model conflicts with configured hardware for "+device.Label+". Type a model name to change only its report label.");
+                if(group!=null&&!inv.OS.StartsWith("Instant On",StringComparison.Ordinal)&&group.Product!=Parser.SharedPl48Profile&&!CiscoHardware.CompatibleSelection(group.Product,sku)&&!group.Product.Equals(sku,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Selected model conflicts with configured hardware for "+device.Label+". Type a model name to change only its report label.");
                 var catalogue=HardwareCatalog.Find(sku);
                 if(catalogue!=null&&inv.OS!="Unknown"&&catalogue.OS!=inv.OS)throw new InvalidOperationException("Selected model uses a different operating system for "+device.Label+".");
                 if(CiscoHardware.Find(sku)!=null&&!inv.OS.StartsWith("Cisco IOS",StringComparison.Ordinal))throw new InvalidOperationException("Selected Cisco model uses a different operating system for "+device.Label+".");
@@ -90,7 +90,7 @@ public static class DeviceModels
         }
         DeviceIdentities.Apply(inv,rows,Describe(source,inv));
         foreach(var device in inv.Devices.Where(d=>d.ModelSelection.Length>0))
-            inv.Assumptions.Add("Model supplied for "+device.Label+": "+device.ModelSelection+(IsSku(device.ModelSelection)?" (verified hardware selection).":" (report label; validated physical layout is unchanged)."));
+            inv.Assumptions.Add("Model supplied for "+device.Label+": "+device.ModelSelection+(IsSku(device.ModelSelection)?InventoryBasis.HasConfiguredInterfaces(inv)?" (verified base-model selection; installed uplink module remains unconfirmed).":" (verified hardware selection).":" (report label; validated physical layout is unchanged)."));
         return inv;
     }
     public static string GroupModel(Inventory inv,Group group)=>group.Slot.Length==0?DeviceIdentities.For(inv,group.Device)?.Model??ReportText.ModelName(group.Product):ReportText.ModelName(group.Product);
