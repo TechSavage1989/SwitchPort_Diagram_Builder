@@ -12,7 +12,11 @@ focused generator checks without retrying SDK/NuGet bootstrap. Complete existing
 CI plus new Cisco actual-PDF/CSV tests remain publication gates. Test actual
 private inputs only locally; never include their reports in CI artifacts.
 The six confirmed inputs comprise the two 6100s, one 6200M, one two-member
-3650 stack and two 9500s. The five 3560-E inputs remain deliberately blocked
+3650 stack and two 9500s. Locally, all six individual exports and a combined
+8-page diagram / 35-page booklet succeeded. All 340 physical interfaces appear
+in the combined PDF inventory; an independent source comparison checked the
+184 Cisco interfaces, VLAN/native/voice assignments and channel inheritance.
+Representative original-input diagrams and combined sheets were visually reviewed. The five 3560-E inputs remain deliberately blocked
 pending installed uplink modules. No interactive Windows dialogs are claimed.
 
 # Reversible workspace edits / complete fresh-page blocks — 1.14.6

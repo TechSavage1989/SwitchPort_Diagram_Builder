@@ -76,6 +76,9 @@ tests/AdaptiveLayoutChecks/AdaptiveLayoutChecks.csproj
 tests/AdaptiveLayoutChecks/Program.cs
 tests/Data/README.md
 tests/Data/ciede2000-reference.tsv
+tests/CiscoChecks/CiscoChecks.csproj
+tests/CiscoChecks/Program.cs
+tests/CiscoChecks/verify-pdfs.py
 tests/DeviceIdentityChecks.cs
 tests/DeviceIdentityChecks.csproj
 tests/GeometryChecks.cs
