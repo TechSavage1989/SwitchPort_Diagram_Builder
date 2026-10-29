@@ -174,6 +174,7 @@ public static class CiscoParser
                 {
                     string operation=m.Groups[1].Value.ToLowerInvariant(),value=m.Groups[2].Value;
                     bool all=value.Equals("all",StringComparison.OrdinalIgnoreCase),none=value.Equals("none",StringComparison.OrdinalIgnoreCase);
+                    if(operation.Length>0&&(all||none)){inv.Blockers.Add("Unsupported Cisco allowed-VLAN operation with all/none on "+p.Id+".");continue;}
                     var ids=all||none?new List<int>():VlanList(value);
                     if(operation=="except"){state.All=true;state.Allowed=ids.ToHashSet();}
                     else if(operation=="remove"){if(state.All)state.Allowed.UnionWith(ids);else state.Allowed.ExceptWith(ids);}
@@ -206,7 +207,8 @@ public static class CiscoParser
                 if(state.Mode!="access")p.Notes.Add("Static access mode is not configured. DTP negotiated mode is not established by this backup.");
             }
             else if(state.Mode.StartsWith("dynamic")){p.Mode=state.Mode;p.Notes.Add("DTP operational mode and VLAN membership are unconfirmed.");}
-            if(state.Voice.HasValue){p.VoiceVlan=state.Voice;if(!p.TaggedVlans.Contains(state.Voice.Value)&&state.Voice!=p.UntaggedVlan)p.TaggedVlans.Add(state.Voice.Value);}
+            if(state.Voice.HasValue&&state.Mode!="trunk"){p.VoiceVlan=state.Voice;if(!p.TaggedVlans.Contains(state.Voice.Value)&&state.Voice!=p.UntaggedVlan)p.TaggedVlans.Add(state.Voice.Value);}
+            else if(state.Voice.HasValue)p.Notes.Add("Configured access-mode voice VLAN is not applied to a static trunk; trunk allowed membership is authoritative.");
             if(state.AllowedSet&&state.Mode!="trunk")p.Notes.Add("Configured trunk allowed VLANs are inactive or unconfirmed without static trunk mode.");
         }
         // Complete the VLAN universe before all/except trunks are expanded.

@@ -38,6 +38,8 @@ static class CiscoChecks
         Check(native.Ports[0].UntaggedVlan==null&&native.Ports[0].TaggedVlans.SequenceEqual(new[]{10,20}),"Global native tagging removes native fill and retains tagged native marker.");
         var modified=Parse("interface GigabitEthernet1/0/1\n switchport mode trunk\n switchport trunk allowed vlan 10,20-22\n switchport trunk allowed vlan remove 21\n switchport trunk allowed vlan add 30\n!\n");
         Check(modified.Ports[0].TaggedVlans.SequenceEqual(new[]{10,20,22,30}),"Allowed set replacement/add/remove are sequential.");
+        var staleVoice=Parse("interface GigabitEthernet1/0/1\n switchport mode trunk\n switchport trunk allowed vlan 10,20\n switchport voice vlan 30\n!\n");
+        Check(staleVoice.Ports[0].VoiceVlan==null&&staleVoice.Ports[0].TaggedVlans.SequenceEqual(new[]{10,20}),"Inactive access voice settings cannot bypass a trunk allowed list.");
         foreach(bool reverse in new[]{false,true})
         {
             string stub="interface GigabitEthernet1/1/3\n!\n",configured="interface TenGigabitEthernet1/1/3\n switchport mode access\n switchport access vlan 10\n!\n";
@@ -45,7 +47,7 @@ static class CiscoChecks
             Check(alias.Blockers.Count==0&&alias.Ports.Count==52&&Port(alias,"TenGigabitEthernet1/1/3").UntaggedVlan==10,"Unused alias stubs do not double count or override a configured cage.");
         }
         Check(Parse("interface GigabitEthernet1/1/3\n switchport access vlan 20\n!\ninterface TenGigabitEthernet1/1/3\n switchport access vlan 10\n!\n").Blockers.Any(b=>b.Contains("aliases")),"Conflicting uplink aliases require active-interface confirmation.");
-        foreach(string bad in new[]{"switchport access vlan 4095","switchport trunk allowed vlan 20-10","switchport voice vlan dot1p","switchport trunk encapsulation isl","switchport private-vlan host-association 10 20"})
+        foreach(string bad in new[]{"switchport access vlan 4095","switchport trunk allowed vlan 20-10","switchport trunk allowed vlan remove all","switchport voice vlan dot1p","switchport trunk encapsulation isl","switchport private-vlan host-association 10 20"})
             Check(Parse("interface GigabitEthernet1/0/1\n "+bad+"\n!\n").Blockers.Count>0,"Unsafe VLAN syntax is rejected: "+bad);
         foreach(string bad in new[]{"GigabitEthernet1/0/49","HundredGigE1/0/1/1","GigabitEthernet1/0/1.10","range GigabitEthernet1/0/1 - 4"})
             Check(Parse("interface "+bad+"\n switchport mode access\n!\n").Blockers.Count>0,"Unsupported physical inventory is rejected: "+bad);
@@ -63,6 +65,7 @@ static class CiscoChecks
         Check(inventory.Blockers.Count==0&&inventory.Ports.Count==52,"Appended show inventory uses chassis PID and ignores PSU/transceiver PIDs.");
         var manual=DeviceModels.Parse("version 17.3\nhostname MANUAL-LAB\ninterface TwentyFiveGigE1/0/1\n switchport mode access\n!\n",new[]{new DeviceIdentity{Id="1",ModelSelection="C9500-24Y4C-A"}});
         Check(manual.Blockers.Count==0&&manual.Ports.Count==28,"Per-device Cisco SKU and license suffix select the physical profile.");
+        Check(DeviceModels.Describe("version 17.3\nhostname PARTIAL\ninterface TwentyFiveGigE2/0/1\n",new Inventory()).Any(d=>d.Id=="2"),"Unidentified Cisco members remain selectable in device details.");
         var unknown=Parser.Parse("version 15.0\nhostname C3560-NAME-IS-NOT-INVENTORY\ninterface GigabitEthernet0/1\n switchport access vlan 10\n!\ninterface TenGigabitEthernet0/1\n switchport mode trunk\n!\n");
         Check(unknown.Blockers.Any(b=>b.Contains("uplink"))&&unknown.Ports.Count==0&&unknown.LogicalInterfaces.Any(p=>p.Id=="GigabitEthernet0/1"&&p.UntaggedVlan==10),"3560 unknown converters retain configured interfaces but do not fabricate physical sockets.");
         foreach(string sku in new[]{"r8q71a","R8V12A"})

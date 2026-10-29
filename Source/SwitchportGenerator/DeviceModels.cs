@@ -19,7 +19,7 @@ public static class DeviceModels
         var devices=DeviceIdentities.Describe(inv);
         var ids=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach(Match m in Regex.Matches(source,@"(?im)^\s*(?:(?:vsf\s+|irf\s+)?member|irf\s+member|unit-type\s+unit)\s+(\d+)\b"))ids.Add(m.Groups[1].Value);
-        foreach(Match m in Regex.Matches(source,@"(?im)^\s*interface\s+(?:(?:GigabitEthernet|Ten-GigabitEthernet|Twenty-FiveGigE|FortyGigE|HundredGigE))?(\d+)/\d+/\d+\b"))ids.Add(m.Groups[1].Value);
+        foreach(Match m in Regex.Matches(source,@"(?im)^\s*interface\s+(?:(?:GigabitEthernet|Ten-?GigabitEthernet|Twenty-?FiveGigE|FortyGigE|HundredGigE))?(\d+)/\d+/\d+\b"))ids.Add(m.Groups[1].Value);
         if(devices.Count==0&&ids.Count==0)ids.Add("1");
         bool chassis=inv.ChassisSlots>0||inv.Topology=="Modular";
         foreach(string id in ids.Where(id=>!devices.Any(d=>d.Id==id)))
