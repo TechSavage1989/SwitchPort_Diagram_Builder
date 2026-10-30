@@ -71,6 +71,22 @@ public static class QuickSheet
         public double PanelHeight(Inventory inv)=>SocketTop+(Math.Max(2,inv.Groups.SelectMany(g=>g.SocketLayout).Select(s=>s.Row+1).DefaultIfEmpty(2).Max())-1)*RowPitch+PortHeight+PanelBottom;
     }
     record Panel(string Group,string Title,double X,double Y,double W,double H);
+    record PositionedSocket(Group Group,Placement Placement,double Column,int Row);
+    // Coordinates are hardware positions, not ranks in the set of occupied
+    // columns/rows. Ranking erased bank gaps and promoted lower-row sockets.
+    static List<PositionedSocket> HardwarePositions(Inventory inv,Group group,List<Placement> original)
+    {
+        var pp=original.Where(p=>p.Group==group.Id).ToList();
+        double first=pp.Min(p=>p.Tile.X);
+        var ys=pp.Select(p=>p.Tile.Y).Distinct().Order().ToList();
+        double blank=group.SocketLayout.Count==0&&group.BlankLeft?(inv.FlexibleUplinks||group.Product=="J9573A"?12:4):0;
+        return pp.Select(item=>
+        {
+            var port=inv.Ports.Single(p=>p.Id==item.Port);
+            var socket=group.SocketLayout.FirstOrDefault(s=>s.Number==port.Number&&s.Suffix==item.Socket);
+            return new PositionedSocket(group,item,socket?.Column??blank+(item.Tile.X-first)/48,socket?.Row??ys.IndexOf(item.Tile.Y));
+        }).ToList();
+    }
     sealed class Section
     {
         public string Title="";
@@ -125,6 +141,7 @@ public static class QuickSheet
     {
         // Match physical faceplates: local numbers, with slot/member context
         // in the heading and complete interface IDs in the key and inventory.
+        if(g.Slot.Length>0&&g.Product.StartsWith("C",StringComparison.Ordinal)&&p.Media=="RJ-45")return p.Number.ToString();
         return p.DisplayNumber.Length>0?p.DisplayNumber:(g.Rear?g.Slot:"")+p.Number;
     }
     static string Fill(Port p,IReadOnlyDictionary<int,string> palette)=>VlanPalette.NativeFill(p,palette);
@@ -525,11 +542,39 @@ public static class QuickSheet
         var physical=Charts.PhysicalView(inv);var panels=new List<Panel>();double y=DiagramTop;
         double activePanelHeight=plan.PanelHeight(inv);
         bool modular=physical!=null&&!inv.FlexibleUplinks;double availableBodyWidth=Math.Min(plan.Width-(!includeVlanKey||plan.KeyBelow?0:plan.KeyWidth+plan.Gutter),plan.MaximumBodyWidth??double.MaxValue);double diagramWidth=availableBodyWidth;
-        double BankWidth(Group g)
+        var positions=inv.Groups.ToDictionary(g=>g.Id,g=>HardwarePositions(inv,g,original));
+        var embedded=new HashSet<string>();
+        // Installed Cisco uplinks occupy the right side of their own member.
+        // Software alternatives remain a separate, explicitly qualified table.
+        if(inv.Vendor=="Cisco")foreach(var device in inv.Groups.GroupBy(g=>g.Device))
         {
-            var xs=original.Where(p=>p.Group==g.Id).Select(p=>p.Tile.X).Distinct().Order().ToList();
-            return (inv.OS=="RouterOS"?(xs[^1]-xs[0])/48+1:xs.Count)*plan.Pitch-plan.Gap+4;
+            var baseGroup=device.FirstOrDefault(g=>g.Slot.Length==0&&!g.ConfiguredInterfaces);
+            if(baseGroup==null||!CiscoModuleCatalog.IsModular(baseGroup.Product))continue;
+            var target=positions[baseGroup.Id];double next=Math.Max(26.25,target.Max(p=>p.Column)+1.75);
+            foreach(var module in device.Where(g=>g.Slot.Length>0&&!g.ConfiguredInterfaces))
+            {
+                bool x2=module.Slot.StartsWith("X2-",StringComparison.Ordinal);
+                int row=x2?(module.Slot=="X2-2"?1:0):positions[module.Id].Max(p=>p.Row)==0?1:0;
+                target.AddRange(positions[module.Id].Select(p=>p with{Column=next+p.Column,Row=row+p.Row}));
+                embedded.Add(module.Id);
+            }
         }
+        if(inv.FlexibleUplinks)foreach(var module in inv.Groups.Where(g=>g.Slot.Length>0))
+            positions[module.Id]=positions[module.Id].Select(p=>p with{Row=1}).ToList();
+        // Dense sheets may reclaim inter-bank whitespace. Socket sizes, rows,
+        // ordering, leading blank fascia and visible bank boundaries are retained.
+        if(plan.Compact==2)foreach(var key in positions.Keys.ToList())
+        {
+            var columns=positions[key].Select(p=>p.Column).Distinct().Order().ToArray();
+            var compactColumns=new Dictionary<double,double>{{columns[0],columns[0]}};
+            for(int i=1;i<columns.Length;i++)
+            {
+                double step=columns[i]-columns[i-1];
+                compactColumns[columns[i]]=compactColumns[columns[i-1]]+(step>2?step:Math.Min(1,step)+Math.Max(0,step-1)*.45);
+            }
+            positions[key]=positions[key].Select(p=>p with{Column=compactColumns[p.Column]}).ToList();
+        }
+        double BankWidth(Group g)=>(positions[g.Id].Max(p=>p.Column)+1)*plan.Pitch-plan.Gap+4;
         if(compact&&!inv.FlexibleUplinks)diagramWidth=Math.Min(diagramWidth,Math.Max(plan.Compact==2?180/plan.Scale:180,(modular?2:1)*inv.Groups.Select(BankWidth).DefaultIfEmpty(180).Max()+(modular?8:0)));
         double BayWidth(IEnumerable<Group> gs)=>Math.Max(56,gs.Select(BankWidth).DefaultIfEmpty(56).Max());
         // Keep wide 3810 fixed banks and their actual flex bays on one row.
@@ -591,7 +636,23 @@ public static class QuickSheet
         }
         else
         {
-            foreach(var g in inv.Groups){panels.Add(new(g.Id,PanelTitle(inv,g),0,y,diagramWidth,activePanelHeight));y+=activePanelHeight+plan.PanelGap;}
+            foreach(var g in inv.Groups.Where(g=>!embedded.Contains(g.Id)&&!g.Rear))
+            {
+                string title=PanelTitle(inv,g);
+                var modules=positions[g.Id].Select(p=>p.Group).Distinct().Where(b=>b.Id!=g.Id).ToList();
+                if(modules.Count>0)title+=" | "+string.Join(" / ",modules.Select(m=>m.Slot+" "+m.Product));
+                panels.Add(new(g.Id,title,0,y,diagramWidth,activePanelHeight));y+=activePanelHeight+plan.PanelGap;
+                var rear=inv.Groups.Where(m=>m.Device==g.Device&&m.Rear).ToList();
+                if(rear.Count>0)
+                {
+                    for(int bay=0;bay<2;bay++)
+                    {
+                        string slot=bay==0?"A":"B";var module=rear.FirstOrDefault(m=>m.Slot==slot);
+                        panels.Add(new(module?.Id??"",module==null?"Rear slot "+slot+" | Not declared":PanelTitle(inv,module),bay*(diagramWidth+6)/2,y,(diagramWidth-6)/2,activePanelHeight));
+                    }
+                    y+=activePanelHeight+plan.PanelGap;
+                }
+            }
         }
         double diagramBottom=y;
         if(diagramBottom>plan.Bottom)throw new OnePageCapacityException("physical switch / stack geometry exceeds the available A4 height");
@@ -609,22 +670,20 @@ public static class QuickSheet
                 scene.Text(panel.X+3,panel.Y+plan.TitleTop,shortTitle,plan.Font(7),"#ffffff",true,panel.W-6,inkBox:true);
             }
             else scene.Text(panel.X+3,panel.Y+plan.TitleTop,panel.Title,plan.Font(7),"#ffffff",true,panel.W-6,inkBox:true);
-            var pp=original.Where(p=>p.Group==g.Id).ToList();
-            var columnXs=pp.Select(p=>p.Tile.X).Distinct().Order().ToList();
-            double width=(inv.OS=="RouterOS"?(columnXs[^1]-columnXs[0])/48:columnXs.Count-1)*plan.Pitch+PortWidth;
-            double blank=g.BlankLeft?Math.Min(110,Math.Max(40,panel.W-width-15)):0;
-            if(width+blank>panel.W-3)throw new OnePageCapacityException("module socket inventory exceeds fixed-scale panel width");
-            double x0=panel.X+(panel.W-width-blank)/2+blank;
-            if(blank>0)scene.Rect(x0-blank,panel.Y+plan.SocketTop,blank-3,panel.H-plan.SocketTop-plan.PanelBottom,"#e3e8ed","#c6d2dc");
-            var rowYs=pp.Select(p=>p.Tile.Y).Distinct().Order().ToList();
+            var pp=positions[g.Id];
+            double width=pp.Max(p=>p.Column)*plan.Pitch+PortWidth;
+            if(width>panel.W-3)throw new OnePageCapacityException("module socket inventory exceeds fixed-scale panel width");
+            double x0=panel.X+(panel.W-width)/2;
+            double leading=pp.Min(p=>p.Column)*plan.Pitch;
+            if(leading>plan.Pitch)scene.Rect(x0,panel.Y+plan.SocketTop,leading-plan.Gap,panel.H-plan.SocketTop-plan.PanelBottom,"#e3e8ed","#c6d2dc",role:"BlankFascia");
+            int rows=pp.Max(p=>p.Row)+1;
             double rowPitch=PortHeight+plan.Gap;
-            double bankHeight=(rowYs.Count-1)*rowPitch+PortHeight;
+            double bankHeight=(rows-1)*rowPitch+PortHeight;
             double bankTop=panel.Y+plan.SocketTop+(panel.H-plan.SocketTop-plan.PanelBottom-bankHeight)/2;
             foreach(var item in pp)
             {
-                var port=inv.Ports.Single(p=>p.Id==item.Port);double x=x0+(inv.OS=="RouterOS"?(item.Tile.X-columnXs[0])/48:columnXs.IndexOf(item.Tile.X))*plan.Pitch;
-                double yy=bankTop+rowYs.IndexOf(item.Tile.Y)*rowPitch;
-                DrawSocket(output,inv,g,port,item,x,yy,colors,plan);
+                var port=inv.Ports.Single(p=>p.Id==item.Placement.Port);
+                DrawSocket(output,inv,item.Group,port,item.Placement,x0+item.Column*plan.Pitch,bankTop+item.Row*rowPitch,colors,plan);
             }
         }
         var vlans=output.VlanColors.Keys.Order().ToList();

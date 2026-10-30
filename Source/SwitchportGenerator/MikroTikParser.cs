@@ -166,7 +166,7 @@ public static class MikroTikParser
             // Physical front views use the vendor's port ordering; console is not an Ethernet port.
             if(profile.Qsfp>0)
             {
-                for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,i.ToString(),(i-1)/2,(i-1)%2);
+                for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,i.ToString(),(i-1)/2+.5*((i-1)/8),1-(i-1)%2);
                 for(int q=1;q<=profile.Qsfp;q++)
                 {
                     var lanes=Enumerable.Range(1,4).Select(l=>logical[s.Interfaces.Single(i=>i.DefaultName==$"qsfpplus{q}-{l}").Key]).ToList();
@@ -174,14 +174,19 @@ public static class MikroTikParser
                     if(lanes.Select(Signature).Distinct().Count()!=1)inv.Blockers.Add("QSFP+ "+q+" has different lane assignments. A lane-level physical diagram is not yet supported.");
                     var first=lanes[0];var physical=JsonSerializer.Deserialize<Port>(JsonSerializer.Serialize(first))!;
                     physical.Id="qsfpplus"+q;physical.RelatedInterfaces=lanes.Select(p=>p.Id).ToList();physical.Description=string.Join(" / ",lanes.Select(p=>p.Description).Where(x=>x.Length>0).Distinct());
-                    physical.Group=g.Id;physical.Number=inv.Ports.Count+1;physical.DisplayNumber="Q"+q;inv.Ports.Add(physical);g.SocketLayout.Add(new(){Number=physical.Number,Column=12.75,Row=q-1,Media="QSFP+"});
+                    physical.Group=g.Id;physical.Number=inv.Ports.Count+1;physical.DisplayNumber="Q"+q;inv.Ports.Add(physical);g.SocketLayout.Add(new(){Number=physical.Number,Column=13.75,Row=2-q,Media="QSFP+"});
                 }
-                Add("ether1","E1",14,1);
+                Add("ether1","E1",15,1);
             }
             else if(profile.Copper==1)
-            {Add("ether1","E1",0,0);for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,i.ToString(),i+1,0);}
+            {
+                bool left=profile.Code=="CRS305-1G-4S+IN";
+                double spacing=profile.Fiber==16?.5:0;
+                Add("ether1","E1",left?0:profile.Fiber+spacing*((profile.Fiber-1)/4)+.75,0);
+                for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,i.ToString(),(left?1.75:0)+i-1+spacing*((i-1)/4),0);
+            }
             else
-            {for(int i=1;i<=profile.Copper;i++)Add("ether"+i,i.ToString(),(i-1)/2,(i-1)%2);for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,"S"+i,profile.Copper/2+1+(profile.FiberRows?(i-1)/2:i-1),profile.FiberRows?(i-1)%2:1);}
+            {for(int i=1;i<=profile.Copper;i++)Add("ether"+i,i.ToString(),(i-1)/2+.5*((i-1)/8),1-(i-1)%2);for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,"S"+i,profile.Copper/2+1.75+(profile.FiberRows?(i-1)/2:i-1),profile.FiberRows?1-(i-1)%2:1);}
             // Logical records are independent from the physical cage presentation.
             inv.Vlans=inv.Vlans.OrderBy(v=>v.Id).ToList();
             inv.Assumptions.Add("MikroTik hardware and port ordering: "+ModelSource(profile.Code));

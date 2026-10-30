@@ -101,6 +101,8 @@ jobs:
         run: |
           dotnet run --project Source/tests/CatalogChecks/CatalogChecks.csproj --configuration Release -- build/catalog-fixtures
           python3 Source/tests/CatalogChecks/verify-pdfs.py build/catalog-fixtures
+      - name: Check manufacturer port positions in every supported final diagram
+        run: dotnet run --project Source/tests/PositionChecks/PositionChecks.csproj --configuration Release -- build/position-fixtures
       - name: Check all supported hardware and geometry
         run: dotnet run --project Source/tests/GeometryChecks.csproj --configuration Release
       - name: Check adaptive marker packing
@@ -125,6 +127,7 @@ jobs:
             build/cisco-fixtures
             build/module-fixtures
             build/catalog-fixtures
+            build/position-fixtures
             build/workspace-fixtures
           if-no-files-found: error
           retention-days: 14

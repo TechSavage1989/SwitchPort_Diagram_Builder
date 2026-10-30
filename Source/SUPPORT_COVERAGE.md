@@ -1,7 +1,7 @@
 HPE / Aruba coverage and research status
 =======================================
 
-Current hardware catalogue: 1.17.0.
+Current hardware catalogue: 1.18.0. Physical-position sources and limits: [audit](../docs/PHYSICAL_POSITION_AUDIT.md).
 
 This release does not claim universal support for every HPE/Aruba product or
 backup format. It enables verified socket layouts and supported configuration

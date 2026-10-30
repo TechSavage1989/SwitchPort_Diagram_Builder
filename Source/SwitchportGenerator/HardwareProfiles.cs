@@ -19,6 +19,30 @@ public static class HardwareProfiles
         ["J9475A"]=("8206 zl",6),["J9638A"]=("8206 zl",6),["J9640A"]=("8206 zl",6)
     };
     static readonly string[] FlexBases={"JL071A","JL072A","JL073A","JL074A","JL075A","JL076A"};
+    public static List<HardwareSocket> LegacySockets(Group g)
+    {
+        var sockets=new List<HardwareSocket>();
+        if(FlexBases.Contains(g.Product))
+        {
+            for(int n=1;n<=g.Expected;n++)
+            {
+                bool fiber=g.Product=="JL075A";
+                double gap=g.Product=="JL076A"?(n>28?1:n>8?.5:0):.5*((n-1)/(fiber?4:12));
+                sockets.Add(new(){Number=n,Column=(g.Copper==24?13:0)+(fiber?n-1:(n-1)/2)+gap,Row=fiber?1:(n-1)%2,Media=fiber?"SFP+":"RJ-45"});
+            }
+        }
+        else if(g.Product=="J9573A")
+        {
+            for(int n=1;n<=24;n++)sockets.Add(new(){Number=n,Column=13+(n-1)/2+.5*((n-1)/12),Row=(n-1)%2,Media="RJ-45"});
+            for(int n=1;n<=2;n++)sockets.Add(new(){Number=24+n,Column=26.25,Row=n-1,Media="SFP+"});
+        }
+        else if(g.Product==Parser.SharedPl48Profile)
+        {
+            for(int n=1;n<=48;n++)sockets.Add(new(){Number=n,Column=2.75+(n-1)/2+.5*((n-1)/12),Row=(n-1)%2,Media="RJ-45"});
+            for(int n=1;n<=4;n++)sockets.Add(new(){Number=48+n,Column=(n-1)/2,Row=(n-1)%2,Media="SFP/SFP+"});
+        }
+        return sockets;
+    }
     public static IReadOnlyDictionary<string,(string Name,int Slots)> ChassisModels=>Chassis;
     public static bool Is2920(string product)=>new[]{"J9726A","J9727A","J9728A","J9729A","J9836A"}.Contains(product,StringComparer.OrdinalIgnoreCase);
     public static void Add2920RearModules(Inventory inv,string text,bool stack)

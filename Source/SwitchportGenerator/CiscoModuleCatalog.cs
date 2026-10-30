@@ -41,8 +41,8 @@ public static class CiscoModuleCatalog
         {string sku="X2-10GB-"+optic;Add(sku,"10G X2 "+optic+" transceiver, 1 socket","3560E",EGuide,(_,slot)=>X2(sku,slot));}
         Add("C3KX-NM-1G","4 x 1G SFP network module","3KX",XGuide,(_,_)=>Ports(4,"GigabitEthernet","SFP"));
         Add("C3KX-NM-10G","2 x SFP + 2 x SFP+ (paired modes)","3KX",XGuide,(_,_)=>new(){S(1,"GigabitEthernet","SFP",0),S(1,"TenGigabitEthernet","SFP+",1),S(3,"GigabitEthernet","SFP",2),S(2,"TenGigabitEthernet","SFP+",3)});
-        Add("C3KX-NM-10GT","2 x 1/10G RJ-45 network module","3KX",XGuide,(_,_)=>Ports(2,"TenGigabitEthernet","RJ-45"));
-        Add("C3KX-SM-10G","2 x SFP+ service module","3KX",XGuide,(_,_)=>Ports(2,"TenGigabitEthernet","SFP+"));
+        Add("C3KX-NM-10GT","2 x 1/10G RJ-45 network module","3KX",XGuide,(_,_)=>Enumerable.Range(1,2).Select(n=>S(n,"TenGigabitEthernet","RJ-45",n)).ToList());
+        Add("C3KX-SM-10G","2 x SFP+ service module","3KX",XGuide,(_,_)=>Enumerable.Range(1,2).Select(n=>S(n,"TenGigabitEthernet","SFP+",n+1)).ToList());
         Add("C3KX-NM-BLANK","Blank network module, no sockets","3KX",XGuide,(_,_)=>new());
         Add("C3850-NM-4-1G","4 x 1G SFP network module","3850",Guide3850,(_,_)=>Ports(4,"GigabitEthernet","SFP"));
         Add("C3850-NM-2-10G","2 x SFP + 2 x SFP+ network module","3850",Guide3850,(_,_)=>new(){S(1,"GigabitEthernet","SFP"),S(2,"GigabitEthernet","SFP"),S(3,"TenGigabitEthernet","SFP+"),S(4,"TenGigabitEthernet","SFP+")});
@@ -57,7 +57,7 @@ public static class CiscoModuleCatalog
         Add("C9300-NM-4M","4 x 10G multigigabit RJ-45 network module","9300",Guide9300,(_,_)=>Ports(4,"TenGigabitEthernet","RJ-45"));
         Add("C9300-NM-2Q","2 x 40G QSFP+ (native mode)","9300",Guide9300,(_,_)=>Ports(2,"FortyGigabitEthernet","QSFP+"));
         Add("C9300-NM-8X","8 x 1/10G SFP+ network module","9300",Guide9300,(_,_)=>Ports(8,"TenGigabitEthernet","SFP+"));
-        Add("C9300-NM-2Y","2 x 1/10/25G SFP28 network module","9300",Guide9300,(_,_)=>Ports(2,"TwentyFiveGigE","SFP28"));
+        Add("C9300-NM-2Y","2 x 1/10/25G SFP28 network module","9300",Guide9300,(_,_)=>Enumerable.Range(1,2).Select(n=>S(n,"TwentyFiveGigE","SFP28",n)).ToList());
         Add("C9300-NM-BLANK","Blank network module, no sockets","9300",Guide9300,(_,_)=>new());
         Add("C9300X-NM-2C","2 x 40/100G QSFP28 (native mode)","9300X",Guide9300,(_,_)=>Ports(2,"HundredGigE","QSFP28"));
         Add("C9300X-NM-4C","4 x 40/100G QSFP28 (native mode)","9300X",Guide9300,(_,_)=>Enumerable.Range(1,4).Select(n=>S(n,"HundredGigE","QSFP28",(n-1)/2,(n-1)%2)).ToList());
@@ -95,7 +95,11 @@ public static class CiscoModuleCatalog
         void Add(string code,int count,string media,string source,string? interfaceKind=null)
         {
             string prefix=IsStandalone(code)?"0/":"{m}/0/",kind=interfaceKind??(media=="SFP+"?"TenGigabitEthernet":"GigabitEthernet");
-            var sockets=Enumerable.Range(1,count).Select(n=>new CiscoHardware.Socket(n,(n-1)/2,(n-1)%2,media,kind+prefix+n,n.ToString(),kind=="TwentyFiveGigE"?new[]{"TwentyFiveGigabitEthernet"+prefix+n}:Array.Empty<string>())).ToList();
+            // The fiber 3750-X, 3850 and 9300X bases have one lower row.
+            // C9300 SFP bases retain the two-row, twelve-port bank arrangement.
+            bool single=media!="RJ-45"&&Family(code)!="9300";
+            double leading=single?(code=="WS-C3750X-12S"?13:0):count==24?13:0;
+            var sockets=Enumerable.Range(1,count).Select(n=>new CiscoHardware.Socket(n,leading+(single?n-1:(n-1)/2)+.5*((n-1)/(single?6:12)),single?1:(n-1)%2,media,kind+prefix+n,n.ToString(),kind=="TwentyFiveGigE"?new[]{"TwentyFiveGigabitEthernet"+prefix+n}:Array.Empty<string>())).ToList();
             // Only interfaces actually present in a backup are retained from this union.
             // No module is inferred from the CLI's unused software alternatives.
             var alternatives=Compatible(code).SelectMany(d=>Layout(d,code,"NM")).GroupBy(s=>s.Interface,StringComparer.OrdinalIgnoreCase).Select(g=>g.First()).ToList();

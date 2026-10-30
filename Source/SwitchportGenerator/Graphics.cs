@@ -82,12 +82,12 @@ public static class Charts
             {
                 var fixedGroup=groups.FirstOrDefault(g=>g.Slot.Length==0);int slots=fixedGroup?.Product=="JL075A"?2:1;
                 double pitch=groups.Select(g=>GroupPitch(inv,g)).DefaultIfEmpty(160).Max();
-                double fixedWidth=slots==2?826:1226;
+                double fixedWidth=slots==2?880:1276;
                 if(fixedGroup!=null)view.Frames.Add(new(fixedGroup.Id,"Fixed ports",40,y,fixedWidth,pitch-16));
                 for(int col=0;col<slots;col++)
                 {
                     string slot=((char)('A'+col)).ToString();var g=groups.FirstOrDefault(g=>g.Slot==slot);
-                    view.Frames.Add(new(g?.Id??"","Uplink "+slot,slots==2?886+400*col:1286,y,380,pitch-16));
+                    view.Frames.Add(new(g?.Id??"","Uplink "+slot,slots==2?940+360*col:1336,y,slots==2?350:330,pitch-16));
                 }
                 y+=pitch;
             }
@@ -193,7 +193,7 @@ public static class Charts
             s.Rect(panelX,y,panelWidth,frame?.H??GroupPitch(inv,g)-32,"#f6f8fb","#dce4ec",8);
             s.Text(panelX+16,y+12,string.Join(" | ",new[]{frame?.Slot??g.Id,ReportText.ModelName(g.Product),g.Product=="J4907A"?"14 RJ-45 + 2 RJ-45/SFP combo pairs":g.Copper==0?g.Optical+" "+g.OpticalType:g.Optical==0?g.Copper+" RJ-45":g.Copper+" RJ-45 + "+g.Optical+" "+g.OpticalType}.Where(value=>value.Length>0)),15,"#20374e",true,panelWidth-32);
             var pp=places.Where(p=>p.Group==g.Id).ToList();
-            if(g.BlankLeft&&pp.Count>0)s.Rect(pp.Min(p=>p.Tile.X)-BlankWidth(inv,g),y+PortTop(inv,g),BlankWidth(inv,g)-16,(g.OpticalOnly?0:RowPitch(inv,g))+PortHeight(inv,g),"#dee2e7");
+            if(g.BlankLeft&&pp.Count>0)s.Rect(pp.Min(p=>p.Tile.X)-(g.SocketLayout.Count>0?g.SocketLayout.Min(s=>s.Column)*48:BlankWidth(inv,g)),y+PortTop(inv,g),(g.SocketLayout.Count>0?g.SocketLayout.Min(s=>s.Column)*48:BlankWidth(inv,g))-16,(g.OpticalOnly?0:RowPitch(inv,g))+PortHeight(inv,g),"#dee2e7");
             foreach(var p in pp)
             {
                 var port=inv.Ports.Single(q=>q.Id==p.Port);
@@ -286,7 +286,7 @@ public static class Charts
                 if(Overlap(pp[a].Tile,pp[b].Tile)||Overlap(pp[a].Marker,pp[b].Tile)||Overlap(pp[b].Marker,pp[a].Tile))failures.Add("Overlapping geometry in "+g.Id);
             if(pp.Count>0)
             {
-                double left=pp.Min(p=>p.Tile.X)-(g.BlankLeft&&g.SocketLayout.Count==0?BlankWidth(inv,g):0),right=pp.Max(p=>p.Tile.X+p.Tile.W);
+                double left=pp.Min(p=>p.Tile.X)-(g.SocketLayout.Count>0?g.SocketLayout.Min(s=>s.Column)*48:g.BlankLeft?BlankWidth(inv,g):0),right=pp.Max(p=>p.Tile.X+p.Tile.W);
                 // Visible port extents are centered; pitch includes a four-pixel gap.
                 double delta=Math.Abs((left+right)/2-(frame==null?860:frame.X+frame.W/2));
                 if(delta>0.01)failures.Add("Frame centering delta exceeds tolerance for "+g.Id);

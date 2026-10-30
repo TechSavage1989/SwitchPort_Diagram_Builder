@@ -1,3 +1,7 @@
+# Physical position corrections in 1.18.0
+
+The [manufacturer reference audit](../docs/PHYSICAL_POSITION_AUDIT.md) records the current rows, bank spacing, blank fascia, module placement and final-diagram regression coverage. Its corrections supersede older layout descriptions below.
+
 Hardware layout notes
 =====================
 

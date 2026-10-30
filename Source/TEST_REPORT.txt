@@ -1,3 +1,7 @@
+1.18.0 physical-position regression scope
+
+PositionChecks adds every selectable model and all 75 module PIDs in final report scenes, plus ten parser-supported Instant On 1930 variants. It exports per-model audit results and representative actual PNG/SVG/PDF reports. GeometryChecks, AdaptiveLayoutChecks and LayoutQualityChecks retain all supported catalog, dense stack, complete marker and readable-font checks. Existing full Linux, browser and Windows/update CI is required before promotion.
+
 1.17.0 focused regression scope
 Local final validation: 590 catalog/inspector, 457 Cisco and 1,978 module assertions.
 Actual new-family and existing Cisco/module PDF/PNG/CSV checks pass, retaining

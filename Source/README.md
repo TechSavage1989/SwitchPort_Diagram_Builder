@@ -1,4 +1,8 @@
-Switchport Diagram Builder 1.17.0 - Windows 10/11 x64
+Switchport Diagram Builder 1.18.0 - Windows 10/11 x64
+
+1.18.0: Manufacturer port-position audit
+
+Corrected physical rows, port-bank gaps, fixed uplinks, front network modules and rear expansion bays. All supported models and 75 module PIDs are exercised in finished diagrams. See docs/PHYSICAL_POSITION_AUDIT.md.
 
 1.17.0: 3650 inspector and catalog refresh
 ---------------------------------------

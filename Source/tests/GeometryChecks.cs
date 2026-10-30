@@ -370,7 +370,11 @@ static class GeometryChecks
         }
         var topRow=tagSheet.Sockets.Where(p=>p.Tile.Y==tagSheet.Sockets.Min(p=>p.Tile.Y)).OrderBy(p=>p.Tile.X).ToList();
         var steps=topRow.Zip(topRow.Skip(1)).Select(pair=>pair.Second.Tile.X-pair.First.Tile.X).ToList();
-        Assert(steps.All(step=>step>=topRow[0].Tile.W)&&steps.Max()-steps.Min()<.001,"Adjacent sockets retain uniform compact spacing without overlap");
+        Assert(steps.All(step=>step>=topRow[0].Tile.W),"Adjacent sockets never overlap");
+        var boundaries=new HashSet<(string,string)>{("51","1"),("11","13"),("23","25"),("35","37")};
+        double normal=steps.Min();
+        foreach(var pair in topRow.Zip(topRow.Skip(1)))
+            Assert(boundaries.Contains((pair.First.Port,pair.Second.Port))?pair.Second.Tile.X-pair.First.Tile.X>normal+.01:Math.Abs(pair.Second.Tile.X-pair.First.Tile.X-normal)<.001,"2930F bank boundaries remain visible while within-bank spacing stays uniform");
         var header=fiveSheet.Scene.Boxes.First(b=>b.Role=="Heading"&&b.Fill=="#17324d");
         fiveSheet.Scene.Shapes.Add(new(new[]{(header.X+1,header.Y+1),(header.X+5,header.Y+1),(header.X+5,header.Y+5),(header.X+1,header.Y+5)},"","#3267c8",3.2,"",true));
         Assert(Charts.ValidateScene(fiveSheet.Scene).Any(s=>s.Contains("Heading collides")),"Injected LAG outline/header collision is rejected even without a text collision");

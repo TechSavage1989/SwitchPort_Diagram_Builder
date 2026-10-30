@@ -1,3 +1,30 @@
+# Physical port-position correction: 1.18.0
+
+Read [the reference audit](PHYSICAL_POSITION_AUDIT.md) for the scope, primary
+manufacturer drawings and diagram conventions. Hardware columns are fractional
+port pitches. QuickSheet now consumes those coordinates directly, preserving
+empty rows and leading fascia. It may condense short inter-bank gaps in the
+most compact layout, but does not change socket proportions or numbering.
+Installed Cisco modules are composed into their member face; software
+alternatives remain separately qualified. Rear 2920 bays stay in a rear view.
+
+PositionChecks in the existing CI workflow sweeps all inspector choices, all
+75 module PIDs and ten parser-only 1930 SKUs, checks final rendered positions,
+and exports representative reports plus position-audit.csv. The complete prior
+CI remains required. Private input validation is local only. Windows interactive
+WebView2 and real user update/restart have not been manually exercised here.
+
+Local validation passed 409 finished diagrams and 1,012,014 physical-position
+assertions, 120,439 adaptive layout assertions, 6,632 layout-quality assertions,
+all existing geometry checks, Cisco/module/catalog PDF inspections, and 34
+repository/packaging tests. The supplied 3650 stack retained all 104 port states
+after generation; its PNG was visually reviewed. These local results supplement,
+and do not replace, the complete hosted CI gate.
+
+Release assets must be downloaded and verified against update-manifest.json,
+SHA256SUMS.txt and the release receipt after publication. Promote only the exact
+feature commit that passed every CI job, using the current main SHA as a lease.
+
 # Catalog and 3650 inspector refresh: 1.17.0
 
 Read [catalog sources and limits](CATALOG_REFRESH.md) and the runtime-derived

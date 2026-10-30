@@ -8,6 +8,13 @@ public static class InstantOnParser
         ["JL680A"]=8,["JL681A"]=8,["JL682A"]=24,["JL683A"]=24,["JL683B"]=24,
         ["JL684A"]=24,["JL684B"]=24,["JL685A"]=48,["JL686A"]=48,["JL686B"]=48
     };
+    static List<HardwareSocket> Layout1930(int copper)
+    {
+        var sockets=Enumerable.Range(1,copper).Select(n=>new HardwareSocket{Number=n,Column=copper==8?n-1+.5*((n-1)/4):(copper==24?13:0)+(n-1)/2+.5*((n-1)/12),Row=copper==8?0:(n-1)%2,Media="RJ-45"}).ToList();
+        double optical=copper==8?9.25:26.25;
+        for(int n=1;n<=(copper==8?2:4);n++)sockets.Add(new(){Number=copper+n,Column=optical+(copper==8?n-1:(n-1)/2),Row=copper==8?0:(n-1)%2,Media=copper==8?"SFP":"SFP+"});
+        return sockets;
+    }
     public static Inventory Parse(string source,string? selectedModels=null)
     {
         string text=source.Replace("\r","");
@@ -54,7 +61,7 @@ public static class InstantOnParser
             if(series1960&&profile?.OS!="Instant On 1960")continue;
             int memberCopper=profile?.Copper??copper,memberOptical=profile?.Optical??optical;
             string prefix=qualified?memberId+"/":"";
-            var group=new Group{Id=qualified?"Member "+memberId:"Switch",Device=memberId.ToString(),Product=memberSku,Prefix=prefix,Copper=memberCopper,Optical=memberOptical,OpticalType=profile?.OpticalType??(copper==8?"SFP":"SFP+"),OpticalSide="right",OpticalOnly=copper==8||series1960&&memberSku=="JL805A",BlankLeft=series1960&&(memberSku=="JL805A"||memberCopper==26),SocketLayout=series1960&&memberSku!="JL805A"?profile!.Sockets:new()};
+            var group=new Group{Id=qualified?"Member "+memberId:"Switch",Device=memberId.ToString(),Product=memberSku,Prefix=prefix,Copper=memberCopper,Optical=memberOptical,OpticalType=profile?.OpticalType??(copper==8?"SFP":"SFP+"),OpticalSide="right",OpticalOnly=copper==8||series1960&&memberSku=="JL805A",BlankLeft=series1960&&(memberSku=="JL805A"||memberCopper==26),SocketLayout=series1960?profile!.Sockets:Layout1930(memberCopper)};
             inv.Groups.Add(group);
             for(int n=1;n<=group.Expected;n++)inv.Ports.Add(new Port{Id=prefix+n,Group=group.Id,Number=n,Media=n<=memberCopper?"RJ-45":group.OpticalType});
         }

@@ -110,7 +110,6 @@ public static class Parser
         ["JL075A"]=(0,16,"right","SFP+",true,false), ["JL076A"]=(48,0,"right","",false,false),
         ["JL083A"]=(0,4,"right","SFP+",true,false), ["JL078A"]=(0,1,"right","QSFP+",true,false), ["JL079A"]=(0,2,"right","QSFP+",true,false), ["JL081A"]=(4,0,"right","",true,false)
     };
-    static readonly HashSet<string> LegacyModels=Models.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
     static Parser()
     {
         foreach(var model in HardwareCatalog.Models)
@@ -226,8 +225,9 @@ public static class Parser
             if(catalogue!=null)
             {
                 if(catalogue.OS!=inv.OS){inv.Blockers.Add("Selected hardware operating system differs from the configuration: "+d.Value);continue;}
-                if(!LegacyModels.Contains(d.Value))g.SocketLayout=catalogue.Sockets;
+                g.SocketLayout=catalogue.Sockets;
             }
+            if(g.SocketLayout.Count==0)g.SocketLayout=HardwareProfiles.LegacySockets(g);
             inv.Groups.Add(g);
             for(int n=1;n<=g.Expected;n++)inv.Ports.Add(new Port{Id=prefix+n,Group=g.Id,Number=n,Media=g.SocketLayout.FirstOrDefault(s=>s.Number==n)?.Media??(n<=g.Copper?"RJ-45":g.OpticalType)});
         }
