@@ -1,3 +1,13 @@
+# Report header spacing: 1.18.1
+
+QuickSheet ends the main header at 35 points and starts the diagram at the
+existing 37-point position. The blue accent rectangle is removed, leaving a
+clear gap without moving the switch geometry or header text. Individual and
+combined workspace reports share this renderer.
+
+Validate rendered PNG/PDF headers, retain the complete CI gate on the exact
+feature commit, and verify published assets against the release receipt.
+
 # Physical port-position correction: 1.18.0
 
 Read [the reference audit](PHYSICAL_POSITION_AUDIT.md) for the scope, primary

@@ -717,8 +717,7 @@ public static class QuickSheet
             string details=identity.SerialNumber.Length>0?"S/N "+identity.SerialNumber:identity.AssetTag.Length>0?"Asset "+identity.AssetTag:"";
             if(details.Length>0)model+=" | "+details;
         }
-        scene.Rect(0,0,PageWidth,37,"#13283d","#13283d",4);
-        scene.Rect(0,35,PageWidth,2,"#4ca6ce","#4ca6ce");
+        scene.Rect(0,0,PageWidth,35,"#13283d","#13283d",4);
         scene.Text(12,5,InventoryBasis.HasConfiguredInterfaces(inv)?"PORT MAP + CONFIGURED UPLINK ALTERNATIVES":"NETWORK PORT MAP",8.5,"#d5e7f4",true,390);
         scene.Text(12,17,ReportText.DisplayName(inv),14,"#ffffff",true,390);
         if(model.Length>0)scene.Text(420,7,model,9,"#ffffff",true,PageWidth-432);

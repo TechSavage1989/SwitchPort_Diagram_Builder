@@ -1,4 +1,8 @@
-Switchport Diagram Builder 1.18.0 - Windows 10/11 x64
+Switchport Diagram Builder 1.18.1 - Windows 10/11 x64
+
+1.18.1: Report header spacing
+
+Removed the thin blue divider below the main report header, leaving a clear gap above the switch header in individual and shared workspace reports.
 
 1.18.0: Manufacturer port-position audit
 
