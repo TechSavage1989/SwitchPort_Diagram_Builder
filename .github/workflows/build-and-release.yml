@@ -97,6 +97,10 @@ jobs:
         run: |
           dotnet run --project Source/tests/ModuleChecks/ModuleChecks.csproj --configuration Release -- build/module-fixtures
           python3 Source/tests/ModuleChecks/verify-pdfs.py build/module-fixtures
+      - name: Check complete catalog, 3650 inspector and expanded hardware reports
+        run: |
+          dotnet run --project Source/tests/CatalogChecks/CatalogChecks.csproj --configuration Release -- build/catalog-fixtures
+          python3 Source/tests/CatalogChecks/verify-pdfs.py build/catalog-fixtures
       - name: Check all supported hardware and geometry
         run: dotnet run --project Source/tests/GeometryChecks.csproj --configuration Release
       - name: Check adaptive marker packing
@@ -120,6 +124,7 @@ jobs:
             build/shared-sheet-fixtures
             build/cisco-fixtures
             build/module-fixtures
+            build/catalog-fixtures
             build/workspace-fixtures
           if-no-files-found: error
           retention-days: 14

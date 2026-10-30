@@ -59,10 +59,15 @@ public static class CiscoModuleCatalog
         Add("C9300-NM-8X","8 x 1/10G SFP+ network module","9300",Guide9300,(_,_)=>Ports(8,"TenGigabitEthernet","SFP+"));
         Add("C9300-NM-2Y","2 x 1/10/25G SFP28 network module","9300",Guide9300,(_,_)=>Ports(2,"TwentyFiveGigE","SFP28"));
         Add("C9300-NM-BLANK","Blank network module, no sockets","9300",Guide9300,(_,_)=>new());
+        Add("C9300X-NM-2C","2 x 40/100G QSFP28 (native mode)","9300X",Guide9300,(_,_)=>Ports(2,"HundredGigE","QSFP28"));
+        Add("C9300X-NM-4C","4 x 40/100G QSFP28 (native mode)","9300X",Guide9300,(_,_)=>Enumerable.Range(1,4).Select(n=>S(n,"HundredGigE","QSFP28",(n-1)/2,(n-1)%2)).ToList());
+        Add("C9300X-NM-8M","8 x 10G multigigabit RJ-45 network module","9300X",Guide9300,(_,_)=>Ports(8,"TenGigabitEthernet","RJ-45"));
+        Add("C9300X-NM-8Y","8 x 1/10/25G SFP28 network module","9300X",Guide9300,(_,_)=>Ports(8,"TwentyFiveGigE","SFP28"));
+        Add("C9300X-NM-BLANK","Blank network module, no sockets","9300X",Guide9300,(_,_)=>new());
         return result;
     }
     public static string CanonicalSku(string value)=>value.Trim().TrimEnd('=').ToUpperInvariant() is "C3KX-NM_BLNK" or "C3KX-NM-BLNK"?"C3KX-NM-BLANK":value.Trim().TrimEnd('=').ToUpperInvariant();
-    static string Family(string sku)=>CiscoHardware.Is3560E48(sku)?"3560E":sku.StartsWith("WS-C3560X-")||sku.StartsWith("WS-C3750X-")?"3KX":sku.StartsWith("WS-C3850-")?"3850":sku.StartsWith("C9200-")?"9200":sku.StartsWith("C9300-")?"9300":"";
+    static string Family(string sku)=>CiscoHardware.Is3560E48(sku)?"3560E":sku.StartsWith("WS-C3560X-")||sku.StartsWith("WS-C3750X-")?"3KX":sku.StartsWith("WS-C3850-")?"3850":sku.StartsWith("C9200-")?"9200":sku.StartsWith("C9300-")?"9300":sku.StartsWith("C9300X-")?"9300X":"";
     public static bool IsNetworkModulePid(string sku)=>Regex.IsMatch(sku,@"^(?:C(?:3KX|3850|9200|9300X?)[-_](?:NM|SM)|CVR-X2-|X2-10G)",RegexOptions.IgnoreCase);
     public static bool IsStandalone(string sku)=>CiscoHardware.Is3560E48(sku)||sku.StartsWith("WS-C3560X-",StringComparison.OrdinalIgnoreCase);
     public static bool IsModular(string sku)=>Family(sku).Length>0;
@@ -78,6 +83,7 @@ public static class CiscoModuleCatalog
                 if(d.Sku=="C3850-NM-4-10G"&&!large&&!xs)continue;
                 if((d.Sku is "C3850-NM-8-10G" or "C3850-NM-2-40G")&&!xs24)continue;
             }
+            if(family=="9300X"&&d.Sku=="C9300X-NM-4C"&&!new[]{"C9300X-24Y","C9300X-48HX","C9300X-48TX"}.Contains(model))continue;
             yield return d;
         }
     }
@@ -86,10 +92,10 @@ public static class CiscoModuleCatalog
     static List<CiscoHardware.Model> BuildBases()
     {
         var result=new List<CiscoHardware.Model>();
-        void Add(string code,int count,string media,string source)
+        void Add(string code,int count,string media,string source,string? interfaceKind=null)
         {
-            string prefix=IsStandalone(code)?"0/":"{m}/0/",kind=media=="SFP+"?"TenGigabitEthernet":"GigabitEthernet";
-            var sockets=Enumerable.Range(1,count).Select(n=>new CiscoHardware.Socket(n,(n-1)/2,(n-1)%2,media,kind+prefix+n,n.ToString(),Array.Empty<string>())).ToList();
+            string prefix=IsStandalone(code)?"0/":"{m}/0/",kind=interfaceKind??(media=="SFP+"?"TenGigabitEthernet":"GigabitEthernet");
+            var sockets=Enumerable.Range(1,count).Select(n=>new CiscoHardware.Socket(n,(n-1)/2,(n-1)%2,media,kind+prefix+n,n.ToString(),kind=="TwentyFiveGigE"?new[]{"TwentyFiveGigabitEthernet"+prefix+n}:Array.Empty<string>())).ToList();
             // Only interfaces actually present in a backup are retained from this union.
             // No module is inferred from the CLI's unused software alternatives.
             var alternatives=Compatible(code).SelectMany(d=>Layout(d,code,"NM")).GroupBy(s=>s.Interface,StringComparer.OrdinalIgnoreCase).Select(g=>g.First()).ToList();
@@ -114,6 +120,8 @@ public static class CiscoModuleCatalog
         foreach(int count in new[]{24,48})foreach(string suffix in new[]{"T","P","PB"})Add("C9200-"+count+suffix,count,"RJ-45",Guide9200);
         Add("C9200-48PL",48,"RJ-45",Guide9200);
         foreach(int count in new[]{24,48})foreach(string suffix in new[]{"T","P","U","UB","H","S"})Add("C9300-"+count+suffix,count,suffix=="S"?"SFP":"RJ-45",Base9300);
+        foreach(int count in new[]{12,24})Add("C9300X-"+count+"Y",count,"SFP28",Base9300,"TwentyFiveGigE");
+        foreach(string suffix in new[]{"24HX","48HX","48TX"})Add("C9300X-"+suffix,int.Parse(suffix[..2]),"RJ-45",Base9300,"TenGigabitEthernet");
         return result;
     }
     static List<CiscoHardware.Socket> Layout(Definition definition,string model,string slot)
@@ -192,6 +200,11 @@ public static class CiscoModuleCatalog
             if(evidence.Any(m=>m.Device==group.Device))foreach(var p in ports)p.Notes.Add("Retained configured uplink alternative. This entry is not an additional installed socket; module/interface mode must be checked before use.");
         }
         inv.Groups=inv.Groups.OrderBy(g=>int.TryParse(g.Device,out int number)?number:int.MaxValue).ThenBy(g=>g.ConfiguredInterfaces).ThenBy(g=>g.Slot.Length==0?0:1).ThenBy(g=>g.Slot,StringComparer.OrdinalIgnoreCase).ToList();
+        // A sparse backup may already contain the last module interface while
+        // selection introduces earlier sockets. Normalize order after moving
+        // existing records so reports keep physical numbering and all settings.
+        var groupOrder=inv.Groups.Select((g,i)=>(g.Id,i)).ToDictionary(p=>p.Id,p=>p.i);
+        inv.Ports=inv.Ports.OrderBy(p=>groupOrder.GetValueOrDefault(p.Group,int.MaxValue)).ThenBy(p=>p.Number).ToList();
         inv.Assumptions=inv.Assumptions.Distinct().ToList();
         foreach(var port in inv.Ports)port.Notes=port.Notes.Distinct().ToList();
     }

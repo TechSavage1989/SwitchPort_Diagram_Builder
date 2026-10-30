@@ -1,3 +1,7 @@
+1.17.0 catalog additions
+------------------------
+CRS305-1G-4S+IN, CRS326-24G-2S+RM and CRS326-24G-2S+IN have verified front-panel profiles. The two CRS326 copper models use a horizontal SFP+ pair. A complete shared binary signature establishes geometry without inventing a rack/desktop SKU. RouterOS bridge VLAN filtering remains the supported configuration format; these additions do not enable SwOS backups.
+
 MikroTik support - version 1.11.0
 ================================
 

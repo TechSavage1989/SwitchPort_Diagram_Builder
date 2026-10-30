@@ -3084,10 +3084,146 @@
     "Name": "6000 12p 10M/100M/1G Class4 PoE 2p SFP 1G 139W Switch",
     "Family": "6000",
     "OS": "AOS-CX",
-    "Status": "research-pending",
+    "Status": "supported",
     "Source": "https://arubanetworking.hpe.com/techdocs/new-central/content/cfg/profiles/intf-prof-mod-port-map.htm",
-    "LayoutSource": "",
-    "Notes": "Product identity researched. Exact socket/media layout is not yet enabled."
+    "LayoutSource": "https://arubanetworking.hpe.com/techdocs/hardware/switches/6100/IGSG/igsg_6000-6100.pdf",
+    "Notes": "12 PoE copper ports plus two independent copper uplinks and two SFP uplinks; installation guide front-panel group 1.",
+    "Copper": 14,
+    "Optical": 2,
+    "Side": "left",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 0,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 1,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
   },
   {
     "Sku": "R9Y03A",
@@ -4396,10 +4532,146 @@
     "Name": "6000 12p 10M/100M/1G Class4 PoE 2p SFP 1G 139W TAA Switch",
     "Family": "6000",
     "OS": "AOS-CX",
-    "Status": "research-pending",
+    "Status": "supported",
     "Source": "https://arubanetworking.hpe.com/techdocs/new-central/content/cfg/profiles/intf-prof-mod-port-map.htm",
-    "LayoutSource": "",
-    "Notes": "Product identity researched. Exact socket/media layout is not yet enabled."
+    "LayoutSource": "https://arubanetworking.hpe.com/techdocs/hardware/switches/6100/IGSG/igsg_6000-6100.pdf",
+    "Notes": "12 PoE copper ports plus two independent copper uplinks and two SFP uplinks; installation guide front-panel group 1.",
+    "Copper": 14,
+    "Optical": 2,
+    "Side": "left",
+    "OpticalType": "SFP",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 7,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 7,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 8,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 8,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 9,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 9,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 0,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 1,
+        "Row": 1,
+        "Media": "SFP",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
   },
   {
     "Sku": "S4R22A",
@@ -13450,10 +13722,146 @@
     "Name": "6200F 12G Class4 PoE 2G/2SFP+ 139W Switch",
     "Family": "6200",
     "OS": "AOS-CX",
-    "Status": "research-pending",
+    "Status": "supported",
     "Source": "https://arubanetworking.hpe.com/techdocs/new-central/content/cfg/profiles/intf-prof-mod-port-map.htm",
-    "LayoutSource": "",
-    "Notes": "Product identity researched. Exact socket/media layout is not yet enabled."
+    "LayoutSource": "https://arubanetworking.hpe.com/techdocs/hardware/switches/6200/IGSG/Aruba_6200_IGSG.pdf",
+    "Notes": "12 PoE copper ports plus two independent copper uplinks and two SFP+ uplinks. Figure 3 establishes the right-hand horizontal SFP+ row; management and stacking connectors are excluded.",
+    "Copper": 14,
+    "Optical": 2,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
   },
   {
     "Sku": "R8V08A",
@@ -15246,10 +15654,146 @@
     "Name": "6200F 12G Class4 PoE 2G/2SFP+ 139W TAA Switch",
     "Family": "6200",
     "OS": "AOS-CX",
-    "Status": "research-pending",
+    "Status": "supported",
     "Source": "https://arubanetworking.hpe.com/techdocs/new-central/content/cfg/profiles/intf-prof-mod-port-map.htm",
-    "LayoutSource": "",
-    "Notes": "Product identity researched. Exact socket/media layout is not yet enabled."
+    "LayoutSource": "https://arubanetworking.hpe.com/techdocs/hardware/switches/6200/IGSG/Aruba_6200_IGSG.pdf",
+    "Notes": "12 PoE copper ports plus two independent copper uplinks and two SFP+ uplinks. Figure 3 establishes the right-hand horizontal SFP+ row; management and stacking connectors are excluded.",
+    "Copper": 14,
+    "Optical": 2,
+    "Side": "right",
+    "OpticalType": "SFP+",
+    "SingleRow": false,
+    "BlankLeft": false,
+    "Sockets": [
+      {
+        "Number": 1,
+        "Column": 0,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 2,
+        "Column": 0,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 3,
+        "Column": 1,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 4,
+        "Column": 1,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 5,
+        "Column": 2,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 6,
+        "Column": 2,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 7,
+        "Column": 3,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 8,
+        "Column": 3,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 9,
+        "Column": 4,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 10,
+        "Column": 4,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 11,
+        "Column": 5,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 12,
+        "Column": 5,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 13,
+        "Column": 6,
+        "Row": 0,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 14,
+        "Column": 6,
+        "Row": 1,
+        "Media": "RJ-45",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 15,
+        "Column": 8,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      },
+      {
+        "Number": 16,
+        "Column": 9,
+        "Row": 1,
+        "Media": "SFP+",
+        "InterfaceKind": "",
+        "Suffix": ""
+      }
+    ]
   },
   {
     "Sku": "S0G13A",

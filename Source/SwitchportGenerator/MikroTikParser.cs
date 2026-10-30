@@ -11,7 +11,9 @@ public static class MikroTikParser
     public sealed class Bond {public string Name{get;set;}="";public List<string> Slaves{get;set;}=new();public string Mode{get;set;}="balance-rr";public bool Disabled{get;set;}}
     public sealed class Snapshot {public bool Binary{get;set;}public string Hostname{get;set;}="Unknown";public string Firmware{get;set;}="Unknown";public string Model{get;set;}="";public List<Interface> Interfaces{get;set;}=new();public List<Bridge> Bridges{get;set;}=new();public List<BridgePort> BridgePorts{get;set;}=new();public List<VlanRow> Vlans{get;set;}=new();public List<Bond> Bonds{get;set;}=new();public List<string> Unsupported{get;set;}=new();}
     public sealed record Model(string Code,int Copper,int Fiber,int Qsfp,bool FiberRows);
-    public static readonly Model[] Models={new("CRS326-24S+2Q+RM",1,24,2,true),new("CRS328-24P-4S+RM",24,4,0,true),new("CRS317-1G-16S+RM",1,16,0,false),new("CRS309-1G-8S+IN",1,8,0,false)};
+    public static readonly Model[] Models={new("CRS326-24S+2Q+RM",1,24,2,true),new("CRS328-24P-4S+RM",24,4,0,true),new("CRS317-1G-16S+RM",1,16,0,false),new("CRS309-1G-8S+IN",1,8,0,false),new("CRS305-1G-4S+IN",1,4,0,false),new("CRS326-24G-2S+RM",24,2,0,false),new("CRS326-24G-2S+IN",24,2,0,false)};
+    public static string ModelSource(string code)=>"https://mikrotik.com/product/"+(code switch
+    {"CRS326-24S+2Q+RM"=>"crs326_24s_2q_rm","CRS328-24P-4S+RM"=>"crs328_24p_4s_rm","CRS317-1G-16S+RM"=>"crs317_1g_16s_rm","CRS309-1G-8S+IN"=>"crs309_1g_8s_in","CRS305-1G-4S+IN"=>"crs305_1g_4s_in","CRS326-24G-2S+RM"=>"CRS326-24G-2SplusRM","CRS326-24G-2S+IN"=>"crs326_24g_2s_in",_=>throw new InvalidOperationException("Missing MikroTik hardware source.")});
     public static bool IsConfiguration(string source)=>source.StartsWith(MikroTikBackup.Prefix,StringComparison.Ordinal)||Regex.IsMatch(source,@"(?im)^#.*RouterOS\s+\d|^/interface(?:[ /]+)(?:bridge|ethernet|bonding)\b|^/system[ /]+identity\b");
     public static string ReadHostname(string source)
     {
@@ -87,9 +89,14 @@ public static class MikroTikParser
                 else if(profile!=null&&chosen.Code!=profile.Code)inv.Blockers.Add("Selected MikroTik model conflicts with the configuration.");
                 else {profile=chosen;confirmed=true;}
             }
-            // Only the complete, unique interface signature enables anonymous geometry.
+            // Only a complete interface signature with one verified geometry enables an anonymous profile.
             if(profile==null&&s.Model.Length==0&&s.Binary)
-                profile=Models.SingleOrDefault(m=>DefaultNames(m).Order().SequenceEqual(s.Interfaces.Select(i=>i.DefaultName).Order()));
+            {
+                var matches=Models.Where(m=>DefaultNames(m).Order().SequenceEqual(s.Interfaces.Select(i=>i.DefaultName).Order())).ToList();
+                // Exact SKU remains unknown when rack/desktop variants have the same
+                // complete signature and the same verified socket arrangement.
+                if(matches.Select(m=>(m.Copper,m.Fiber,m.Qsfp,m.FiberRows)).Distinct().Count()==1)profile=matches.First();
+            }
             if(profile==null){inv.Blockers.Add("MikroTik model not identified. Select a supported model in Device details, or use a complete RouterOS export containing its model header.");return inv;}
             var expected=DefaultNames(profile).ToList();
             if(s.Interfaces.GroupBy(i=>i.DefaultName).Any(g=>g.Count()>1)||s.Interfaces.GroupBy(i=>i.Name).Any(g=>g.Count()>1))inv.Blockers.Add("Duplicate MikroTik interface identity.");
@@ -174,10 +181,10 @@ public static class MikroTikParser
             else if(profile.Copper==1)
             {Add("ether1","E1",0,0);for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,i.ToString(),i+1,0);}
             else
-            {for(int i=1;i<=profile.Copper;i++)Add("ether"+i,i.ToString(),(i-1)/2,(i-1)%2);for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,"S"+i,profile.Copper/2+1+(i-1)/2,(i-1)%2);}
+            {for(int i=1;i<=profile.Copper;i++)Add("ether"+i,i.ToString(),(i-1)/2,(i-1)%2);for(int i=1;i<=profile.Fiber;i++)Add("sfp-sfpplus"+i,"S"+i,profile.Copper/2+1+(profile.FiberRows?(i-1)/2:i-1),profile.FiberRows?(i-1)%2:1);}
             // Logical records are independent from the physical cage presentation.
             inv.Vlans=inv.Vlans.OrderBy(v=>v.Id).ToList();
-            inv.Assumptions.Add("MikroTik hardware and port ordering: https://mikrotik.com/product/"+(profile.Code=="CRS326-24S+2Q+RM"?"crs326_24s_2q_rm":profile.Code=="CRS328-24P-4S+RM"?"crs328_24p_4s_rm":profile.Code=="CRS317-1G-16S+RM"?"crs317_1g_16s_rm":"crs309_1g_8s_in"));
+            inv.Assumptions.Add("MikroTik hardware and port ordering: "+ModelSource(profile.Code));
             if(!confirmed)inv.Assumptions.Add("Complete RouterOS interface signature selects verified physical geometry. Exact model identity is unconfirmed and omitted from client reports.");
             if(s.Binary)inv.Assumptions.Add("Binary import shows configured static VLAN-table assignments only. Ingress PVID and bridge membership state are retained separately. Dynamic membership, bridge-filtering state, firmware and exact model are not inferred. Use an .rsc export for full bridge semantics.");
         }

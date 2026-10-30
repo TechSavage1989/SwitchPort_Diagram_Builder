@@ -6,14 +6,14 @@ It does not send the backup to an online service. Version 1.15.1 adds a qualifie
 3560-E configuration view when the base layout is established but the installed
 uplink converters are unconfirmed. Version 1.16.0 adds per-slot installed-module
 choices and 46 base profiles across Catalyst 3560-X/3750-X, 3850, 9200 and 9300.
-See [the Cisco module catalogue](CISCO_MODULE_REFERENCES.md) for 29 selectable
+See [the Cisco module catalogue](CISCO_MODULE_REFERENCES.md) for 34 selectable
 module PIDs, exact base/slot compatibility and manufacturer sources.
 
 ## Verified layouts
 
 | Model | Physical data sockets | Identification |
 | --- | --- | --- |
-| WS-C3650-48PD | 48 RJ-45, two SFP and two SFP+ per member | Explicit switch provisioning, chassis PID or per-device model selection |
+| 15 WS-C3650 standard variants, including 48PD and 48FD | 24/48 RJ-45 and four fixed SFP/SFP+ uplinks, according to exact variant | Explicit switch provisioning, chassis PID or per-device model selection |
 | C9500-24Y4C | 24 SFP28 and four QSFP28 | Explicit chassis PID/model selection, or an exact complete native interface signature |
 | C9500-48Y4C | 48 SFP28 and four QSFP28 | Explicit chassis PID/model selection, or an exact complete native interface signature |
 | Documented WS-C3560X / WS-C3750X variants | 24/48 RJ-45 or supported 12/24 SFP bases; optional network module | Exact supported base SKU plus detected or selected network module |
@@ -31,6 +31,8 @@ establishes its actual count/media while retaining independent unused software
 interface settings. A named BLANK insert establishes no uplink sockets; Automatic
 returns to the configuration evidence. Fixed-uplink 3650/9500 models do not gain
 interchangeable network-module slots.
+
+The [1.17.0 catalog refresh](CATALOG_REFRESH.md) adds exact WS-C3650-48FD license variants, five C9300X bases and their five network modules. Operator PD/FD refinement is allowed only for the documented identical layout when no contradictory exact PID exists.
 
 The 3650 has four horizontally arranged uplink cages. G3/TE3 and G4/TE4 are
 alternative software names for the same cages. Empty alternative stubs are allowed;

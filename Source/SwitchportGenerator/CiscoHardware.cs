@@ -11,20 +11,42 @@ public static class CiscoHardware
     public const string Model3560E48="WS-C3560E-48PD-SF";
     const string Guide3560E="https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst3750x_3560x/software/release/15-2_1_e/configuration/guide/scg3750x/swint.html";
     static readonly Model shared3560=Build3560E(Shared3560E48Profile,"Catalyst 3560-E 48-port shared layout; uplink module unconfirmed");
-    public static IReadOnlyList<Model> Models {get;}=new[]{Build3650(),Build9500(24),Build9500(48),Build3560E(Model3560E48,"Catalyst 3560E-48PD-SF; uplink module unconfirmed")}.Concat(CiscoModuleCatalog.BaseModels).ToArray();
+    public static IReadOnlyList<Model> Models {get;}=Build3650Models().Concat(new[]{Build9500(24),Build9500(48),Build3560E(Model3560E48,"Catalyst 3560E-48PD-SF; uplink module unconfirmed")}).Concat(CiscoModuleCatalog.BaseModels).ToArray();
     public static string CanonicalModel(string value)=>Regex.Replace(value.Trim().ToUpperInvariant(),@"-(?:L|S|E|A)$","");
     public static Model? Find(string code)=>code.Equals(Shared3560E48Profile,StringComparison.OrdinalIgnoreCase)?shared3560:Models.FirstOrDefault(m=>m.Code==CanonicalModel(code));
     public static bool Is3560E48(string code)=>code.Equals(Shared3560E48Profile,StringComparison.OrdinalIgnoreCase)||CanonicalModel(code)==Model3560E48;
     public static bool CompatibleSelection(string detected,string selected)=>detected.Equals(Shared3560E48Profile,StringComparison.OrdinalIgnoreCase)&&CanonicalModel(selected)==Model3560E48;
     public static bool Complete3560E48Signature(string text,ISet<string> dataNames,ISet<string> names)=>Regex.IsMatch(Regex.Match(text,@"(?im)^version ([^\r\n]+)$").Groups[1].Value.Trim(),@"^15\.\d+$")&&names.Contains("FastEthernet0")&&dataNames.SetEquals(shared3560.Sockets.Select(s=>Interface(s,"1")));
-    public static bool IsModel(string value)=>Regex.IsMatch(value,@"^(?:WS-C\d[\w-]*|C9\d{3}-[\w-]+)$",RegexOptions.IgnoreCase);
+    public static bool IsModel(string value)=>Regex.IsMatch(value,@"^(?:WS-C\d[\w-]*|C9\d{3}(?:X|L|LM)?-[\w-]+)$",RegexOptions.IgnoreCase);
     public static string Interface(Socket socket,string member)=>socket.Interface.Replace("{m}",member);
     public static IEnumerable<string> Names(Socket socket,string member)=>new[]{Interface(socket,member)}.Concat(socket.Aliases.Select(a=>a.Replace("{m}",member)));
-    static Model Build3650()
+    // Provisioning is not an exact power-supply bundle PID. Only these audited,
+    // same-port PoE bundle pairs may be refined by operator hardware evidence.
+    public static bool CompatibleProvision(string detected,string selected)
     {
-        var ports=Enumerable.Range(1,48).Select(n=>new Socket(n,(n-1)/2,(n-1)%2,"RJ-45","GigabitEthernet{m}/0/"+n,n.ToString(),Array.Empty<string>())).ToList();
-        for(int n=1;n<=4;n++)ports.Add(new(48+n,24+n-1,0,n<=2?"SFP":"SFP+",(n<=2?"GigabitEthernet":"TenGigabitEthernet")+"{m}/1/"+n,"U"+n,n<=2?Array.Empty<string>():new[]{"GigabitEthernet{m}/1/"+n}));
-        return new("WS-C3650-48PD","Catalyst 3650 48-port PoE+ with 2 SFP and 2 SFP+ uplinks",Guide3650,ports);
+        string a=CanonicalModel(detected),b=CanonicalModel(selected);
+        return new[]{new[]{"WS-C3650-48PD","WS-C3650-48FD"},new[]{"WS-C3650-48PS","WS-C3650-48FS"},new[]{"WS-C3650-48PQ","WS-C3650-48FQ"}}
+            .Any(pair=>pair.Contains(a)&&pair.Contains(b));
+    }
+    static IEnumerable<Model> Build3650Models()
+    {
+        // Exact model-table entries, not a Cartesian product of suffixes.
+        foreach(string suffix in new[]{"24TS","48TS","24PS","48PS","48FS","24TD","48TD","24PD","48PD","48FD","48FQ","48PQ","48TQ","24PDM","48FQM"})
+        {
+            int count=int.Parse(suffix[..2]);string uplinks=suffix.TrimEnd('M')[^1].ToString();
+            yield return Build3650(suffix,count,uplinks);
+        }
+    }
+    static Model Build3650(string suffix,int count,string uplinks)
+    {
+        var ports=Enumerable.Range(1,count).Select(n=>new Socket(n,(n-1)/2,(n-1)%2,"RJ-45","GigabitEthernet{m}/0/"+n,n.ToString(),Array.Empty<string>())).ToList();
+        for(int n=1;n<=4;n++)
+        {
+            bool ten=uplinks=="Q"||uplinks=="D"&&n>2;
+            ports.Add(new(count+n,count/2+n-1,0,ten?"SFP+":"SFP",(ten?"TenGigabitEthernet":"GigabitEthernet")+"{m}/1/"+n,"U"+n,ten?new[]{"GigabitEthernet{m}/1/"+n}:Array.Empty<string>()));
+        }
+        string power=suffix[2]=='T'?"data":suffix[2]=='F'?"Full PoE+":"PoE+";
+        return new("WS-C3650-"+suffix,"Catalyst 3650 "+count+"-port "+power+" with "+(uplinks=="S"?"4 SFP":uplinks=="Q"?"4 SFP+":"2 SFP and 2 SFP+")+" fixed uplinks",Guide3650,ports);
     }
     static Model Build9500(int count)
     {

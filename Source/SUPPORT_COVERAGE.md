@@ -1,15 +1,17 @@
 HPE / Aruba coverage and research status
 =======================================
 
-Current hardware catalogue: 1.16.0.
+Current hardware catalogue: 1.17.0.
 
 This release does not claim universal support for every HPE/Aruba product or
 backup format. It enables verified socket layouts and supported configuration
 fields. A catalogue identity with an unverified layout remains blocked.
-HARDWARE_CATALOG.csv lists 290 product identifiers, 189 enabled profiles and
-101 research-pending entries. The earlier legacy profiles remain available.
+HARDWARE_CATALOG.csv lists 290 product identifiers, 193 enabled profiles and
+97 research-pending entries. The earlier legacy profiles remain available.
 The JSON embedded in the executable is the authoritative enabled catalogue;
 no online service or external catalogue file is required at runtime.
+
+All 188 AOS-CX product IDs in the current official Central port map were checked against this catalogue; none were missing. R8N89B/S4R21A and R8Q72A/R8V13A now have installation-guide-verified compact layouts. ALL_MODELS_MODULES.csv also covers Cisco, MikroTik, legacy HPE switches, chassis and selectable network modules. See ../docs/CATALOG_REFRESH.md.
 
 Enabled catalogue families
 --------------------------
@@ -19,9 +21,9 @@ Enabled catalogue families
 | Aruba 2530 | 12 | AOS-Switch |
 | Aruba 2540 | 4 | AOS-Switch |
 | Aruba 2930F | 15 | AOS-Switch |
-| CX 6000 | 20 | AOS-CX |
+| CX 6000 | 22 | AOS-CX |
 | CX 6100 | 6 | AOS-CX |
-| CX 6200F/M | 35 | AOS-CX |
+| CX 6200F/M | 37 | AOS-CX |
 | CX 6300F/M and documented variants | 24 | AOS-CX |
 | CX 8320 | 3 | AOS-CX |
 | OfficeConnect 1920 | 9 | Comware text |

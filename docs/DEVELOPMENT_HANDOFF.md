@@ -1,3 +1,46 @@
+# Catalog and 3650 inspector refresh: 1.17.0
+
+Read [catalog sources and limits](CATALOG_REFRESH.md) and the runtime-derived
+[complete snapshot](../Source/ALL_MODELS_MODULES.csv) before extending hardware.
+There are 279 selectable switch/chassis models, 75 module PIDs and 97 pending
+identities. This release adds 26 switch models and five C9300X modules; all 188
+current official AOS-CX port-map IDs already have database records. The embedded
+HPE JSON now contains 193 supported and 97 pending identities.
+
+The standard-port 3650 table now includes all 15 documented base variants.
+WS-C3650-48FD-L/S/E normalizes to 48FD. Only the explicit same-layout PoE bundle
+pairs may refine provisioning-only identity. Exact inventory or license UDI
+still wins, conflicting exact evidence blocks, and each stack member remains
+independent. Fixed 3650 uplinks never get removable module selectors. Six
+multigigabit 3650 variants and C9300X-48HXN remain outside enabled coverage.
+
+C9300X module compatibility is separate from ordinary C9300. The 4C module is
+limited to 24Y, 48HX and 48TX, with two columns and two rows. Module application
+now orders retained and newly introduced sockets consistently even when a sparse
+backup contains only the last module port. No interface settings are merged.
+Optical group labels derive from actual connector types. Matching MikroTik
+rack/desktop binary signatures use shared geometry without inventing an exact PID.
+
+Local final verification passed 590 catalog/inspector assertions, 457 Cisco
+assertions and 1,978 module assertions. Actual PDF/PNG/CSV verification passed
+all four new-family fixtures and the existing Cisco/module fixtures, including
+complete 40-ID VLAN lists. The supplied private stack exports all 104 interfaces
+both automatically and with independent FD selections; every port setting is
+unchanged and all tagged lists appear in both booklets. Private inputs/reports
+remain outside Git. Representative charts were visually inspected.
+
+CatalogChecks exercises every selectable model and every module's compatible
+parent, verifies the committed snapshot against runtime data, tests identity
+boundaries, save/open and Automatic restoration, and produces actual reports.
+Use --refresh only after reviewing catalog changes. Browser regression also
+exercises independent FD selections, suffix entry, notes and fixed-uplink controls.
+
+All 34 packaging/root/branding tests and JavaScript syntax checks pass. Full
+hosted browser/Linux/Windows checks are required on the exact integrated commit
+before non-force main promotion. Release assets must pass the existing immutable
+publication and downloaded hash checks. No interactive Windows/WebView2 session
+or real user's update/restart is claimed tested here.
+
 # Installed module selection: 1.16.0
 
 Selected device details provides compatible per-slot module dropdowns for each

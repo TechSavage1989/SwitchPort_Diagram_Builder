@@ -42,27 +42,42 @@ public static class CiscoParser
             if(declared.TryGetValue(id,out var old)&&old!=sku)inv.Blockers.Add("Conflicting Cisco switch provisioning for member "+id+".");
             declared[id]=sku;
         }
+        var exactIdentities=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+        void ExactIdentity(string id,string sku)
+        {
+            if(exactIdentities.TryGetValue(id,out var previous)&&previous!=sku)
+            {inv.Blockers.Add("Conflicting exact Cisco product identities for member "+id+".");return;}
+            exactIdentities[id]=sku;
+            if(declared.TryGetValue(id,out var provision)&&provision!=sku&&!CiscoHardware.CompatibleProvision(provision,sku))
+                inv.Blockers.Add("Show inventory chassis PID conflicts with configured Cisco member "+id+".");
+            else declared[id]=sku;
+        }
         // Only trusted identity lines can supply a PID. Hostnames, descriptions and
         // boot filenames are not evidence of installed switch or module hardware.
         var pids=Regex.Matches(text,@"(?im)^\s*(?:[!#;]\s*(?:PID:|model\s+)|license udi pid\s+)([\w-]+)").Select(m=>CiscoHardware.CanonicalModel(m.Groups[1].Value)).Where(sku=>!CiscoModuleCatalog.IsNetworkModulePid(sku)).Distinct().ToList();
-        if(declared.Count==0&&pids.Count==1)declared["1"]=pids[0];
+        if(pids.Count==1&&declared.Count<=1)ExactIdentity(declared.Keys.FirstOrDefault()??"1",pids[0]);
+        else if(pids.Count==1&&declared.Count>1)inv.Assumptions.Add("Unassigned Cisco product PID cannot identify a stack member; member provisioning and assigned show inventory records remain authoritative.");
         if(pids.Count>1)inv.Blockers.Add("Multiple Cisco product identities need explicit member assignments.");
-        foreach(Match record in Regex.Matches(text,@"(?im)^[ \t]*NAME:\s*""([^""]+)""[^\n]*\n[ \t]*PID:\s*((?:WS-C(?:3650|3560E|3560X|3750X|3850)-|C9(?:200|300|500)-)[\w-]+)\s*,"))
+        foreach(Match record in Regex.Matches(text,@"(?im)^[ \t]*NAME:\s*""([^""]+)""[^\n]*\n[ \t]*PID:\s*((?:WS-C(?:3650|3560E|3560X|3750X|3850)-|C9(?:200|300|500)(?:X|L|LM)?-)[\w-]+)\s*,"))
         {
             string sku=CiscoHardware.CanonicalModel(record.Groups[2].Value);
             if(CiscoModuleCatalog.IsNetworkModulePid(sku))continue;
             var member=Regex.Match(record.Groups[1].Value,@"^(?:Switch|Slot)\s+(\d+)\b",RegexOptions.IgnoreCase);
             string id=member.Success?member.Groups[1].Value:"1";
-            if(declared.TryGetValue(id,out var old)&&old!=sku)inv.Blockers.Add("Show inventory chassis PID conflicts with configured Cisco member "+id+".");
-            else declared[id]=sku;
+            ExactIdentity(id,sku);
         }
         foreach(string token in (selectedModels??"").Split(',',StringSplitOptions.RemoveEmptyEntries))
         {
             var m=Regex.Match(token.Trim(),@"^(?:(\d+)=)?([\w-]+)$");
             string id=m.Groups[1].Success?m.Groups[1].Value:"1",sku=CiscoHardware.CanonicalModel(m.Groups[2].Value);
             if(!m.Success||CiscoHardware.Find(sku)==null){inv.Blockers.Add("Cisco hardware model has no verified port layout: "+Parser.Safe(token));continue;}
-            if(declared.TryGetValue(id,out var old)&&old!=sku)inv.Blockers.Add("Selected hardware conflicts with configured Cisco member "+id+".");
-            else declared[id]=sku;
+            if(declared.TryGetValue(id,out var old)&&old!=sku&&(exactIdentities.ContainsKey(id)||!CiscoHardware.CompatibleProvision(old,sku)))
+                inv.Blockers.Add("Selected hardware conflicts with configured Cisco member "+id+".");
+            else
+            {
+                if(old!=null&&old!=sku)inv.Assumptions.Add("Operator exact model "+sku+" refines provisioning "+old+" for member "+id+". The documented port layout is identical; installed power supply and PoE budget are not inferred.");
+                declared[id]=sku;
+            }
         }
         var names=Regex.Matches(text,@"(?im)^interface\s+("+Physical+@")\s*$").Select(m=>m.Groups[1].Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var dataNames=names.Where(n=>!IsManagement(n)).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -91,7 +106,7 @@ public static class CiscoParser
             foreach(var section in model.Sockets.GroupBy(s=>s.ConfiguredInterface))
             {
                 bool configured=section.Key;var sockets=section.Where(s=>!configured||CiscoHardware.Is3560E48(model.Code)||CiscoHardware.Names(s,entry.Key).Any(names.Contains)).ToList();if(sockets.Count==0)continue;
-                var group=new Group{Id=configured?(declared.Count>1?"Member "+member+" / ":"")+"Uplink interfaces - module unconfirmed":declared.Count>1?"Member "+member:"Switch",Device=entry.Key,Product=configured?"":model.Code,ConfiguredInterfaces=configured,Copper=sockets.Count(s=>s.Media=="RJ-45"),Optical=sockets.Count(s=>s.Media!="RJ-45"),OpticalType=configured?"Unspecified":model.Code.StartsWith("C9500-")?"SFP28 / QSFP28":"SFP / SFP+"};
+                var group=new Group{Id=configured?(declared.Count>1?"Member "+member+" / ":"")+"Uplink interfaces - module unconfirmed":declared.Count>1?"Member "+member:"Switch",Device=entry.Key,Product=configured?"":model.Code,ConfiguredInterfaces=configured,Copper=sockets.Count(s=>s.Media=="RJ-45"),Optical=sockets.Count(s=>s.Media!="RJ-45"),OpticalType=configured?"Unspecified":string.Join(" / ",sockets.Where(s=>s.Media!="RJ-45").Select(s=>s.Media).Distinct())};
                 for(int index=0;index<sockets.Count;index++)
                 {
                     var socket=sockets[index];int number=index+1;string name=CiscoHardware.Interface(socket,entry.Key);

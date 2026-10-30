@@ -1,5 +1,7 @@
 # Selectable switch modules
 
+Version 1.17.0 retains all 41 HPE/Aruba module PIDs and expands Cisco from 29 to 34, for 75 distinct module choices. See [the catalog audit](CATALOG_REFRESH.md).
+
 Device details provides a module choice for each supported hardware bay. Choices
 are filtered by the selected or established parent switch/chassis family and by
 the bay. Switch members have independent choices. Automatic detection is the

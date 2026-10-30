@@ -1,3 +1,18 @@
+1.17.0 focused regression scope
+Local final validation: 590 catalog/inspector, 457 Cisco and 1,978 module assertions.
+Actual new-family and existing Cisco/module PDF/PNG/CSV checks pass, retaining
+complete 40-ID tagged lists. All 279 inspector choices parse and all 75 module
+PIDs have compatible parents; the 451-record catalog snapshot matches runtime.
+The supplied private two-member stack exports 104 interfaces with automatic and
+FD selections. Every port setting and all PDF tagged lists are preserved.
+- 3650 FD-L/S/E identity, provisioning refinement and exact-PID conflict boundaries.
+- Independent stack details, notes, explicit save/open and Automatic restoration.
+- 15 standard 3650 variants, five C9300X bases/modules, four compact CX and three MikroTik additions.
+- Parent restrictions, native module geometry, sparse module ordering and optical labels.
+- Shared binary geometry never invents a rack/desktop MikroTik identity.
+- Existing full browser/Linux/Windows CI remains required before promotion.
+- Private inputs/reports are never uploaded to CI; no interactive Windows run claimed.
+
 1.16.0 focused regression scope
 Final integrated local verification: 1,858 ModuleChecks assertions, 358 existing
 CiscoChecks assertions, all 34 packaging/root/branding tests and JS syntax passed.

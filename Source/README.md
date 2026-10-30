@@ -1,4 +1,12 @@
-Switchport Diagram Builder 1.16.0 - Windows 10/11 x64
+Switchport Diagram Builder 1.17.0 - Windows 10/11 x64
+
+1.17.0: 3650 inspector and catalog refresh
+---------------------------------------
+- WS-C3650-48FD-L/S/E works in model selection, preview, save/open and reports.
+- Same-layout PD/FD provisioning can be refined by exact operator evidence; conflicting inventory PIDs remain blocked.
+- 26 additional switch models and five 9300X modules. Complete catalog: 279 selectable switch/chassis models, 75 module PIDs, 97 research-pending identities.
+- ALL_MODELS_MODULES.csv is regenerated from the same model/module data the inspector uses and verified by CI.
+- Details and evidence: ../docs/CATALOG_REFRESH.md.
 
 1.16.0: Compatible installed-module selections
 - Selected device details includes module dropdowns for each supported slot.

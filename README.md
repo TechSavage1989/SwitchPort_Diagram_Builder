@@ -50,6 +50,8 @@ See [hardware coverage](Source/SUPPORT_COVERAGE.md), [module support and compati
 
 Reports are saved in a child folder named for the switch hostname or identified model. Repeated exports create numbered folders rather than replacing earlier results.
 
+The [complete model/module catalog](Source/ALL_MODELS_MODULES.csv) lists all 451 recorded identities, including 279 selectable switch/chassis models, 75 compatible module PIDs and 97 entries awaiting verified layouts. Version 1.17.0 adds WS-C3650-48FD support, expands the 3650 family, and adds verified Cisco 9300X, compact Aruba CX and MikroTik profiles. See [catalog research and limits](docs/CATALOG_REFRESH.md).
+
 ### Ordered workspaces
 
 Drag list items or use their **Move up / Move down** controls. Selection follows the item, not its old position. Remove affects only that item, without a repeated modal prompt. **Undo** restores its position, selection and unsaved device settings. **Clear all** empties workspace items, naming/title and palette settings; Undo restores them too. Undo history is memory-only until closing/opening another workspace; neither action deletes original configurations or generated outputs. App-wide preferences remain. Retained results are explicitly labeled as previous output when the workspace is empty. Unsupported configurations remain visible with validation warnings so you can supply missing model details without blocking the others.
@@ -66,7 +68,7 @@ The generated workspace folder defaults to the **saved workspace filename**. Bef
 
 Invalid configurations are reported independently, while valid ones still export. **Build & results** keeps one latest-successful project: **Open chart**, **Open output folder** and **Copy** follow it, whether it was built from one configuration or all configurations. Selection never redirects these actions. Source/order/settings changes mark the result as an earlier build without removing access; failed or cancelled builds preserve it. **Open chart** opens the first available project PNG in the image viewer, never a PDF. **Open PDF** is a separate action. For multiple sheets, **Sheets…** previews the pages; **Open PNG** opens the displayed page. Output directory, report logo and update preferences remain app-wide; device/model details remain independent per configuration.
 
-See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.16.0 release notes](docs/releases/1.16.0.md).
+See [workspace format and development handoff](docs/DEVELOPMENT_HANDOFF.md) and [1.17.0 release notes](docs/releases/1.17.0.md).
 
 ## How to use
 

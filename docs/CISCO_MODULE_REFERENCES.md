@@ -1,3 +1,9 @@
+# Catalog refresh in 1.17.0
+
+The current selector contains 34 Cisco module PIDs. Five C9300X bases (12Y, 24Y, 24HX, 48HX and 48TX) now offer C9300X-NM-2C, -4C, -8M, -8Y and -BLANK. The 4C is limited to 24Y/48HX/48TX. Ordinary C9300/C3850 cards are excluded. See [the current catalog audit](CATALOG_REFRESH.md) for numbering, physical rows, references and pending models.
+
+The 1.16.0 audit below is retained as historical evidence; its pending C9300X entry is superseded only for the exact models listed above.
+
 # Cisco network module catalogue
 
 Checked against Cisco documentation on 2026-10-29. The selector is a declaration
