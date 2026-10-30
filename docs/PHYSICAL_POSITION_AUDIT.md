@@ -100,7 +100,7 @@ finished QuickSheet scene, plus the ten parser-supported 1930 variants. It check
 physical identities, count, upper/lower and left/right ordering, visible bank
 boundaries, same-member Cisco module placement, readable copper module labels,
 and the literal manufacturer relationships above. It also exports actual
-PNG/SVG/PDF files and a per-model position-audit.csv into the CI artifact.
+PNG/PDF/CSV files and a per-model position-audit.csv into the CI artifact.
 
 GeometryChecks retains its complete catalog sweep, chassis and combo checks,
 and dense eight-member 416-port/17-trunk case. Its former uniform-column

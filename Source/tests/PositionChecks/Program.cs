@@ -116,7 +116,7 @@ static class PositionChecks
             foreach(string sku in new[]{"WS-C3650-48FD","WS-C3850-24XS","C9500-24Y4C","CRS326-24S+2Q+RM","CRS317-1G-16S+RM","J9779A","JL805A"})
             {
                 string source=Path.Combine(root,sku.Replace('+','_')+".cfg");File.WriteAllText(source,Fixture(sku));
-                Check(GeneratorEntry.Run(new[]{"--input",source,"--output",Path.Combine(root,sku.Replace('+','_'))})==0,"Actual PDF/PNG/SVG export: "+sku);
+                Check(GeneratorEntry.Run(new[]{"--input",source,"--output",Path.Combine(root,sku.Replace('+','_'))})==0,"Actual PDF/PNG/CSV export: "+sku);
             }
             Console.WriteLine($"PASS {assertions} physical-position assertions across {diagrams} finished diagrams; {modules.Count} module PIDs.");return 0;
         }

@@ -23,7 +23,10 @@ for index, page in enumerate(diagrams.pages):
     for symbol in ("Native VLAN", "Tagged VLAN", "Voice VLAN", "LAG / trunk"):
         assert text.count(symbol) == 1
     assert ".cfg" not in text
-    assert text.count("10 Data") == 1 and text.count("150 Voice (Voice)") == 1
+    # A shared side legend wraps complete labels to its available width.
+    # Check the complete phrases once each without depending on line breaks.
+    words = " ".join(text.split())
+    assert words.count("10 Data") == 1 and words.count("150 Voice (Voice)") == 1
     page_entries = [entry for entry in layout["LegendEntries"] if entry["PageNumber"] == index + 1]
     assert len({entry["Identity"] for entry in page_entries}) == len(page_entries)
     assert page.extract_text() == booklets.pages[index].extract_text()

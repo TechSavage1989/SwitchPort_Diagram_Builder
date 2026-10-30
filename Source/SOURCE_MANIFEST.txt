@@ -99,6 +99,8 @@ tests/ModuleChecks/Program.cs
 tests/ModuleChecks/verify-pdfs.py
 tests/PaletteChecks.cs
 tests/PaletteChecks.csproj
+tests/PositionChecks/PositionChecks.csproj
+tests/PositionChecks/Program.cs
 tests/PreviousVlanPalette.cs
 tests/ReportInventoryChecks/Program.cs
 tests/ReportInventoryChecks/ReportInventoryChecks.csproj
