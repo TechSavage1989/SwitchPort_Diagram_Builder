@@ -399,10 +399,14 @@ public static class QuickSheet
             }
             catch(OnePageCapacityException ex){last=ex;}
         }
-        // Prefer full-size markers, then the shortest complete readable component.
-        // The standalone solver and its enlargement preference are unchanged.
-        var best=candidates.OrderByDescending(candidate=>Math.Round(candidate.MarkerRadius,5))
-            .ThenBy(candidate=>candidate.Scene.Height).ThenBy(candidate=>candidate.CompactionLevel).FirstOrDefault();
+        // A shared side key uses the width left by the switch. Reclaim unused
+        // panel width before optimizing height, so a few shorter description
+        // lines do not force complete VLAN names onto needless key pages.
+        var ordered=candidates.OrderByDescending(candidate=>Math.Round(candidate.MarkerRadius,5));
+        var best=(!includeVlanKey&&maximumBodyWidth.HasValue
+            ?ordered.ThenBy(candidate=>candidate.Scene.DiagramBodyWidth).ThenBy(candidate=>candidate.Scene.Height)
+            :ordered.ThenBy(candidate=>candidate.Scene.Height))
+            .ThenBy(candidate=>candidate.CompactionLevel).FirstOrDefault();
         if(best!=null)return best;
         // Only workspace components may continue detail keys. Render the physical
         // switch independently first: genuine socket/chassis capacity still fails.
@@ -561,22 +565,46 @@ public static class QuickSheet
         }
         if(inv.FlexibleUplinks)foreach(var module in inv.Groups.Where(g=>g.Slot.Length>0))
             positions[module.Id]=positions[module.Id].Select(p=>p with{Row=1}).ToList();
-        // Dense sheets may reclaim inter-bank whitespace. Socket sizes, rows,
-        // ordering, leading blank fascia and visible bank boundaries are retained.
-        if(plan.Compact==2)foreach(var key in positions.Keys.ToList())
-        {
-            var columns=positions[key].Select(p=>p.Column).Distinct().Order().ToArray();
-            var compactColumns=new Dictionary<double,double>{{columns[0],columns[0]}};
-            for(int i=1;i<columns.Length;i++)
-            {
-                double step=columns[i]-columns[i-1];
-                compactColumns[columns[i]]=compactColumns[columns[i-1]]+(step>2?step:Math.Min(1,step)+Math.Max(0,step-1)*.45);
-            }
-            positions[key]=positions[key].Select(p=>p with{Column=compactColumns[p.Column]}).ToList();
-        }
         double BankWidth(Group g)=>(positions[g.Id].Max(p=>p.Column)+1)*plan.Pitch-plan.Gap+4;
-        if(compact&&!inv.FlexibleUplinks)diagramWidth=Math.Min(diagramWidth,Math.Max(plan.Compact==2?180/plan.Scale:180,(modular?2:1)*inv.Groups.Select(BankWidth).DefaultIfEmpty(180).Max()+(modular?8:0)));
         double BayWidth(IEnumerable<Group> gs)=>Math.Max(56,gs.Select(BankWidth).DefaultIfEmpty(56).Max());
+        double RequiredBankWidth()=>inv.FlexibleUplinks
+            ?inv.Groups.GroupBy(g=>g.Device).Max(device=>BankWidth(device.Single(g=>g.Slot.Length==0))+(device.Single(g=>g.Slot.Length==0).Product=="JL075A"?2:1)*(BayWidth(device.Where(g=>g.Slot.Length>0))+6))
+            :(modular?2:1)*inv.Groups.Select(BankWidth).DefaultIfEmpty(180).Max()+(modular?8:0);
+        // Dense sheets may reclaim inter-bank whitespace. Socket sizes, rows,
+        // ordering, leading blank fascia and large interior blanks are retained.
+        // A workspace's side key can need slightly more room than the ordinary
+        // compact profile. Reduce only short bank gaps, and retain at least 20%.
+        if(plan.Compact==2)
+        {
+            var expanded=positions.ToDictionary(pair=>pair.Key,pair=>pair.Value);
+            void Condense(double fraction)
+            {
+                foreach(var (key,sockets) in expanded)
+                {
+                    var columns=sockets.Select(p=>p.Column).Distinct().Order().ToArray();
+                    var compactColumns=new Dictionary<double,double>{{columns[0],columns[0]}};
+                    for(int i=1;i<columns.Length;i++)
+                    {
+                        double step=columns[i]-columns[i-1];
+                        compactColumns[columns[i]]=compactColumns[columns[i-1]]+(step>2?step:Math.Min(1,step)+Math.Max(0,step-1)*fraction);
+                    }
+                    positions[key]=sockets.Select(p=>p with{Column=compactColumns[p.Column]}).ToList();
+                }
+            }
+            Condense(.45);
+            if(plan.MaximumBodyWidth.HasValue&&RequiredBankWidth()>availableBodyWidth)
+            {
+                double low=.2,high=.45;Condense(low);
+                if(RequiredBankWidth()<=availableBodyWidth)
+                    for(int i=0;i<18;i++)
+                    {
+                        double middle=(low+high)/2;Condense(middle);
+                        if(RequiredBankWidth()<=availableBodyWidth)low=middle;else high=middle;
+                    }
+                Condense(low);
+            }
+        }
+        if(compact&&!inv.FlexibleUplinks)diagramWidth=Math.Min(diagramWidth,Math.Max(plan.Compact==2?180/plan.Scale:180,(modular?2:1)*inv.Groups.Select(BankWidth).DefaultIfEmpty(180).Max()+(modular?8:0)));
         // Keep wide 3810 fixed banks and their actual flex bays on one row.
         // The sidebar yields width first; the printed sockets never shrink.
         if(inv.FlexibleUplinks)foreach(var device in inv.Groups.GroupBy(g=>g.Device))

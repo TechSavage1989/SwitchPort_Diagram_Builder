@@ -1,3 +1,26 @@
+# Wide-bank shared-sheet correction: 1.18.2
+
+A 48-port 3650 bank with its four lower uplinks exceeded the shared side-key
+width after the physical-position audit. For explicitly width-limited compact
+workspace components, QuickSheet now fits short bank gaps between the ordinary
+45% allowance and a 20% floor. Port size, fonts, row order, leading fascia and
+large interior blanks stay fixed; genuinely insufficient width still blocks.
+
+Shared components prefer the narrowest complete candidate at the best marker
+size, then the shortest height. This returns unused panel width to the side
+key instead of generating avoidable key continuation pages. WorkspaceSheet
+reserves at least 60 points for that key and checks its heading before drawing.
+
+WorkspaceSheetChecks covers supported 48-port 3650 variants, leading/interior
+blank preservation, reference port/marker size, C9500 plus two-member 3650
+composition, source immutability and reorder/title behavior. Its PDF inspector
+checks the new exported fixtures. Private supplied inputs and reports stay
+outside Git and CI. The supplied two-configuration regression exports two
+combined diagram pages and an 18-page combined booklet; all 156 inventory
+records and CSV values match the earlier individual outputs, and every
+individual inventory appendix is retained. Keep the complete CI gate and
+published-asset verification.
+
 # Report header spacing: 1.18.1
 
 QuickSheet ends the main header at 35 points and starts the diagram at the

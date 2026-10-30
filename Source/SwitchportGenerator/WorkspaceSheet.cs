@@ -20,7 +20,7 @@ public static class WorkspaceSheet
 {
     public const double PageWidth=805.89,PageHeight=559.28,BlockGap=6,ContentTop=0;
     const double ContentBottom=QuickSheet.DiagramBottom,LegendGap=6,LegendFont=7.5,LegendHeading=24,LegendInset=21;
-    const double MinimumBodyWidth=580,PreferredLegendWidth=156,MinimumLegendWidth=50,MaximumBodyWidth=PageWidth-LegendGap-MinimumLegendWidth;
+    const double MinimumBodyWidth=580,PreferredLegendWidth=156,MinimumLegendWidth=60,MaximumBodyWidth=PageWidth-LegendGap-MinimumLegendWidth;
     sealed record Component(WorkspaceSheetItem Item,QuickSheet.Result Layout,bool Standalone=false,bool InlineTitle=false);
     sealed record Block(WorkspaceSheetItem Item,Scene Scene,bool Continuation=false,bool Standalone=false,bool InlineTitle=false);
     sealed record LegendEntry(string Identity,int VlanId,string Label,string Color,bool Voice=false,bool Marker=true);
@@ -268,6 +268,8 @@ public static class WorkspaceSheet
     }
     static void DrawLegend(Scene page,LegendPlan plan,double x,double radius,int part,int parts,double top)
     {
+        if(ReportRenderer.Measure(new Label(0,0,"VLAN key",8.5,"#20374e",true)).Width>plan.Width-10)
+            throw new OnePageCapacityException("the shared VLAN key heading must fit without truncation");
         page.Rect(x,top,plan.Width,12,"#e7eff6","#c3d2df",2,"Heading");page.Text(x+5,top+1,"VLAN key",8.5,"#20374e",true,plan.Width-10,inkBox:true);
         if(parts>1)page.Text(x,top+13,"Key page "+part+" / "+parts,7,"#52677c",false,plan.Width);
         double y=top+LegendHeading;

@@ -11,7 +11,8 @@ The diagrams are readable front/rear port maps, not dimensioned mechanical
 faceplate drawings. Rows, left-to-right order, bank boundaries, blank fascia,
 combo alternatives and module bays are retained. Port silhouettes use a common
 scale. Dense reports can reduce inter-bank whitespace to 45% of its normal
-allowance, while preserving each boundary, the occupied rows, leading fascia
+allowance. Since 1.18.2, width-limited shared sheets can tighten those short gaps
+further, only as needed, down to a 20% floor. This preserves each boundary, the occupied rows, leading fascia
 and large interior blank areas. Neither port count nor an unused CLI interface
 is treated as proof of an installed module.
 

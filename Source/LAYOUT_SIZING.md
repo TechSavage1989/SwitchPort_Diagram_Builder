@@ -41,6 +41,16 @@ Per-port voice designation remains local. Global voice VLANs keep global
 meaning. PDF inventory is independently paginated and preserves complete VLAN
 lists even when one row needs multiple continuation pages.
 
+## Shared workspace width
+
+Shared sheets keep the VLAN key beside the switch blocks. Compact components
+return unused panel width to this key before optimizing description height.
+The key has at least 60 points of width and its complete heading must fit.
+When a fixed bank only slightly exceeds its allotted column, short bank gaps
+can tighten from 45% to a 20% floor, just enough to fit. Port shapes and sizes,
+font floors, row order, leading blank fascia and large interior blanks remain
+unchanged. Width that cannot meet those limits still fails explicitly.
+
 ## Verification
 
 AdaptiveLayoutChecks independently verifies dense packing, consistent geometry,

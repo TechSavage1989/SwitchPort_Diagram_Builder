@@ -1,4 +1,8 @@
-Switchport Diagram Builder 1.18.1 - Windows 10/11 x64
+Switchport Diagram Builder 1.18.2 - Windows 10/11 x64
+
+1.18.2: Wide-bank shared-sheet fix
+
+Wide switch banks can reclaim short bank gaps to fit beside the shared VLAN key while retaining full-size port faces and readable labels. Unused panel width returns to the key, and the key heading is never truncated.
 
 1.18.1: Report header spacing
 

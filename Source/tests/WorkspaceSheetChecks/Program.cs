@@ -9,6 +9,65 @@ static class WorkspaceSheetChecks
     static Inventory Aruba(string name)=>DeviceModels.Parse("; JL256A Configuration Editor\nhostname "+name+"\ntrunk 49-50 trk1 lacp\nvlan 10\n name Data\n untagged 1-48\n tagged trk1\n exit\nvlan 150\n name Voice\n tagged 1-48,trk1\n voice\n exit\n",Array.Empty<DeviceIdentity>());
     static Inventory Router(string name)=>DeviceModels.Parse("# by RouterOS 7.16\n# model = CRS309-1G-8S+IN\n/system identity\nset name="+name+"\n",Array.Empty<DeviceIdentity>());
     static Inventory TallStack()=>DeviceModels.Parse("; Aruba Configuration Editor\nhostname EIGHT-MEMBER-STACK\n"+string.Join('\n',Enumerable.Range(1,8).Select(index=>$"vsf member {index} type JL558A"))+"\n",Array.Empty<DeviceIdentity>());
+    static Inventory Cisco(string model,string name,int members=1)
+    {
+        var source="version 17.3\nhostname "+name+"\n"+string.Join('\n',Enumerable.Range(1,members).Select(member=>$"switch {member} provision {model}"))+"\n";
+        var inv=DeviceModels.Parse(source,Array.Empty<DeviceIdentity>());
+        Check(inv.Blockers.Count==0,"Synthetic Cisco model must be supported: "+model+" "+string.Join(';',inv.Blockers));
+        inv.Vlans=new(){new(){Id=10,Name="Users"},new(){Id=20,Name="Wireless"},new(){Id=30,Name="Management"},new(){Id=40,Name="Servers"},new(){Id=150,Name="Voice",Voice=true}};
+        foreach(var port in inv.Ports)
+        {
+            port.UntaggedVlan=10;port.UntaggedState="Known";
+            if(port.Media=="RJ-45")port.VoiceVlan=150;
+            else{port.TaggedVlans=new(){10,20,30,40,150};port.Aggregate="Po1";port.Description="Core uplink";port.Notes.Add("Aggregation mode: lacp");}
+        }
+        return inv;
+    }
+    static void CheckWideBanks(string root)
+    {
+        const double sharedWidth=739.89;
+        foreach(var model in CiscoHardware.Models.Where(model=>model.Code.StartsWith("WS-C3650-48",StringComparison.Ordinal)))
+        {
+            var inv=Cisco(model.Code,"WIDE-BANK");
+            var compact=QuickSheet.BuildCompact(inv,Charts.Layout(inv),"WIDE",null,false,sharedWidth);
+            Check(compact.Scene.DiagramBodyWidth<=sharedWidth+.001,"Wide 3650 banks leave room for the complete side-key heading: "+model.Code);
+            Check(compact.GeometryScale==1&&compact.Sockets.All(socket=>Math.Abs(socket.Tile.W-QuickSheet.PortWidth)<.001&&Math.Abs(socket.Tile.H-(socket.Optical?QuickSheet.OpticalHeight:QuickSheet.PortHeight))<.001),"Width fitting preserves reference port size and proportions.");
+            Check(compact.MarkerRadius==QuickSheet.DotRadius,"Ordinary tagged VLANs retain full-size markers after bank-gap fitting.");
+            var sockets=compact.Sockets.ToDictionary(socket=>socket.Display);
+            double pitch=sockets["3"].Tile.X-sockets["1"].Tile.X;
+            foreach(var (left,right) in new[]{("11","13"),("23","25"),("35","37"),("47","U1")})
+                Check(sockets[right].Tile.X-sockets[left].Tile.X>pitch+1,"Each manufacturer bank boundary stays visible after fitting.");
+            Check(sockets["U1"].Tile.Y==sockets["2"].Tile.Y&&sockets["U1"].Tile.Y>sockets["1"].Tile.Y,"All fixed uplinks stay in the lower row.");
+        }
+        var blank=Cisco("WS-C3650-24PD","LEADING-FASCIA");
+        var normal=QuickSheet.BuildCompact(blank,Charts.Layout(blank),"BLANK",null,false,780);
+        var fitted=QuickSheet.BuildCompact(blank,Charts.Layout(blank),"BLANK",null,false,762);
+        Check(Math.Abs(normal.Scene.Boxes.Single(box=>box.Role=="BlankFascia").W-fitted.Scene.Boxes.Single(box=>box.Role=="BlankFascia").W)<.001,"Fitting short gaps does not consume leading blank fascia.");
+        var interior=Cisco("C9500-24Y4C","INTERIOR-FASCIA");bool rejected=false;
+        try{QuickSheet.BuildCompact(interior,Charts.Layout(interior),"BLANK",null,false,680);}
+        catch(OnePageCapacityException){rejected=true;}
+        Check(rejected,"A genuinely undersized column cannot erase the 9500's large interior blank area.");
+
+        var core=Cisco("C9500-48Y4C","WIDE-CORE");var stack=Cisco("WS-C3650-48FD","WIDE-STACK",2);
+        core.Vlans.Single(vlan=>vlan.Id==10).Name="Core users";
+        stack.Vlans.Single(vlan=>vlan.Id==10).Name="Access users";
+        foreach(var port in core.Ports.Take(24))port.Description="Distribution endpoint "+port.Number+" in the north equipment room";
+        var coreBlock=QuickSheet.BuildCompact(core,Charts.Layout(core),"WIDTH",null,false,sharedWidth);
+        Check(coreBlock.Scene.DiagramBodyWidth<700,"A core switch returns unused panel width to the side key instead of consuming the whole allowed column.");
+        var items=new[]{Item("wide-core",core),Item("wide-stack",stack)};
+        string before=JsonSerializer.Serialize(items.Select(item=>item.Inventory));
+        var sheets=WorkspaceSheet.Build(items);Validate(sheets,items);
+        Check(sheets.Placements.All(place=>!place.Standalone&&place.GeometryScale==1),"Wide supported banks remain reusable reference-scale workspace blocks.");
+        Check(sheets.Pages.SelectMany(page=>page.Labels).Count(label=>label.Owner.Length>0)==156,"Both wide configurations retain all 156 physical port labels.");
+        Check(sheets.LegendEntries.Select(entry=>entry.VlanId).Distinct().Count()==5,"Every VLAN survives wide-bank shared layout.");
+        Check(JsonSerializer.Serialize(items.Select(item=>item.Inventory))==before,"Bank fitting cannot alter the source port settings or VLAN names.");
+        Save(sheets,root,"wide-cisco-banks");
+        string logoPath=Path.Combine(root,"wide-logo.png");
+        using(var bitmap=new SKBitmap(120,30)){bitmap.Erase(SKColors.DarkCyan);using var image=SKImage.FromBitmap(bitmap);using var bytes=image.Encode(SKEncodedImageFormat.Png,100);File.WriteAllBytes(logoPath,bytes.ToArray());}
+        var reordered=WorkspaceSheet.Build(items.Reverse().ToArray(),ReportLogo.Load(logoPath),"Wide hardware");Validate(reordered,items.Reverse().ToArray());
+        Check(reordered.Pages.All(page=>page.Images.Count==1),"Wide shared sheets retain one proportional report logo with the optional title.");
+        Save(reordered,root,"wide-cisco-reordered");
+    }
     static Inventory Dense()
     {
         var inv=Aruba("DENSE-FORTY");inv.Vlans=new(){new(){Id=1,Name="Data"}};
@@ -92,6 +151,7 @@ static class WorkspaceSheetChecks
             Check(scene.Labels.Count(label=>label.Text.Contains(ReportText.CableMoveDisclaimer,StringComparison.Ordinal))==1,"Each sheet retains one complete cable-move warning.");
             Check(scene.Labels.Count(label=>label.Text=="VLAN key")==1,"Every rendered sheet has one complete VLAN key, never a repeated key for each switch.");
             var sideKey=scene.Labels.Single(label=>label.Text=="VLAN key");
+            Check(ReportRenderer.Measure(sideKey).Text==sideKey.Text,"The shared VLAN key heading must remain complete in the actual renderer.");
             Check(sideKey.Y>=WorkspaceSheet.ContentTop&&sideKey.X>scene.DiagramBodyWidth,"The common VLAN key stays in a side column beside the first switch with the symbol key reserved at the bottom, never beneath the switches.");
             Check(scene.Shapes.Where(shape=>shape.Owner.Length>0).All(shape=>shape.Points.Max(point=>point.X)<sideKey.X),"The sidebar never overlaps physical switch sockets.");
             foreach(string symbol in new[]{"Native VLAN","Tagged VLAN","Voice VLAN","LAG / trunk"})
@@ -129,6 +189,7 @@ static class WorkspaceSheetChecks
         string root=args.Length>0?Path.GetFullPath(args[0]):Path.Combine(Path.GetTempPath(),"workspace-sheet-test-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
         try
         {
+            CheckWideBanks(root);
             var alpha=Aruba("ALPHA-ACCESS");var beta=Aruba("BETA-ACCESS");
             var inputs=new[]{Item("alpha",alpha),Item("beta",beta)};
             var before=JsonSerializer.Serialize(inputs.Select(item=>item.Inventory));

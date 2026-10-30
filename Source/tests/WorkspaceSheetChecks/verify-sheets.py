@@ -6,11 +6,18 @@ from PIL import Image, ImageChops
 from pypdf import PdfReader
 
 root = Path(sys.argv[1])
-for prefix in ['atomic-keys', 'atomic-stack-after-small', 'atomic-stack-reordered', 'detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
+for prefix in ['wide-cisco-banks', 'wide-cisco-reordered', 'atomic-keys', 'atomic-stack-after-small', 'atomic-stack-reordered', 'detail-overflow', 'titled-sheet', 'two-on-one', 'five-ordered', 'mixed-vendors', 'dense-fallback', 'branded-sheet', 'conflicting-key', 'unnamed-key', 'ambiguous-key', 'many-wrapped-key']:
     plan = json.loads((root / (prefix + '-plan.json')).read_text())
     pdf = PdfReader(root / (prefix + '.pdf'))
     assert len(pdf.pages) == plan['PageCount']
     assert [item['PageNumber'] for item in plan['Placements']] == sorted(item['PageNumber'] for item in plan['Placements'])
+    if prefix.startswith('wide-cisco-'):
+        text = '\n'.join(page.extract_text() for page in pdf.pages)
+        expected = ['WIDE-CORE', 'WIDE-STACK'] if prefix.endswith('banks') else ['WIDE-STACK', 'WIDE-CORE']
+        assert text.index(expected[0]) < text.index(expected[1])
+        assert len(plan['Placements']) == 2
+        assert all(item['GeometryScale'] == 1 for item in plan['Placements'])
+        assert {entry['VlanId'] for entry in plan['LegendEntries']} == {10, 20, 30, 40, 150}
     if prefix == 'two-on-one':
         assert len(pdf.pages) == 1
         text = pdf.pages[0].extract_text()
