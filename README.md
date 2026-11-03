@@ -29,6 +29,19 @@
 
 ## Screenshots
 
+### Diagram and report output
+
+Pages from a real exported A4 PDF report, with switch, VLAN and host names changed to generic examples.
+
+**Port map of a five-member stack: native, tagged and voice VLANs, LAGs and the VLAN key**
+
+<img src="docs/images/port-map-stack.png" alt="Port map sheet for a five-member switch stack" width="900">
+
+<table>
+  <tr><td width="50%"><b>Eight-member stack on one sheet</b><br><img src="docs/images/port-map-large-stack.png" alt="Port map sheet for an eight-member switch stack" width="440"></td><td width="50%"><b>Modular chassis with per-slot modules and port descriptions</b><br><img src="docs/images/port-map-chassis.png" alt="Port map sheet for a modular chassis switch" width="440"></td></tr>
+  <tr><td width="50%"><b>Port inventory table with full tagged-VLAN lists</b><br><img src="docs/images/port-inventory.png" alt="Port inventory table page" width="440"></td><td width="50%"></td></tr>
+</table>
+
 ### Organize multiple configurations
 
 <table>
