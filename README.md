@@ -29,9 +29,33 @@
 
 ## Screenshots
 
-**Device details with per-slot module selection**
+### Diagram and report output
 
-<img src="docs/images/device-details.png" alt="Device details with per-slot module selection" width="900">
+Pages from a real exported A4 PDF report, with switch, VLAN and host names changed to generic examples.
+
+**Port map of a five-member stack: native, tagged and voice VLANs, LAGs and the VLAN key**
+
+<img src="docs/images/port-map-stack.png" alt="Port map sheet for a five-member switch stack" width="900">
+
+<table>
+  <tr><td width="50%"><b>Eight-member stack on one sheet</b><br><img src="docs/images/port-map-large-stack.png" alt="Port map sheet for an eight-member switch stack" width="440"></td><td width="50%"><b>Modular chassis with per-slot modules and port descriptions</b><br><img src="docs/images/port-map-chassis.png" alt="Port map sheet for a modular chassis switch" width="440"></td></tr>
+  <tr><td width="50%"><b>Port inventory table with full tagged-VLAN lists</b><br><img src="docs/images/port-inventory.png" alt="Port inventory table page" width="440"></td><td width="50%"></td></tr>
+</table>
+
+### Organize multiple configurations
+
+<table>
+  <tr><td width="50%"><b>Paste a configuration into the workspace</b><br><img src="docs/images/paste-configuration.png" alt="Paste a configuration into the workspace" width="440"></td><td width="50%"><b>Validation warning kept visible beside valid configurations</b><br><img src="docs/images/validation-warning.png" alt="Validation warning kept visible beside valid configurations" width="440"></td></tr>
+  <tr><td width="50%"><b>Workspace output name and shared-sheet report title</b><br><img src="docs/images/workspace-name.png" alt="Workspace output name and shared-sheet report title" width="440"></td><td width="50%"></td></tr>
+</table>
+
+### Device and module details
+
+<table>
+  <tr><td width="50%"><b>Per-slot module selection</b><br><img src="docs/images/device-details.png" alt="Per-slot module selection" width="440"></td><td width="50%"><b>Independent details for each stack member</b><br><img src="docs/images/stack-device-details.png" alt="Independent details for each stack member" width="440"></td></tr>
+</table>
+
+### Updates
 
 **Application updates**
 
