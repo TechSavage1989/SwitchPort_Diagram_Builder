@@ -9,8 +9,12 @@
   <a href="https://github.com/TechSavage1989/SwitchPort_Diagram_Builder/releases/latest">Download</a> ·
   <a href="#getting-started">Get started</a> ·
   <a href="#features">Features</a> ·
-  <a href="#updates-and-settings">Updates</a> ·
+  <a href="#screenshots">Screenshots</a> ·
   <a href="#development">Development</a>
+</p>
+
+<p align="center">
+  <img src="docs/images/hero.png" alt="Switchport Diagram Builder main window" width="900">
 </p>
 
 ## Features
@@ -22,6 +26,16 @@
 - **Choose installed modules:** compatible per-slot module selectors supply missing expansion-card inventory for supported switches, stack members and chassis. Automatic detection remains available.
 - **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
+
+## Screenshots
+
+**Device details with per-slot module selection**
+
+<img src="docs/images/device-details.png" alt="Device details with per-slot module selection" width="900">
+
+**Application updates**
+
+<img src="docs/images/updates.png" alt="Application updates" width="900">
 
 ## Download
 
