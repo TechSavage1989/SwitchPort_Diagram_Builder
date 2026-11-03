@@ -29,9 +29,20 @@
 
 ## Screenshots
 
-**Device details with per-slot module selection**
+### Organize multiple configurations
 
-<img src="docs/images/device-details.png" alt="Device details with per-slot module selection" width="900">
+<table>
+  <tr><td width="50%"><b>Paste a configuration into the workspace</b><br><img src="docs/images/paste-configuration.png" alt="Paste a configuration into the workspace" width="440"></td><td width="50%"><b>Validation warning kept visible beside valid configurations</b><br><img src="docs/images/validation-warning.png" alt="Validation warning kept visible beside valid configurations" width="440"></td></tr>
+  <tr><td width="50%"><b>Workspace output name and shared-sheet report title</b><br><img src="docs/images/workspace-name.png" alt="Workspace output name and shared-sheet report title" width="440"></td><td width="50%"></td></tr>
+</table>
+
+### Device and module details
+
+<table>
+  <tr><td width="50%"><b>Per-slot module selection</b><br><img src="docs/images/device-details.png" alt="Per-slot module selection" width="440"></td><td width="50%"><b>Independent details for each stack member</b><br><img src="docs/images/stack-device-details.png" alt="Independent details for each stack member" width="440"></td></tr>
+</table>
+
+### Updates
 
 **Application updates**
 
