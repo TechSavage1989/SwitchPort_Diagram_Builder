@@ -45,24 +45,18 @@ public sealed partial class MainForm
     {
         type="importComplete",message=$"Added {added} configuration{(added==1?"":"s")}."+(errors.Count>0?$" {errors.Count} file{(errors.Count==1?"":"s")} could not be added.":""),errors
     });
-    void ImportFiles(IncomingFile[] files)
+    void ImportFiles(IncomingFile[] files, string? targetId = null, bool supplementaryOnly = false)
     {
-        int added=0;var errors=new List<string>();
-        foreach(var file in files)
-        {
-            string name=string.IsNullOrWhiteSpace(file?.name)?"Dropped configuration":file.name;
-            try
-            {
-                if(file==null)throw new InvalidOperationException("Invalid dropped file.");
-                if(!string.IsNullOrWhiteSpace(file.error))throw new InvalidOperationException(file.error);
-                string text=file.encoding=="base64"?ConfigInput.Decode(Convert.FromBase64String(file.text??"")):file.text??"";
-                workspace.AddText(text,name);added++;
-            }
-            catch(Exception ex) when(ex is InvalidOperationException or FormatException or ArgumentException)
-            {errors.Add(name+": "+ex.Message);}
-        }
-        if(added>0)InvalidateOutputs();
-        SendSelection();SendImportResult(added,errors);
+        var dropTarget = workspace.Items.Any(item => item.Id == targetId) ? targetId : workspace.SelectedId;
+        var result = WorkspaceDropImporter.Import(workspace,
+            files.Select(file => file == null
+                ? new DroppedNetworkFile(null, null, null, "Invalid dropped file.")
+                : new DroppedNetworkFile(file.name, file.text, file.encoding, file.error)),
+            dropTarget, supplementaryOnly);
+        if (result.ConfigurationsAdded > 0) InvalidateOutputs();
+        else if (result.SupplementarySourcesAdded > 0) InvalidateBatch();
+        SendSelection();
+        Send(new { type = "importComplete", message = result.Message, errors = result.Errors });
     }
     bool ConfirmDiscard(string question)=>MessageBox.Show(this,question+"\n\nSave workspace first to keep configurations, order and device details. Generated reports are not deleted.",Text,MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)==DialogResult.Yes;
     void RemoveItem(string id)

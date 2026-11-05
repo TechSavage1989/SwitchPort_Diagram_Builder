@@ -1,3 +1,13 @@
+# Unreleased mixed network drag-and-drop auto-detection (after 1.18.3)
+
+Feature branch: `feat/auto-detect-network-drops`; stable published baseline remains v1.18.3. Do not claim a new release without confirming final checks and publication.
+
+- WebView2 drop handling recognizes Auvik .xlsx by type/signature, operational command text by content, and existing primary configuration/RouterOS backup inputs separately. Single ordinary config and backup flows remain unchanged; mixed batches use `loadFiles` with an optional target item ID and `supplementaryOnly` flag for drops inside the Supplementary data dialog.
+- `WorkspaceDropImporter` in the generator is the authoritative classifier for mixed batches. It imports primary configurations first, then Auvik workbooks and CLI evidence, preserving source and per-device attribution. Explicit target resolves duplicate hostnames; unmatched/ambiguous evidence produces errors rather than a bogus configuration.
+- `SupplementaryData.FromAuvikBytes` reads one site-wide workbook in memory and matches selected configuration hostnames without creating temporary customer files. CLI prompt hostnames have priority over selections; otherwise selection or a single available configuration is required. Existing workspace and reporting schemas stay unchanged.
+- Regression checks: the expanded `SupplementaryChecks` for multi-device workbooks and hostile/mismatched imports, `verify-supplementary-drop-ui.cjs` for drag events and binary transport, plus all existing browser, Linux report, Windows packaging and updater gates. Use synthetic fixtures only.
+- Known limitations: unsupported CSV schema or vendor-specific unrecognized command formats are not silently interpreted. Auvik workbook import needs its matching primary configuration to be loaded, either previously or in the same drop batch. The GUI supports manual Supplementary data import when auto-detection cannot assign evidence.
+
 # Supplementary network evidence import: 1.18.3
 
 Version 1.18.3 introduces optional Auvik workbook and CLI command evidence alongside primary switch configurations. The Linux parser/report, Windows packaging/updater, and browser interface CI suites passed on the feature implementation commit. The real screenshot is captured from the Playwright interface test with fictional data. Interactive Windows/WebView2 startup and an actual user updater install/restart remain workstation verification items and are not claimed tested.

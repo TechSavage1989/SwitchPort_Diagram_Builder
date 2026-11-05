@@ -53,13 +53,15 @@ static class SupplementaryChecks
             new[] { "INTERFACES" },
             new[] { "Admin Status", "Oper Status", "Interface Name", "MAC Address", "Type", "Parent Device", "Negotiated Speed", "Connected To", "Configuration Details" },
             new[] { "Up", "Up", "GigabitEthernet1/0/1", "02:00:00:00:00:01", "Ethernet", "LAB-SW-01.example.com", "1.0 Gbit/s", "LAB-CORE through Gi1/0/48", "VLAN 20" },
-            new[] { "Up", "Down", "GigabitEthernet1/0/2", "02:00:00:00:00:02", "Ethernet", "OTHER-SW", "1.0 Gbit/s", "OTHER-ENDPOINT", "VLAN 30" }
+            new[] { "Up", "Down", "GigabitEthernet1/0/2", "02:00:00:00:00:02", "Ethernet", "OTHER-SW", "1.0 Gbit/s", "OTHER-ENDPOINT", "VLAN 30" },
+            new[] { "Up", "Up", "GigabitEthernet1/0/9", "02:00:00:00:00:09", "Ethernet", "LAB-SW-02.example.com", "1.0 Gbit/s", "LAB-WAP-02", "VLAN 50" }
         ));
         Entry(archive, "xl/worksheets/sheet2.xml", Sheet(
             new[] { "ROUTES" },
             new[] { "Device Name", "Destination", "Next Hop", "Metric", "Gateway Interface" },
             new[] { "LAB-SW-01", "192.0.2.0/24", "198.51.100.1", "10", "Vlan20" },
-            new[] { "OTHER-SW", "203.0.113.0/24", "198.51.100.2", "10", "Vlan30" }
+            new[] { "OTHER-SW", "203.0.113.0/24", "198.51.100.2", "10", "Vlan30" },
+            new[] { "LAB-SW-02", "192.0.2.128/25", "198.51.100.3", "20", "Vlan50" }
         ));
         return file;
     }
@@ -127,6 +129,80 @@ static class SupplementaryChecks
             loaded.RemoveSupplementary(loaded.SelectedId!, loaded.Selected!.SupplementarySources[0].Id);
             Check(loaded.Selected?.SupplementarySources.Count == 0, "Supplementary source removal failed.");
             Check(ws.Selected?.SupplementarySources.Count == 1, "Loaded workspace mutated its original instance.");
+
+            // Automatic drag-and-drop: validate mixed order, multi-device Auvik
+            // matching, show-output routing and backward-compatible configs.
+            Check(SupplementaryData.LooksLikeCommandOutput(text), "Operational show output must auto-detect.");
+            Check(!SupplementaryData.LooksLikeCommandOutput("hostname LAB-SW-01\ninterface 1/1/1\n show configuration\n"), "Primary config must not be interpreted as operational output.");
+            Check(!SupplementaryData.LooksLikeCommandOutput("LAB-SW-01#show running-config\nhostname LAB-SW-01\n"), "show running-config remains a primary configuration.");
+            Check(SupplementaryData.PromptHostname(text) == "LAB-SW-01", "Command prompt hostname must be recognized.");
+
+            byte[] workbookBytes = File.ReadAllBytes(workbook);
+            var multiple = SupplementaryData.FromAuvikBytes(workbookBytes, "fictional-auvik.xlsx",
+                new[] { "LAB-SW-01", "LAB-SW-02", "Unknown" });
+            Check(multiple.Count == 2, "Site-wide workbook should match both known hostnames.");
+            Check(multiple["LAB-SW-02"].Observations.Any(o => o.Value.Contains("LAB-WAP-02")), "Second device observations were not isolated.");
+            Check(multiple["LAB-SW-01"].Observations.All(o => !o.Value.Contains("LAB-WAP-02")), "Cross-device observations leaked.");
+
+            var mixed = new ConfigurationWorkspace();
+            var mixedFiles = new[]
+            {
+                new DroppedNetworkFile("fictional-auvik.xlsx", Convert.ToBase64String(workbookBytes), "xlsx-base64", null),
+                new DroppedNetworkFile("show-neighbors.log", text, "text", null),
+                new DroppedNetworkFile("access-1.cfg", "hostname LAB-SW-01\ninterface 1/1/1\n no shutdown\n", "text", null),
+                new DroppedNetworkFile("access-2.cfg", "hostname LAB-SW-02\ninterface 1/1/9\n no shutdown\n", "text", null)
+            };
+            var imported = WorkspaceDropImporter.Import(mixed, mixedFiles, null);
+            Check(imported.Errors.Count == 0, "Mixed Auvik/config/command import errors: " + string.Join("; ", imported.Errors));
+            Check(imported.ConfigurationsAdded == 2, "Mixed drop lost primary configurations.");
+            Check(imported.SupplementarySourcesAdded == 3 && imported.MatchedItemIds.Count == 2, "Mixed drop should attach two Auvik sources and one CLI source.");
+            var first = mixed.Items.Single(i => i.Inventory.Hostname == "LAB-SW-01");
+            var second = mixed.Items.Single(i => i.Inventory.Hostname == "LAB-SW-02");
+            Check(first.SupplementarySources.Count == 2 && second.SupplementarySources.Count == 1, "Sources attached to wrong primary device.");
+            Check(first.Text.Contains("no shutdown") && second.Text.Contains("no shutdown"), "Supplementary import changed source configuration.");
+            Check(mixed.SelectedId == second.Id, "Existing configuration drop selection behavior changed.");
+            var reopened = ConfigurationWorkspace.Deserialize(mixed.Serialize());
+            Check(reopened.Items.Single(i => i.Inventory.Hostname == "LAB-SW-01").SupplementarySources.Count == 2, "Mixed-import sources did not persist.");
+
+            var onlyWorkbook = WorkspaceDropImporter.Import(new ConfigurationWorkspace(),
+                new[] { mixedFiles[0] }, null);
+            Check(onlyWorkbook.ConfigurationsAdded == 0 && onlyWorkbook.SupplementarySourcesAdded == 0 &&
+                onlyWorkbook.Errors.Any(e => e.Contains("matching switch config")), "Unmatched Auvik workbook was silently treated as a configuration.");
+
+            var onlyCli = WorkspaceDropImporter.Import(new ConfigurationWorkspace(),
+                new[] { mixedFiles[1] }, null);
+            Check(onlyCli.ConfigurationsAdded == 0 && onlyCli.SupplementarySourcesAdded == 0 &&
+                onlyCli.Errors.Count == 1, "Operational output without a matching config must not become a switch.");
+
+            var wrongPrompt = WorkspaceDropImporter.Import(mixed,
+                new[] { new DroppedNetworkFile("wrong.log", "OTHER-SW#show ip route\nS* 0.0.0.0/0 via 192.0.2.1\n", "text", null) },
+                first.Id);
+            Check(wrongPrompt.SupplementarySourcesAdded == 0 && wrongPrompt.Errors.Count == 1, "Mismatched CLI prompt must not attach to selected device.");
+            var routePrompt = WorkspaceDropImporter.Import(mixed,
+                new[] { new DroppedNetworkFile("route.log", "LAB-SW-02#show ip route\nS* 0.0.0.0/0 via 198.51.100.3\n", "text", null) },
+                first.Id);
+            Check(routePrompt.SupplementarySourcesAdded == 1 && second.SupplementarySources.Count == 2, "Prompt matching must supersede different selected switch.");
+
+            var unknownCsv = WorkspaceDropImporter.Import(mixed,
+                new[] { new DroppedNetworkFile("unknown.csv", "Header,Unrecognized\n1,2\n", "text", null) }, first.Id);
+            Check(unknownCsv.ConfigurationsAdded == 0 && unknownCsv.Errors.Count == 1, "Unknown CSV must never be imported as a configuration.");
+            var onlySupp = WorkspaceDropImporter.Import(mixed,
+                new[] { new DroppedNetworkFile("new.cfg", "hostname TEST-SW-03\n", "text", null) }, first.Id, true);
+            Check(onlySupp.ConfigurationsAdded == 0 && onlySupp.Errors.Count == 1, "Drop into supplementary dialog must reject primary configs.");
+
+            var duplicates = new ConfigurationWorkspace();
+            var duplicateA = duplicates.AddText("hostname LAB-SW-01\n", "snapshot-a.cfg");
+            var duplicateB = duplicates.AddText("hostname LAB-SW-01\n", "snapshot-b.cfg");
+            var ambiguous = WorkspaceDropImporter.Import(duplicates, new[] { mixedFiles[0] }, null);
+            Check(ambiguous.SupplementarySourcesAdded == 0 && ambiguous.Errors.Count > 0, "Duplicate hostname must not receive workbook automatically.");
+            var explicitlyTargeted = WorkspaceDropImporter.Import(duplicates, new[] { mixedFiles[0] }, duplicateA.Id);
+            Check(explicitlyTargeted.SupplementarySourcesAdded == 1 && duplicateA.SupplementarySources.Count == 1 &&
+                duplicateB.SupplementarySources.Count == 0, "Explicit device target should resolve duplicate hostname safely.");
+
+            var invalidExcel = WorkspaceDropImporter.Import(mixed,
+                new[] { new DroppedNetworkFile("not-an-excel.xlsx", Convert.ToBase64String(new byte[] { 1, 2, 3, 4 }), "xlsx-base64", null) }, first.Id);
+            Check(invalidExcel.ConfigurationsAdded == 0 && invalidExcel.SupplementarySourcesAdded == 0 &&
+                invalidExcel.Errors.Count == 1, "Malformed Excel input must not enter configuration inventory.");
 
             Console.WriteLine("PASS SupplementaryChecks (" + assertions + " assertions)");
             return 0;

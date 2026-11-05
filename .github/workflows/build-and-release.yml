@@ -43,6 +43,8 @@ jobs:
         env:
           SUPPLEMENTARY_TEST_SCREENSHOT: build/supplementary-data.png
         run: node Source/tests/verify-supplementary-ui.cjs
+      - name: Check drag-and-drop auto-classification of Auvik and CLI evidence
+        run: node Source/tests/verify-supplementary-drop-ui.cjs
       - name: Check ordered multi-configuration workspace
         run: node Source/tests/verify-workspace-ui.cjs
       - name: Check launch, copy and logo controls
