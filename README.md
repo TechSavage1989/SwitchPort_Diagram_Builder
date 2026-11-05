@@ -24,7 +24,7 @@
 - **Keep the complete inventory:** PDF tables retain full tagged-VLAN lists, with wrapped cells and continuation pages for long rows.
 - **Share one sheet:** place switches from different configurations together on readable A4 sheets in workspace order, with shared VLAN/LAG colors, one combined VLAN legend and exact-sheet previews.
 - **Choose installed modules:** compatible per-slot module selectors supply missing expansion-card inventory for supported switches, stack members and chassis. Automatic detection remains available.
-- **Auto-detect supplementary network evidence:** drag and drop Auvik .xlsx reports or switch/firewall show, display and get command output alongside configurations; matching devices receive their own observed interface, neighbor, routing and DHCP/relay details. Observed fields never override VLAN, LAG, module, administrative or physical geometry configuration.
+- **Auto-detect supplementary network evidence (1.18.4):** drag and drop Auvik .xlsx reports or switch/firewall show, display and get command output alongside configurations; matching devices receive their own observed interface, neighbor, routing and DHCP/relay details. Observed fields never override VLAN, LAG, module, administrative or physical geometry configuration.
 - **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
