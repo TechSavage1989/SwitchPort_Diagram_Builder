@@ -149,8 +149,8 @@ static class SupplementaryChecks
             {
                 new DroppedNetworkFile("fictional-auvik.xlsx", Convert.ToBase64String(workbookBytes), "xlsx-base64", null),
                 new DroppedNetworkFile("show-neighbors.log", text, "text", null),
-                new DroppedNetworkFile("access-1.cfg", "hostname LAB-SW-01\ninterface 1/1/1\n no shutdown\n", "text", null),
-                new DroppedNetworkFile("access-2.cfg", "hostname LAB-SW-02\ninterface 1/1/9\n no shutdown\n", "text", null)
+                new DroppedNetworkFile("access-1.cfg", "hostname LAB-SW-01\nvlan 1\ninterface 1/1/1\n no shutdown\n", "text", null),
+                new DroppedNetworkFile("access-2.cfg", "hostname LAB-SW-02\nvlan 1\ninterface 1/1/9\n no shutdown\n", "text", null)
             };
             var imported = WorkspaceDropImporter.Import(mixed, mixedFiles, null);
             Check(imported.Errors.Count == 0, "Mixed Auvik/config/command import errors: " + string.Join("; ", imported.Errors));
@@ -191,13 +191,20 @@ static class SupplementaryChecks
             Check(onlySupp.ConfigurationsAdded == 0 && onlySupp.Errors.Count == 1, "Drop into supplementary dialog must reject primary configs.");
 
             var duplicates = new ConfigurationWorkspace();
-            var duplicateA = duplicates.AddText("hostname LAB-SW-01\n", "snapshot-a.cfg");
-            var duplicateB = duplicates.AddText("hostname LAB-SW-01\n", "snapshot-b.cfg");
+            var duplicateA = duplicates.AddText("hostname LAB-SW-01\nvlan 1\n", "snapshot-a.cfg");
+            var duplicateB = duplicates.AddText("hostname LAB-SW-01\nvlan 1\n", "snapshot-b.cfg");
             var ambiguous = WorkspaceDropImporter.Import(duplicates, new[] { mixedFiles[0] }, null);
             Check(ambiguous.SupplementarySourcesAdded == 0 && ambiguous.Errors.Count > 0, "Duplicate hostname must not receive workbook automatically.");
             var explicitlyTargeted = WorkspaceDropImporter.Import(duplicates, new[] { mixedFiles[0] }, duplicateA.Id);
             Check(explicitlyTargeted.SupplementarySourcesAdded == 1 && duplicateA.SupplementarySources.Count == 1 &&
                 duplicateB.SupplementarySources.Count == 0, "Explicit device target should resolve duplicate hostname safely.");
+
+            var unsupportedWithHostname = new ConfigurationWorkspace();
+            var partial = unsupportedWithHostname.AddText("hostname LAB-SW-01\ninterface 1/1/1\n", "partial.cfg");
+            Check(WorkspaceDropImporter.EvidenceHostname(partial) == "LAB-SW-01", "Safe hostname fallback not extracted from incomplete config.");
+            var partialImport = WorkspaceDropImporter.Import(unsupportedWithHostname, new[] { mixedFiles[0] }, partial.Id);
+            Check(partialImport.SupplementarySourcesAdded == 1 && partial.SupplementarySources.Count == 1,
+                "Auvik evidence must attach to a uniquely named incomplete configuration without changing its geometry.");
 
             var invalidExcel = WorkspaceDropImporter.Import(mixed,
                 new[] { new DroppedNetworkFile("not-an-excel.xlsx", Convert.ToBase64String(new byte[] { 1, 2, 3, 4 }), "xlsx-base64", null) }, first.Id);

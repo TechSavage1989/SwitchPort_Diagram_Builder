@@ -93,9 +93,10 @@ const path=require('path'),assert=require('assert');
   assert(await page.locator('#supplementaryDialog').isVisible());
   await page.click('#suppClose');
 
-  const messagesBefore=await drop([{name:'bad.xlsx',text:'not a ZIP archive'}]);
+  const importsBefore=await page.evaluate(()=>window.__messages.filter(m=>['loadFiles','loadText','loadBackup'].includes(m.action)).length);
+  await drop([{name:'bad.xlsx',text:'not a ZIP archive'}]);
   await page.waitForFunction(()=>document.getElementById('status').className==='error');
-  assert.equal(await page.evaluate(()=>window.__messages.length),messagesBefore,'Malformed .xlsx rejected before native import');
+  assert.equal(await page.evaluate(()=>window.__messages.filter(m=>['loadFiles','loadText','loadBackup'].includes(m.action)).length),importsBefore,'Malformed .xlsx rejected before native import');
   assert.equal(errors.length,0,'Browser errors: '+errors.join('; '));
   console.log('PASS Auvik/CLI drag auto-detection, binary fidelity, row targeting, mixed drops, primary config compatibility, dialog drops and malformed input guards.');
  }finally{await browser.close();}

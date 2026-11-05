@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SwitchportGenerator;
 
@@ -51,6 +52,18 @@ public static class WorkspaceDropImporter
         return content;
     }
 
+    // A partially supported configuration may still contain an unambiguous
+    // hostname declaration. Use it for evidence attribution only, never for
+    // hardware, port geometry, VLANs or render validation.
+    public static string EvidenceHostname(ConfigurationItem item)
+    {
+        string parsed = item.Inventory.Hostname;
+        if (!string.IsNullOrWhiteSpace(parsed) &&
+            !parsed.Equals("Unknown", StringComparison.OrdinalIgnoreCase)) return parsed;
+        var match = Regex.Match(item.Text, @"(?im)^\s*hostname\s+""?([\w.-]{1,180})""?\s*$");
+        return match.Success ? match.Groups[1].Value : "";
+    }
+
     static ConfigurationItem? TargetForCommand(ConfigurationWorkspace workspace, string text, string? dropTargetId)
     {
         var candidates = workspace.Items;
@@ -59,7 +72,7 @@ public static class WorkspaceDropImporter
         string promptKey = SupplementaryData.HostKey(prompt);
         if (promptKey.Length > 0)
         {
-            var matched = candidates.Where(item => SupplementaryData.HostKey(item.Inventory.Hostname) == promptKey).ToList();
+            var matched = candidates.Where(item => SupplementaryData.HostKey(EvidenceHostname(item)) == promptKey).ToList();
             if (matched.Count == 1) return matched[0];
             if (matched.Count > 1)
                 return matched.FirstOrDefault(item => item.Id == dropTargetId);
@@ -136,7 +149,7 @@ public static class WorkspaceDropImporter
             try
             {
                 byte[] bytes = Convert.FromBase64String(base64);
-                var inventoryHosts = workspace.Items.Select(item => item.Inventory.Hostname).ToArray();
+                var inventoryHosts = workspace.Items.Select(EvidenceHostname).ToArray();
                 var sources = SupplementaryData.FromAuvikBytes(bytes, name, inventoryHosts);
                 if (sources.Count == 0)
                 {
@@ -145,7 +158,7 @@ public static class WorkspaceDropImporter
                 }
                 foreach (var pair in sources)
                 {
-                    var matching = workspace.Items.Where(item => SupplementaryData.HostKey(item.Inventory.Hostname) == pair.Key).ToList();
+                    var matching = workspace.Items.Where(item => SupplementaryData.HostKey(EvidenceHostname(item)) == pair.Key).ToList();
                     ConfigurationItem? destination = matching.Count == 1 ? matching[0] :
                         matching.FirstOrDefault(item => item.Id == targetId);
                     if (destination == null)
@@ -181,7 +194,7 @@ public static class WorkspaceDropImporter
             }
             try
             {
-                var source = SupplementaryData.FromText(text, name, item.Inventory.Hostname);
+                var source = SupplementaryData.FromText(text, name, EvidenceHostname(item));
                 workspace.AddSupplementary(item.Id, source);
                 result.SupplementarySourcesAdded++;
                 result.MatchedItemIds.Add(item.Id);
