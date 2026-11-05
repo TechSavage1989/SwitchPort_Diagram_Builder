@@ -74,7 +74,7 @@ el('pasteDialog').addEventListener('close',()=>post({action:'updateEditing',enab
 el('pasteText').oninput=()=>{el('pasteError').textContent='';controls();};
 el('usePaste').onclick=()=>loadText(el('pasteText').value,'Pasted configuration');
 function renderSupplementary(){
- el('supplementary').textContent='Supplementary data ('+supplementarySources.length+')';
+ el('supplementary').textContent='Supplementary ('+supplementarySources.length+')';el('supplementary').setAttribute('aria-label','Supplementary data ('+supplementarySources.length+')');
  el('supplementaryList').replaceChildren();
  el('supplementaryEmpty').hidden=supplementarySources.length>0;
  for(const source of supplementarySources){

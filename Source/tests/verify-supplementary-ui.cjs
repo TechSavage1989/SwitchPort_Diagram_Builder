@@ -25,7 +25,8 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   const second={id:'1'.repeat(32),name:'<script>unsafe</script>.txt',kind:'Command output',device:'LAB-SW-01',count:12,categories:['DHCP relay','Route']};
   await deliver({type:'selected',id:'lab',name:'lab.cfg',hostname:'LAB-SW-01',supplementary:[first,second]});
   assert.equal(await page.locator('#supplementaryList li').count(),2);
-  assert.equal(await page.locator('#supplementary').innerText(),'Supplementary data (2)');
+  assert.equal(await page.locator('#supplementary').innerText(),'Supplementary (2)');
+  assert.equal(await page.locator('#supplementary').getAttribute('aria-label'),'Supplementary data (2)');
   assert.equal(await page.locator('#supplementaryList script').count(),0,'Source names are inserted as literal text only');
   assert((await page.locator('#supplementaryList').innerText()).includes('DHCP relay'));
   if(process.env.SUPPLEMENTARY_TEST_SCREENSHOT){

@@ -73,3 +73,8 @@ label{font-size:13px;color:#dbeaf8}input{min-width:0;min-height:42px;width:100%;
 #supplementaryPasteBox input{display:block;width:100%;margin:5px 0 12px;border:1px solid #46647e;border-radius:7px;background:#081421;color:#e3eef8;padding:8px}
 #supplementaryPasteBox textarea{height:min(32vh,250px);min-height:115px}
 #supplementaryMessage{white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto;font-size:12px;margin-top:10px}
+
+/* Two independent device tools share one compact row at short window sizes. */
+.config-panel>.device-tools{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.config-panel>.device-tools button{min-width:0;min-height:32px;padding:6px 9px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-height:520px){.config-panel>.device-tools button{min-height:26px;padding:4px 7px;font-size:11px}.config-panel>.device-tools{gap:5px}}
