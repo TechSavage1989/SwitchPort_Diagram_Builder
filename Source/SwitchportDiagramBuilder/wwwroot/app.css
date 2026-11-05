@@ -57,3 +57,19 @@ label{font-size:13px;color:#dbeaf8}input{min-width:0;min-height:42px;width:100%;
 @media(max-height:450px){.has-output .eyebrow{display:none}.has-output .app-brand{row-gap:4px}.has-output .app-brand h1{font-size:23px}.has-output main{gap:5px}.has-output .config-panel{gap:3px}.has-output .build-results #status{max-height:28px;padding:4px 7px}}
 
 .workspace-reset-actions{display:flex;gap:4px;margin-left:auto}.workspace-reset-actions button{min-height:24px;padding:3px 6px;font-size:10px}.workspace-heading{flex-wrap:wrap}
+
+/* Supplementary evidence is edited in a dialog so the compact workspace remains readable. */
+#supplementaryDialog{width:min(760px,calc(100vw - 32px));overflow-y:auto}
+#supplementaryDialog>p{margin:8px 0 12px}
+.supplementary-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.supplementary-actions button{min-height:34px;padding:7px 11px;font-size:12px}
+.supplementary-list{list-style:none;margin:12px 0;padding:0;max-height:220px;overflow-y:auto}
+.supplementary-source{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #29435b;padding:9px 2px}
+.supplementary-source div{display:grid;min-width:0;gap:4px}
+.supplementary-source strong{font-size:13px;overflow-wrap:anywhere}
+.supplementary-source small{display:block;grid-column:auto;overflow-wrap:anywhere}
+.supplementary-source button{flex-shrink:0}
+#supplementaryPasteBox{margin-top:15px;border-top:1px solid #29435b;padding-top:12px}
+#supplementaryPasteBox input{display:block;width:100%;margin:5px 0 12px;border:1px solid #46647e;border-radius:7px;background:#081421;color:#e3eef8;padding:8px}
+#supplementaryPasteBox textarea{height:min(32vh,250px);min-height:115px}
+#supplementaryMessage{white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto;font-size:12px;margin-top:10px}

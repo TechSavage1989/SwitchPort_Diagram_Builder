@@ -103,6 +103,9 @@ public sealed partial class MainForm : Form
             else if (message?.action == "loadText" && !busy) SelectText(message.text??"",message.name??"Pasted configuration");
             else if (message?.action == "loadBackup" && !busy) SelectText(ConfigInput.Decode(Convert.FromBase64String(message.text??"")),message.name??"RouterOS backup");
             else if (message?.action == "loadFiles" && !busy) ImportFiles(message.files??Array.Empty<IncomingFile>());
+            else if (message?.action == "chooseSupplementary" && !busy) ChooseSupplementary();
+            else if (message?.action == "importSupplementaryText" && !busy) PasteSupplementary(message.text??"", message.name??"Pasted show output");
+            else if (message?.action == "removeSupplementary" && !busy) RemoveSupplementary(message.id??"");
             else if (message?.action == "selectItem" && !busy) { workspace.Select(message.id??"");SendSelection(); }
             else if (message?.action == "moveItem" && !busy) { workspace.Move(message.id??"",message.index??0);InvalidateBatch();SendWorkspace(); }
             else if (message?.action == "removeItem" && !busy) RemoveItem(message.id??"");
@@ -237,6 +240,7 @@ public sealed partial class MainForm : Form
         string? temporaryInput=null;
         string? temporaryDetails=null;
         string? temporaryPalette=null;
+        string? temporarySupplementary=null;
         try
         {
             string input=selectedPath??"";
@@ -265,6 +269,13 @@ public sealed partial class MainForm : Form
                 temporaryPalette=Path.Combine(paletteDirectory,Guid.NewGuid().ToString("N")+"-palette.json");
                 await File.WriteAllTextAsync(temporaryPalette,palette.Serialize());
                 start.ArgumentList.Add("--palette");start.ArgumentList.Add(temporaryPalette);
+            }
+            if (workspace.Selected is { SupplementarySources.Count: > 0 } evidenceItem)
+            {
+                string inputs=Path.Combine(data,"Input");Directory.CreateDirectory(inputs);
+                temporarySupplementary=Path.Combine(inputs,Guid.NewGuid().ToString("N")+"-supplementary.json");
+                await File.WriteAllTextAsync(temporarySupplementary,JsonSerializer.Serialize(evidenceItem.SupplementarySources));
+                start.ArgumentList.Add("--supplementary");start.ArgumentList.Add(temporarySupplementary);
             }
             using var process = Process.Start(start) ?? throw new InvalidOperationException("The generator could not start.");
             // Drain both streams concurrently, avoiding a full stderr pipe blocking the child.
@@ -308,6 +319,7 @@ public sealed partial class MainForm : Form
             if(temporaryInput!=null)try{File.Delete(temporaryInput);}catch(IOException){}catch(UnauthorizedAccessException){}
             if(temporaryDetails!=null)try{File.Delete(temporaryDetails);}catch(IOException){}catch(UnauthorizedAccessException){}
             if(temporaryPalette!=null)try{File.Delete(temporaryPalette);}catch(IOException){}catch(UnauthorizedAccessException){}
+            if(temporarySupplementary!=null)try{File.Delete(temporarySupplementary);}catch(IOException){}catch(UnauthorizedAccessException){}
             busy = false;
             SendProject();updater?.Publish();
         }

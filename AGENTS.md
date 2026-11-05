@@ -27,3 +27,7 @@ This repository follows the shared TechSavage1989 standard in [`docs/REPOSITORY_
 - **Instructions:** this file is the single source of project rules for every tool; `CLAUDE.md` imports it. Add new rules and gotchas here.
 
 Where this file's project-specific rules differ from the shared standard, this file wins; an enforced check script wins over both.
+
+## Supplementary network evidence import
+
+Supplementary Auvik and CLI data is non-authoritative. Never infer or override physical port counts, installed modules, VLAN/native/voice assignments, LAGs, administrative config or actual links from this evidence. Require exact device identity matching before attaching Auvik reports, and preserve source attribution. Support read-only file imports without executing formulas, scripts, embedded code or external references. Keep only fictional fixtures in CI. Preserve workspace version-1 backward compatibility and the existing 8-file report baseline. Read `docs/SUPPLEMENTARY_IMPORT.md` and run SupplementaryChecks plus the complete CI suite when editing this feature.

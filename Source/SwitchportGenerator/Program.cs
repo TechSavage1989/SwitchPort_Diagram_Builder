@@ -10,7 +10,7 @@ public static class GeneratorEntry
     static int Main(string[] args)=>Run(args);
     public static int Run(string[] args,RenderPalette? renderPalette=null)
     {
-        string? input=null,output=null,models=null,modelName=null,logo=null,deviceDetails=null,paletteFile=null;bool namedFolder=false;
+        string? input=null,output=null,models=null,modelName=null,logo=null,deviceDetails=null,paletteFile=null,supplementaryFile=null;bool namedFolder=false;
         for(int i=0;i<args.Length;i++)
         {
             if(args[i]=="--input"&&i+1<args.Length)input=args[++i];
@@ -20,6 +20,7 @@ public static class GeneratorEntry
             else if(args[i]=="--logo"&&i+1<args.Length)logo=args[++i];
             else if(args[i]=="--device-details"&&i+1<args.Length)deviceDetails=args[++i];
             else if(args[i]=="--palette"&&i+1<args.Length)paletteFile=args[++i];
+            else if(args[i]=="--supplementary"&&i+1<args.Length)supplementaryFile=args[++i];
             else if(args[i]=="--named-folder")namedFolder=true;
             else {Console.Error.WriteLine("Usage: SwitchportGenerator.exe --input <configuration-file> --output <output-directory> [--models <SKU or member=SKU pairs>] [--model-name <printed model name>] [--logo <image-file>] [--device-details <JSON-file>]");return 2;}
         }
@@ -63,6 +64,17 @@ public static class GeneratorEntry
                 if(new FileInfo(paletteFile).Length>4_000_000)throw new InvalidOperationException("Workspace palette exceeds the supported size.");
                 renderPalette=RenderPalette.Deserialize(File.ReadAllText(paletteFile));
             }
+            var supplementary = new List<SupplementarySource>();
+            if (supplementaryFile != null)
+            {
+                string path = Path.GetFullPath(supplementaryFile);
+                if (!File.Exists(path) || new FileInfo(path).Length > 25_000_000)
+                    throw new InvalidOperationException("Supplementary evidence file is missing or too large.");
+                supplementary = JsonSerializer.Deserialize<List<SupplementarySource>>(File.ReadAllText(path))
+                    ?? throw new InvalidOperationException("Supplementary evidence is invalid.");
+                SupplementaryData.Validate(supplementary);
+                SupplementaryData.Apply(inv, supplementary);
+            }
             renderPalette?.Apply(inv);
             var placements=Charts.Layout(inv);inv.Blockers.AddRange(Charts.Validate(inv,placements));inv.Blockers=inv.Blockers.Distinct().ToList();
             string json=JsonSerializer.Serialize(inv,JsonOptions);byte[] jsonBytes=new UTF8Encoding(false).GetBytes(json);string hash=Hash(jsonBytes);
@@ -80,7 +92,8 @@ public static class GeneratorEntry
                 csv.AppendLine(string.Join(',',new[]{p.Id,p.Description,p.Mode,native,vlanName,tagged,p.VoiceVlan?.ToString()??"",p.Aggregate,connected,p.Media,p.Speed,p.Disabled.HasValue?p.Disabled.Value?"Disabled":"Enabled":"Unknown",NoteValues("Configured ingress PVID: "),NoteValues("Address: "),NoteValues("Aggregation mode: "),deviceId,device?.Name??"",device?.SerialNumber??"",device?.AssetTag??"",device?.Notes??"",moduleId,module?.Name??"",module?.SerialNumber??"",module?.AssetTag??"",module?.Notes??"",device?.Model??"",module?.Model??"",string.Join(';',p.RelatedInterfaces),InventoryBasis.PortBasis(inv,p)}.Select(Quote)));
             }
             File.WriteAllText(Path.Combine(output,"port-map.csv"),csv.ToString(),new UTF8Encoding(true));
-            string summary=Summary(inv);
+            SupplementaryData.WriteExports(output, supplementary);
+            string summary=Summary(inv)+SupplementaryData.Summary(supplementary);
             File.WriteAllText(Path.Combine(output,"technician-summary.txt"),summary);
             if(inv.Blockers.Count>0){WriteReport(output,inv,hash,false);Console.Error.WriteLine("RENDER_BLOCKED=TRUE\n"+string.Join('\n',inv.Blockers));return 3;}
             string staging=Path.Combine(output,".rendering");Directory.CreateDirectory(staging);

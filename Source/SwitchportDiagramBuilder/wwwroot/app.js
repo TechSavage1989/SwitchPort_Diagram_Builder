@@ -2,12 +2,12 @@ let workspaceCanUndo=false;
 const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[],moduleSlotChoices={},moduleRequest=0,modulePending=false,deviceSaveQueued=false;
-let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null;
+let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null,supplementarySources=[];
 let workspaceShowTitle=false,workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
 let project={available:false,chartAvailable:false,folderAvailable:false,combined:false,pageCount:0,pdfAvailable:false,label:'',output:'',stale:false,summary:''},projectKnown=false;
 const post=message=>window.chrome.webview.postMessage(message);
 const locked=()=>updating||busy||loading||deviceLoading;
-const editorOpen=()=>['deviceDialog','pasteDialog','workspaceLabelDialog','combinedPreviewDialog'].some(id=>el(id).open);
+const editorOpen=()=>['deviceDialog','pasteDialog','supplementaryDialog','workspaceLabelDialog','combinedPreviewDialog'].some(id=>el(id).open);
 function controls(){
  for(const id of ['choose','paste','chooseOutput','chooseLogo','openWorkspace'])el(id).disabled=locked();
  el('run').disabled=locked()||!hasInput;
@@ -22,6 +22,12 @@ function controls(){
  el('devices').disabled=locked()||!hasInput;el('saveDevices').disabled=deviceLoading||!deviceDraft;el('cancelDevices').disabled=deviceSaving;
  el('deviceRows').querySelectorAll('input,textarea,select,button').forEach(input=>input.disabled=deviceLoading);
  el('removeLogo').disabled=locked()||!hasLogo;
+ el('supplementary').disabled=locked()||!hasInput;
+ el('suppChoose').disabled=locked()||!hasInput;
+ el('suppPaste').disabled=locked()||!hasInput;
+ el('suppUsePaste').disabled=locked()||!hasInput||!el('supplementaryText').value.trim();
+ el('supplementaryList').querySelectorAll('button').forEach(button=>button.disabled=locked());
+ el('suppClose').disabled=loading;
  el('usePaste').disabled=locked()||!el('pasteText').value.trim();
 }
 function showResult(type,message){
@@ -67,6 +73,43 @@ el('pasteDialog').addEventListener('cancel',event=>{if(loading)event.preventDefa
 el('pasteDialog').addEventListener('close',()=>post({action:'updateEditing',enabled:false}));
 el('pasteText').oninput=()=>{el('pasteError').textContent='';controls();};
 el('usePaste').onclick=()=>loadText(el('pasteText').value,'Pasted configuration');
+function renderSupplementary(){
+ el('supplementary').textContent='Supplementary data ('+supplementarySources.length+')';
+ el('supplementaryList').replaceChildren();
+ el('supplementaryEmpty').hidden=supplementarySources.length>0;
+ for(const source of supplementarySources){
+  const item=document.createElement('li');item.className='supplementary-source';
+  const details=document.createElement('div');const heading=document.createElement('strong');
+  heading.textContent=source.name||'Supplementary source';
+  const note=document.createElement('small');
+  note.textContent=[source.kind,source.count+' observations',(source.categories||[]).join(', ')].filter(Boolean).join(' | ');
+  details.append(heading,note);
+  const remove=document.createElement('button');remove.type='button';remove.className='secondary compact';
+  remove.textContent='Remove';remove.setAttribute('aria-label','Remove '+source.name);
+  remove.onclick=()=>{if(!locked()){loading=true;controls();post({action:'removeSupplementary',id:source.id});}};
+  item.append(details,remove);el('supplementaryList').append(item);
+ }
+ controls();
+}
+el('supplementary').onclick=()=>{
+ if(locked()||!hasInput||editorOpen())return;
+ el('supplementaryPasteBox').hidden=true;el('supplementaryMessage').textContent='';
+ el('supplementaryTarget').textContent=el('file').textContent;
+ renderSupplementary();el('supplementaryDialog').showModal();
+ post({action:'updateEditing',enabled:true});controls();
+};
+el('suppChoose').onclick=()=>{if(!locked())post({action:'chooseSupplementary'});};
+el('suppPaste').onclick=()=>{if(!locked()){el('supplementaryPasteBox').hidden=false;el('supplementaryText').focus();controls();}};
+el('suppCancelPaste').onclick=()=>{if(!loading){el('supplementaryPasteBox').hidden=true;el('supplementaryMessage').textContent='';controls();}};
+el('supplementaryText').oninput=controls;
+el('suppUsePaste').onclick=()=>{
+ if(locked()||!el('supplementaryText').value.trim())return;
+ const text=el('supplementaryText').value;
+ if(new TextEncoder().encode(text).length>MAX_INPUT_BYTES){el('supplementaryMessage').textContent='Command output exceeds the 20 MB limit.';return;}
+ loading=true;controls();post({action:'importSupplementaryText',text,name:el('supplementaryPasteName').value.trim()||'Pasted show output'});
+};
+el('suppClose').onclick=()=>{if(!loading)el('supplementaryDialog').close();};
+el('supplementaryDialog').addEventListener('close',()=>{el('supplementaryPasteBox').hidden=true;post({action:'updateEditing',enabled:false});});
 el('chooseOutput').onclick=()=>{if(!locked())post({action:'chooseOutput'});};
 el('chooseLogo').onclick=()=>{if(!locked())post({action:'chooseLogo'});};
 el('removeLogo').onclick=()=>{if(!locked()&&hasLogo)post({action:'removeLogo'});};
@@ -237,7 +280,7 @@ function renderWorkspace(message){
   function button(label,action,className){const control=document.createElement('button');control.type='button';control.className=className;control.setAttribute('aria-label',label);control.title=label;control.dataset.itemId=item.id;control.dataset.workspaceAction=action;return control;}
   const choose=button('Select '+name,'select','workspace-select');choose.setAttribute('aria-current',item.id===selectedId?'true':'false');
   const title=document.createElement('strong');title.textContent=(index+1)+'. '+name+(item.dirty?' *':'');
-  const detail=document.createElement('small');detail.textContent=[item.qualification,item.name,item.model,item.error].filter(Boolean).join(' · ');choose.title=[name,detail.textContent].filter(Boolean).join('\n');choose.append(title,detail);
+  const detail=document.createElement('small');detail.textContent=[item.qualification,item.name,item.model,item.supplementCount?item.supplementCount+' supplementary':null,item.error].filter(Boolean).join(' · ');choose.title=[name,detail.textContent].filter(Boolean).join('\n');choose.append(title,detail);
   choose.onclick=()=>{if(locked()||item.id===selectedId)return;loading=true;controls();post({action:'selectItem',id:item.id});};
   const order=document.createElement('div');order.className='workspace-order';
   for(const [action,delta,label,glyph] of [['up',-1,'Move up','↑'],['down',1,'Move down','↓']]){
@@ -316,6 +359,13 @@ window.chrome.webview.addEventListener('message',event=>{
  if(m.type==='project'){renderProject(m);return;}
  if(m.type==='openProjectPreview'){showProjectPreview();return;}
  if(m.type==='workspaceSaved'){el('importResult').textContent=m.message;el('importResult').className='import-result';el('importResult').hidden=!m.message;return;}
+ if(m.type==='supplementaryResult'){
+  loading=false;
+  el('supplementaryMessage').textContent=[m.message,...(m.errors||[])].filter(Boolean).join('\n');
+  el('supplementaryMessage').className='import-result'+(m.success?'':' error');
+  if(m.success){el('supplementaryPasteBox').hidden=true;el('supplementaryText').value='';}
+  controls();return;
+ }
  if(m.type==='importComplete'){
   batchLoading=false;loading=false;controls();
   el('importResult').textContent=[m.message,...(m.errors||[])].filter(Boolean).join('\n');
@@ -366,6 +416,7 @@ window.chrome.webview.addEventListener('message',event=>{
  if(m.type==='outputSelected'){el('outputFolder').textContent=m.path;controls();return;}
  if(m.type==='selected'){
   hasInput=m.id!==null;loading=batchLoading;selectedId=m.id||selectedId;
+  supplementarySources=m.supplementary||[];renderSupplementary();
   if(el('deviceDialog').open)el('deviceDialog').close();deviceDraft=null;deviceLoading=false;deviceSaving=false;deviceRequest++;
   el('file').textContent=hasInput?(m.hostname?m.hostname+' - '+m.name:m.name):'No configuration loaded';el('file').title=m.path||m.name||'';
   el('selectedInventoryBasis').textContent=m.qualification||'Models, names and serial numbers';el('selectedInventoryBasis').title=m.inventoryDetails||'';el('selectedInventoryBasis').style.color=m.qualification?'#e4bc61':'';
