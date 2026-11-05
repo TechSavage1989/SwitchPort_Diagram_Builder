@@ -1,6 +1,6 @@
-# Unreleased supplementary network evidence import
+# Supplementary network evidence import: 1.18.3
 
-Development branch: `feat/supplementary-data-import`. Published stable version remains 1.18.2 until a separate, fully validated release is authorized. Do not merge this branch or promote a new version until all existing CI gates and actual Windows/WebView2 review are green.
+Version 1.18.3 introduces optional Auvik workbook and CLI command evidence alongside primary switch configurations. The Linux parser/report, Windows packaging/updater, and browser interface CI suites passed on the feature implementation commit. The real screenshot is captured from the Playwright interface test with fictional data. Interactive Windows/WebView2 startup and an actual user updater install/restart remain workstation verification items and are not claimed tested.
 
 - `Source/SwitchportGenerator/SupplementaryData.cs` is an independent, bounded observation parser. It reads selected-device Auvik Open XML workbooks (Interfaces, Devices/Network Elements, Routes, ARP, FDB) and pasted/saved show, display or get output. No new external library is required and no network requests are made.
 - `ConfigurationItem.SupplementarySources` owns parsed observations independently of the original configuration and of device/installed-module choices. The existing workspace format version stays 1; old workspaces with no supplementary property remain compatible. Remove, undo and save/open preserve owned sources. Adding/removing evidence marks the current project stale.

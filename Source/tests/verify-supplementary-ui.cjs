@@ -22,7 +22,7 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
   assert.equal(await page.locator('#supplementaryEmpty').isVisible(),true);
   await page.click('#suppChoose');assert.deepEqual(await last(),{action:'chooseSupplementary'});
   const first={id:'0'.repeat(32),name:'fictional-auvik.xlsx',kind:'Auvik workbook',device:'LAB-SW-01',count:30,categories:['Interface','Neighbor','Route']};
-  const second={id:'1'.repeat(32),name:'<script>unsafe</script>.txt',kind:'Command output',device:'LAB-SW-01',count:12,categories:['DHCP relay','Route']};
+  const second={id:'1'.repeat(32),name:'fictional-commands.txt',kind:'Command output',device:'LAB-SW-01',count:12,categories:['DHCP relay','Route']};
   await deliver({type:'selected',id:'lab',name:'lab.cfg',hostname:'LAB-SW-01',supplementary:[first,second]});
   assert.equal(await page.locator('#supplementaryList li').count(),2);
   assert.equal(await page.locator('#supplementary').innerText(),'Supplementary (2)');
@@ -33,6 +33,9 @@ const path=require('path'),assert=require('assert'),fs=require('fs');
    fs.mkdirSync(path.dirname(process.env.SUPPLEMENTARY_TEST_SCREENSHOT),{recursive:true});
    await page.screenshot({path:process.env.SUPPLEMENTARY_TEST_SCREENSHOT});
   }
+  const hostile={...second,name:'<script>unsafe</script>.txt'};
+  await deliver({type:'selected',id:'lab',name:'lab.cfg',hostname:'LAB-SW-01',supplementary:[first,hostile]});
+  assert.equal(await page.locator('#supplementaryList script').count(),0,'Untrusted file names remain literal');
   await page.click('#suppPaste');await page.locator('#supplementaryText').fill('SW#show lldp neighbors detail\nLocal Intf: 1/1/1\nSystem Name: LAB-CORE\nPort id: 1/1/48');
   await page.locator('#supplementaryPasteName').fill('Live CLI capture');
   await page.click('#suppUsePaste');

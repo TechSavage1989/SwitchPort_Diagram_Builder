@@ -17,6 +17,8 @@ jobs:
   ui-checks:
     name: Embedded update and configuration controls
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Temporary, screenshot capture on the feature branch only; reverted before merge
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -51,6 +53,17 @@ jobs:
           node Source/tests/verify-output-copy.cjs
           node Source/tests/verify-report-logo-ui.cjs
 
+      - name: Commit genuine supplementary importer screenshot once (feature branch only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/supplementary-data-import' && hashFiles('docs/images/supplementary-data.png') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: TechSavage1989/SwitchPort_Diagram_Builder
+        run: |
+          test -s build/supplementary-data.png
+          gh api --method PUT "repos/$GH_REPO/contents/docs/images/supplementary-data.png" \
+            -f message="docs: capture supplementary importer UI from browser test" \
+            -f content="$(base64 -w0 build/supplementary-data.png)" \
+            -f branch="feat/supplementary-data-import" >/dev/null
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: success() || failure()
         with:

@@ -50,6 +50,12 @@ Pages from a real exported A4 PDF report, with switch, VLAN and host names chang
   <tr><td width="50%"><b>Workspace output name and shared-sheet report title</b><br><img src="docs/images/workspace-name.png" alt="Workspace output name and shared-sheet report title" width="440"></td><td width="50%"></td></tr>
 </table>
 
+### Supplementary network evidence
+
+**Import Auvik reports or saved CLI outputs alongside a selected configuration**
+
+<img src="docs/images/supplementary-data.png" alt="Supplementary data dialog with fictional Auvik and command captures" width="900">
+
 ### Device and module details
 
 <table>
