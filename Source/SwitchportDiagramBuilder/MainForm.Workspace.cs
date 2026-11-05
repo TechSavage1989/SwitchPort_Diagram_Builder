@@ -18,7 +18,7 @@ public sealed partial class MainForm
         items=workspace.Items.Select(item=>new
         {
             id=item.Id,name=item.Name,hostname=DisplayName(item),model=ReportText.SwitchModel(item.Inventory),
-            error=string.Join("; ",item.Inventory.Blockers),dirty=item.Dirty,qualification=InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.Qualifier(item.Inventory):""
+            error=string.Join("; ",item.Inventory.Blockers),dirty=item.Dirty,supplementCount=item.SupplementarySources.Count,qualification=InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.Qualifier(item.Inventory):""
         }).ToArray()
       });
       SendProject();
@@ -32,7 +32,13 @@ public sealed partial class MainForm
             type="selected",id=item?.Id,path=item?.SourcePath??"",name=item?.Name??"",hostname=item==null?"":DisplayName(item),
             chartAvailable=item?.LastChart is {} chart&&File.Exists(chart),statusType=item?.StatusType??"",statusText=item?.Status??"",
             qualification=item!=null&&InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.Qualifier(item.Inventory):"",
-            inventoryDetails=item!=null&&InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.CountLabel(item.Inventory)+". Uplink entries show saved alternatives, not confirmed installed sockets.":""
+            inventoryDetails=item!=null&&InventoryBasis.HasConfiguredInterfaces(item.Inventory)?InventoryBasis.CountLabel(item.Inventory)+". Uplink entries show saved alternatives, not confirmed installed sockets.":"",
+            supplementary=item?.SupplementarySources.Select(source=>(object)new
+            {
+                id=source.Id,name=source.Name,kind=source.Kind,device=source.Device,
+                count=source.Observations.Count,
+                categories=source.Observations.Select(entry=>entry.Category).Distinct().Order().ToArray()
+            }).ToArray()??Array.Empty<object>()
         });
     }
     void SendImportResult(int added,List<string> errors)=>Send(new

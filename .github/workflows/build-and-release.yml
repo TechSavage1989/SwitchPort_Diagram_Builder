@@ -39,6 +39,10 @@ jobs:
           Switchport_TEST_SCREENSHOT: build/device-details.png
         run: node Source/tests/verify-device-details-ui.cjs
 
+      - name: Check supplementary import dialog and controls
+        env:
+          SUPPLEMENTARY_TEST_SCREENSHOT: build/supplementary-data.png
+        run: node Source/tests/verify-supplementary-ui.cjs
       - name: Check ordered multi-configuration workspace
         run: node Source/tests/verify-workspace-ui.cjs
       - name: Check launch, copy and logo controls
@@ -72,6 +76,8 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Check updater protocol and rollback transactions
         run: dotnet run --project Source/tests/UpdaterChecks/UpdaterChecks.csproj --configuration Release
+      - name: Check supplementary data parsing, import safety and workspace persistence
+        run: dotnet run --project Source/tests/SupplementaryChecks/SupplementaryChecks.csproj --configuration Release
       - name: Check ordered workspaces, persistence and batch export
         run: |
           dotnet run --project Source/tests/WorkspaceChecks/WorkspaceChecks.csproj --configuration Release -- build/workspace-fixtures

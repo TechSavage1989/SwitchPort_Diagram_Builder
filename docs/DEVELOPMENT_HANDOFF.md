@@ -1,3 +1,17 @@
+# Supplementary network evidence import: 1.18.3
+
+Version 1.18.3 introduces optional Auvik workbook and CLI command evidence alongside primary switch configurations. The Linux parser/report, Windows packaging/updater, and browser interface CI suites passed on the feature implementation commit. The real screenshot is captured from the Playwright interface test with fictional data. Interactive Windows/WebView2 startup and an actual user updater install/restart remain workstation verification items and are not claimed tested.
+
+- `Source/SwitchportGenerator/SupplementaryData.cs` is an independent, bounded observation parser. It reads selected-device Auvik Open XML workbooks (Interfaces, Devices/Network Elements, Routes, ARP, FDB) and pasted/saved show, display or get output. No new external library is required and no network requests are made.
+- `ConfigurationItem.SupplementarySources` owns parsed observations independently of the original configuration and of device/installed-module choices. The existing workspace format version stays 1; old workspaces with no supplementary property remain compatible. Remove, undo and save/open preserve owned sources. Adding/removing evidence marks the current project stale.
+- `SupplementaryData.Apply` only fills existing unknown observed neighbor, speed and operational-status fields and supplies observational notes and source-count assumptions. It never sets VLAN/native/voice, trunk/LAG, admin state, physical geometry, module choice or routing configuration. No input is considered current without independent verification.
+- The WebView2 bridge uses `chooseSupplementary`, `importSupplementaryText`, and `removeSupplementary` actions. The modal is scoped to the selected configuration; incoming command transcripts have size caps. Auvik device matching requires the configuration's hostname. `MainForm.Supplementary.cs` contains native import handling.
+- The generator CLI optionally accepts `--supplementary FILE`; `WorkspaceExport` and Build selected supply the same source-owned JSON. Each package gains `supplementary-data.csv` and `supplementary-data.json` when sources exist, while the existing eight standard outputs and A4 sheet geometry stay unchanged.
+- Focused regression: `dotnet run --project Source/tests/SupplementaryChecks/SupplementaryChecks.csproj --configuration Release`, plus `node Source/tests/verify-supplementary-ui.cjs`. All legacy Linux, Windows, browser, updater, catalog and report tests remain mandatory.
+- The real Auvik client reports used to understand headers, host matching and scale must never be included in commits, CI fixtures, screenshots, artifacts or release packages. Use fictional/synthetic hostnames and TEST-NET addresses in tests and screenshots.
+
+Known limitations: Auvik .xlsx and text/CSV captures are intentionally distinct inputs; CSV captures are treated as command-reference text, not as arbitrary Auvik schema CSV. Command outputs are parsed conservatively. Partial LLDP summary tables, vendor-specific routing notation, DHCP pool scopes and firewall sessions may be present only as source-labeled reference observations. The PDF physical sheet is not an inferred live topology map. Display names, raw network details and supplementary sources must be treated as potentially sensitive.
+
 # Wide-bank shared-sheet correction: 1.18.2
 
 A 48-port 3650 bank with its four lower uplinks exceeded the shared side-key

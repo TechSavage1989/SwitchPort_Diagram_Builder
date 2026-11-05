@@ -1,4 +1,4 @@
-Source files for 1.18.2
+Source files for 1.18.3
 
 ALL_MODELS_MODULES.csv
 Branding/Palette.txt
@@ -19,6 +19,7 @@ SUPPORT_COVERAGE.md
 SwitchportDiagramBuilder/AppUpdateController.cs
 SwitchportDiagramBuilder/Assets/AppIcon.ico
 SwitchportDiagramBuilder/MainForm.Project.cs
+SwitchportDiagramBuilder/MainForm.Supplementary.cs
 SwitchportDiagramBuilder/MainForm.Updates.cs
 SwitchportDiagramBuilder/MainForm.Workspace.cs
 SwitchportDiagramBuilder/MainForm.cs
@@ -60,6 +61,7 @@ SwitchportGenerator/QuickSheet.cs
 SwitchportGenerator/ReportLogo.cs
 SwitchportGenerator/ReportNaming.cs
 SwitchportGenerator/ReportText.cs
+SwitchportGenerator/SupplementaryData.cs
 SwitchportGenerator/SwitchportGenerator.csproj
 SwitchportGenerator/VlanPalette.cs
 SwitchportGenerator/WorkspaceExport.cs
@@ -108,6 +110,8 @@ tests/ReportLogoChecks.cs
 tests/ReportLogoChecks.csproj
 tests/UpdaterChecks/Program.cs
 tests/UpdaterChecks/UpdaterChecks.csproj
+tests/SupplementaryChecks/Program.cs
+tests/SupplementaryChecks/SupplementaryChecks.csproj
 tests/WorkspaceChecks/Program.cs
 tests/WorkspaceChecks/WorkspaceChecks.csproj
 tests/WorkspaceChecks/verify-pdfs.py
@@ -129,6 +133,7 @@ tests/verify-report-inventory-pdf.py
 tests/verify-report-logo-ui.cjs
 tests/verify-ui.cjs
 tests/verify-updates-ui.cjs
+tests/verify-supplementary-ui.cjs
 tests/verify-workspace-ui.cjs
 tests/verify.py
 tests/verify_saved_exports.py

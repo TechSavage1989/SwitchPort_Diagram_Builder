@@ -24,6 +24,7 @@
 - **Keep the complete inventory:** PDF tables retain full tagged-VLAN lists, with wrapped cells and continuation pages for long rows.
 - **Share one sheet:** place switches from different configurations together on readable A4 sheets in workspace order, with shared VLAN/LAG colors, one combined VLAN legend and exact-sheet previews.
 - **Choose installed modules:** compatible per-slot module selectors supply missing expansion-card inventory for supported switches, stack members and chassis. Automatic detection remains available.
+- **Attach supplementary network evidence:** add selected-device Auvik .xlsx reports or pasted/saved show, display and get command output for interfaces, neighbors, routes, DHCP/relays, and related operational details. Observed fields never override VLAN, LAG, module, administrative or physical geometry configuration.
 - **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
@@ -48,6 +49,12 @@ Pages from a real exported A4 PDF report, with switch, VLAN and host names chang
   <tr><td width="50%"><b>Paste a configuration into the workspace</b><br><img src="docs/images/paste-configuration.png" alt="Paste a configuration into the workspace" width="440"></td><td width="50%"><b>Validation warning kept visible beside valid configurations</b><br><img src="docs/images/validation-warning.png" alt="Validation warning kept visible beside valid configurations" width="440"></td></tr>
   <tr><td width="50%"><b>Workspace output name and shared-sheet report title</b><br><img src="docs/images/workspace-name.png" alt="Workspace output name and shared-sheet report title" width="440"></td><td width="50%"></td></tr>
 </table>
+
+### Supplementary network evidence
+
+**Import Auvik reports or saved CLI outputs alongside a selected configuration**
+
+<img src="docs/images/supplementary-data.png" alt="Supplementary data dialog with fictional Auvik and command captures" width="900">
 
 ### Device and module details
 
@@ -89,6 +96,19 @@ See [hardware coverage](Source/SUPPORT_COVERAGE.md), [module support and compati
 Reports are saved in a child folder named for the switch hostname or identified model. Repeated exports create numbered folders rather than replacing earlier results.
 
 The [complete model/module catalog](Source/ALL_MODELS_MODULES.csv) lists all 451 recorded identities, including 279 selectable switch/chassis models, 75 compatible module PIDs and 97 entries awaiting verified layouts. Version 1.18.0 corrects physical port rows, bank spacing and module positions across supported hardware. See the [manufacturer reference audit](docs/PHYSICAL_POSITION_AUDIT.md) and [catalog research and limits](docs/CATALOG_REFRESH.md).
+
+### Supplementary data import (optional)
+
+Select the primary switch configuration first, then open **Supplementary data** beside **Selected device details**. Choose **Add report or command file** for an Auvik Excel (.xlsx) report or a saved text, log or CSV command capture, or choose **Paste show output** for text copied from switch/firewall CLIs. Multiple supplementary sources can be attached to one configuration. Each can be removed separately.
+
+- Auvik workbooks are matched **only to the selected configuration's reported hostname**. Accepted tables include Interfaces, Devices/Network Elements, Routes, ARP Entries and Forwarding Database (FDB). A mismatched workbook is rejected rather than assigned to an unrelated switch. The primary configuration must identify the switch before Auvik import.
+- Command text supports recognizable interface status/address, LLDP/CDP detail, route next-hop and DHCP relay entries, plus source-labeled reference lines from relevant show, display and get commands. Command formats vary by vendor: unrecognized table columns remain reference observations, not inferred configuration.
+- Port neighbor, link state and speed may fill *unknown* fields in the exported inventory, labeled "Observed". They cannot replace configuration-derived VLAN membership, port modes, LAGs, interface numbering, supported hardware or layout. Historical operational data is not proof of current cabling.
+- Each report package with supplementary sources includes **supplementary-data.csv** and **supplementary-data.json**. Selected operational facts appear in the existing port inventory and assumptions. Full supplementary tables do not alter the A4 physical sheet geometry or create an independent topology diagram. Workspace saves keep parsed evidence, not the source workbook or complete raw command transcript.
+
+Auvik workbooks are read locally using the Open XML file contents; they are not uploaded. Store saved workspaces and reports securely, as IP addresses, MAC addresses and operational details can still be sensitive. In particular, imported CLI output is not a substitute for checking live LLDP/CDP, MAC tables and links before production changes.
+
+See [supplementary import details and limits](docs/SUPPLEMENTARY_IMPORT.md).
 
 ### Ordered workspaces
 

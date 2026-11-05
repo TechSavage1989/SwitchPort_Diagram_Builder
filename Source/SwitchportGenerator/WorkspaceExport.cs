@@ -49,6 +49,12 @@ public static class WorkspaceExport
                     File.WriteAllText(input, item.Text, new UTF8Encoding(false));
                     File.WriteAllText(details, JsonSerializer.Serialize(item.Devices));
                     var arguments = new List<string> { "--input", input, "--output", output, "--device-details", details };
+                    if (item.SupplementarySources.Count > 0)
+                    {
+                        string evidence = Path.Combine(temporary, "supplementary.json");
+                        File.WriteAllText(evidence, JsonSerializer.Serialize(item.SupplementarySources));
+                        arguments.Add("--supplementary"); arguments.Add(evidence);
+                    }
                     if (logoPath != null) { arguments.Add("--logo"); arguments.Add(logoPath); }
                     int code = GeneratorEntry.Run(arguments.ToArray(),item.Inventory.Blockers.Count==0?palette.ForItem(item.Id):null);
                     bool success = code == 0;

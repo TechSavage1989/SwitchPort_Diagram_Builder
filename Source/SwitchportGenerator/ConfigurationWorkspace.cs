@@ -12,6 +12,7 @@ public sealed class ConfigurationItem
     public string SourcePath { get; set; } = "";
     public string Text { get; set; } = "";
     public List<DeviceIdentity> Devices { get; set; } = new();
+    public List<SupplementarySource> SupplementarySources { get; set; } = new();
     [JsonIgnore] public Inventory Inventory { get; private set; } = new();
     [JsonIgnore] public bool Dirty { get; set; } = true;
     [JsonIgnore] public string? LastOutput { get; set; }
@@ -19,7 +20,11 @@ public sealed class ConfigurationItem
     [JsonIgnore] public string Status { get; set; } = "";
     [JsonIgnore] public string StatusType { get; set; } = "";
 
-    public void Refresh() => Inventory = DeviceModels.Parse(Text, Devices);
+    public void Refresh()
+    {
+        Inventory = DeviceModels.Parse(Text, Devices);
+        SupplementaryData.Apply(Inventory, SupplementarySources);
+    }
     public void InvalidateOutput()
     {
         LastOutput = null; LastChart = null; Status = ""; StatusType = "";
@@ -128,6 +133,26 @@ public sealed class ConfigurationWorkspace
         item.Refresh(); item.InvalidateOutput(); item.Dirty = true; Dirty = true;
     }
 
+    public void AddSupplementary(string id, SupplementarySource source)
+    {
+        var item = Find(id);
+        SupplementaryData.Validate(new[] { source });
+        if (item.SupplementarySources.Count >= SupplementaryData.MaxSources)
+            throw new InvalidOperationException("A configuration supports up to 20 supplementary sources.");
+        // Own a copy of the parsed, redacted observations, not the raw external file.
+        var copy = JsonSerializer.Deserialize<SupplementarySource>(JsonSerializer.Serialize(source))
+            ?? throw new InvalidOperationException("Supplementary data is invalid.");
+        item.SupplementarySources.Add(copy);
+        item.Refresh(); item.InvalidateOutput(); item.Dirty = true; Dirty = true;
+    }
+
+    public void RemoveSupplementary(string id, string sourceId)
+    {
+        var item = Find(id);
+        if (item.SupplementarySources.RemoveAll(s => s.Id == sourceId) == 0) return;
+        item.Refresh(); item.InvalidateOutput(); item.Dirty = true; Dirty = true;
+    }
+
     public ConfigurationItem Find(string id) => Items.FirstOrDefault(item => item.Id == id)
         ?? throw new InvalidOperationException("The configuration is no longer in this workspace.");
 
@@ -181,10 +206,12 @@ public sealed class ConfigurationWorkspace
             if (item == null || !Guid.TryParseExact(item.Id, "N", out _) || !ids.Add(item.Id))
                 throw new InvalidOperationException("Workspace item identifiers are invalid or duplicated.");
             ValidateText(item.Text);
-            if (item.Name == null || item.Name.Length > 200 || item.SourcePath == null || item.SourcePath.Length > 4096 || item.Devices == null)
+            if (item.Name == null || item.Name.Length > 200 || item.SourcePath == null || item.SourcePath.Length > 4096 || item.Devices == null || item.SupplementarySources == null)
                 throw new InvalidOperationException("Workspace item metadata is invalid.");
             item.Name = CleanName(item.Name);
             item.Devices = CloneDevices(item.Devices);
+            SupplementaryData.Validate(item.SupplementarySources);
+            item.SupplementarySources = JsonSerializer.Deserialize<List<SupplementarySource>>(JsonSerializer.Serialize(item.SupplementarySources))!;
             item.Refresh(); item.Dirty = false; item.InvalidateOutput();
             workspace.Items.Add(item);
         }
