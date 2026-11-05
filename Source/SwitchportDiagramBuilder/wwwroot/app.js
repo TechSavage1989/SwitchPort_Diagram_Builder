@@ -300,21 +300,39 @@ function renderWorkspace(message){
  if(selectionChanged)el('workspaceList').querySelector('.selected')?.scrollIntoView({block:'nearest'});
  if(focusId&&focusAction){const target=Array.from(el('workspaceList').querySelectorAll('button')).find(button=>button.dataset.itemId===focusId&&button.dataset.workspaceAction===focusAction);if(target&&!target.disabled){target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}}
 }
+function bytesToBase64(bytes){
+ let binary='';for(let offset=0;offset<bytes.length;offset+=8192)binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
+ return btoa(binary);
+}
+function looksLikeOperationalText(text){
+ return /^(?:\s*[\w.-]+[#>$]\s*)?(?:show|display|get|diagnose)\s+(?!running-config\b|startup-config\b|current-configuration\b|configuration\b)(?:ip|ipv6|interfaces?|ports?|lldp|cdp|mac|dhcp|arp|routes?|routing|router|switch|system|version|inventory|vlan|neighbors?|ethernet|firewall)\b/im.test(text)||
+ /^[\w./-]+\s+is\s+(?:administratively down|up|down),?\s+line protocol is\s+(?:up|down)\b/im.test(text)||
+ (/^(?:Local (?:Intf|Interface|Port))\s*:/im.test(text)&&/^(?:System Name|Device ID|Port id)\s*:/im.test(text));
+}
 async function readDroppedFile(file){
- if(file.size>MAX_INPUT_BYTES)throw new Error('Configuration exceeds the 20 MB limit.');
+ const workbook=/\.xlsx$/i.test(file.name),maximum=workbook?25_000_000:MAX_INPUT_BYTES;
+ if(file.size>maximum)throw new Error(workbook?'Auvik workbook exceeds the 25 MB limit.':'Configuration or command output exceeds the 20 MB limit.');
  const bytes=new Uint8Array(await file.arrayBuffer());
- if(bytes.length>=4&&bytes[0]===0x88&&bytes[1]===0xac&&bytes[2]===0xa1&&bytes[3]===0xb1){
-  let binary='';for(let offset=0;offset<bytes.length;offset+=8192)binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
-  return {name:file.name,text:btoa(binary),encoding:'base64'};
+ if(workbook){
+  if(bytes.length<4||bytes[0]!==0x50||bytes[1]!==0x4b)throw new Error('This .xlsx file is not a valid Excel workbook.');
+  return {name:file.name,text:bytesToBase64(bytes),encoding:'xlsx-base64'};
  }
- if(bytes.length>=3&&bytes[0]===0xef&&bytes[1]===0xa8&&bytes[2]===0x91)throw new Error('This MikroTik backup is encrypted. Load an unencrypted backup or a RouterOS .rsc export.');
+ if(bytes.length>=4&&bytes[0]===0x88&&bytes[1]===0xac&&bytes[2]===0xa1&&bytes[3]===0xb1)
+  return {name:file.name,text:bytesToBase64(bytes),encoding:'base64'};
+ if(bytes.length>=3&&bytes[0]===0xef&&bytes[1]===0xa8&&bytes[2]===0x91)
+  throw new Error('This MikroTik backup is encrypted. Load an unencrypted backup or a RouterOS .rsc export.');
+ if(bytes.length>=2&&bytes[0]===0x50&&bytes[1]===0x4b)
+  throw new Error('Archive input is unsupported. Drop an Auvik .xlsx report or a configuration/command text file.');
  const encoding=bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8';
  const text=new TextDecoder(encoding).decode(bytes);
- if(!text.trim())throw new Error('The configuration is empty.');
- if(new TextEncoder().encode(text).length>MAX_INPUT_BYTES)throw new Error('Configuration exceeds the 20 MB limit.');
+ if(!text.trim())throw new Error('The dropped file is empty.');
+ if(new TextEncoder().encode(text).length>MAX_INPUT_BYTES)throw new Error('Text file exceeds the 20 MB limit.');
  return {name:file.name,text,encoding:'text'};
 }
-
+function autoSupplementary(file){
+ return file.encoding==='xlsx-base64'||
+   (file.encoding==='text'&&(looksLikeOperationalText(file.text)||/\.csv$/i.test(file.name)));
+}
 function filesIn(event){return Array.from(event.dataTransfer?.types||[]).includes('Files');}
 function clearDrag(){dragDepth=0;document.body.classList.remove('drop-active');}
 document.addEventListener('dragenter',event=>{if(filesIn(event)){event.preventDefault();dragDepth++;if(!locked())document.body.classList.add('drop-active');}});
@@ -328,27 +346,37 @@ document.addEventListener('drop',async event=>{
  event.preventDefault();clearDrag();
  if(locked())return;
  if(Array.from(transfer?.types||[]).includes('application/x-switchport-item'))return;
- if(editorOpen()||el('updateDialog').open)return;
- if(!files.length){const text=transfer?.getData('text/plain');if(text)loadText(text,'Dropped configuration');return;}
- loading=true;batchLoading=files.length>1;controls();status('status',batchLoading?'Reading configurations...':'Reading configuration...');
+ const suppDialogOpen=el('supplementaryDialog').open;
+ if((editorOpen()&&!suppDialogOpen)||el('updateDialog').open)return;
+ if(!files.length){
+  if(suppDialogOpen)return;
+  const text=transfer?.getData('text/plain');if(text)loadText(text,'Dropped configuration');
+  return;
+ }
+ const rowTarget=event.target.closest?.('.workspace-row')?.dataset.itemId;
+ const targetId=rowTarget||selectedId||null;
+ loading=true;batchLoading=files.length>1;controls();
+ status('status',batchLoading?'Classifying dropped network files...':'Detecting file type...');
  if(batchLoading){
   const results=[];let accepted=0,payloadBytes=0;
   for(const file of files){
    try{
-    if(workspaceItems.length+accepted>=100)throw new Error('A workspace can contain up to 100 configurations.');
-    if(payloadBytes+file.size>100_000_000)throw new Error('The import batch exceeds the 100 MB limit. Add fewer configurations at once.');
+    if(payloadBytes+file.size>100_000_000)throw new Error('The import batch exceeds the 100 MB limit. Add fewer files at once.');
     const decoded=await readDroppedFile(file),size=new TextEncoder().encode(decoded.text).length;
-    if(payloadBytes+size>100_000_000)throw new Error('The import batch exceeds the 100 MB limit. Add fewer configurations at once.');
+    if(payloadBytes+size>135_000_000)throw new Error('The encoded import batch exceeds the 135 MB limit. Add fewer files at once.');
     results.push(decoded);payloadBytes+=size;accepted++;
    }catch(error){results.push({name:file.name,error:error.message||'The dropped file could not be read.'});}
   }
-  post({action:'loadFiles',files:results});return;
+  post({action:'loadFiles',files:results,id:targetId,supplementaryOnly:suppDialogOpen});return;
  }
  try{
   const file=await readDroppedFile(files[0]);
-  if(file.encoding==='base64'){post({action:'loadBackup',text:file.text,name:file.name});return;}
+  if(!suppDialogOpen&&file.encoding==='base64'){post({action:'loadBackup',text:file.text,name:file.name});return;}
+  if(suppDialogOpen||autoSupplementary(file)){
+   post({action:'loadFiles',files:[file],id:targetId,supplementaryOnly:suppDialogOpen});return;
+  }
   loading=false;loadText(file.text,file.name);
- }catch(error){inputError(error.message||'The dropped file could not be read. Choose or drop a text configuration file.');}
+ }catch(error){inputError(error.message||'The dropped file could not be read. Drop a supported configuration, Auvik workbook or command capture.');}
 });
 window.addEventListener('blur',clearDrag);
 window.addEventListener('resize',()=>requestAnimationFrame(()=>el('workspaceList').querySelector('.selected')?.scrollIntoView({block:'nearest'})));
@@ -368,8 +396,12 @@ window.chrome.webview.addEventListener('message',event=>{
  }
  if(m.type==='importComplete'){
   batchLoading=false;loading=false;controls();
-  el('importResult').textContent=[m.message,...(m.errors||[])].filter(Boolean).join('\n');
-  el('importResult').className='import-result'+(m.errors?.length?' error':'');el('importResult').hidden=!el('importResult').textContent;
+  const summary=[m.message,...(m.errors||[])].filter(Boolean).join('\n');
+  el('importResult').textContent=summary;
+  el('importResult').className='import-result'+(m.errors?.length?' error':'');el('importResult').hidden=!summary;
+  if(el('supplementaryDialog').open){
+   el('supplementaryMessage').textContent=summary;el('supplementaryMessage').className=el('importResult').className;
+  }
   return;
  }
  if(m.type==='batchComplete'){

@@ -102,7 +102,7 @@ public sealed partial class MainForm : Form
             if (message?.action == "choose" && !busy) Choose();
             else if (message?.action == "loadText" && !busy) SelectText(message.text??"",message.name??"Pasted configuration");
             else if (message?.action == "loadBackup" && !busy) SelectText(ConfigInput.Decode(Convert.FromBase64String(message.text??"")),message.name??"RouterOS backup");
-            else if (message?.action == "loadFiles" && !busy) ImportFiles(message.files??Array.Empty<IncomingFile>());
+            else if (message?.action == "loadFiles" && !busy) ImportFiles(message.files??Array.Empty<IncomingFile>(), message.id, message.supplementaryOnly??false);
             else if (message?.action == "chooseSupplementary" && !busy) ChooseSupplementary();
             else if (message?.action == "importSupplementaryText" && !busy) PasteSupplementary(message.text??"", message.name??"Pasted show output");
             else if (message?.action == "removeSupplementary" && !busy) RemoveSupplementary(message.id??"");
@@ -329,5 +329,5 @@ public sealed partial class MainForm : Form
         if (!IsDisposed && web.CoreWebView2 != null) web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(value));
     }
     sealed record IncomingFile(string? name,string? text,string? encoding,string? error);
-    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null,int? moduleRequest=null);
+    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null,int? moduleRequest=null,bool? supplementaryOnly=null);
 }

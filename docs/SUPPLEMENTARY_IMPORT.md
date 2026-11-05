@@ -12,6 +12,18 @@ This feature adds **source-attributed operational observations** alongside an ex
 
 Attach multiple sources to the same configuration, including an Auvik report and current CLI output. The application does not fetch directly from Auvik, connect to switches, log in to firewalls or run commands. Files stay local.
 
+## Automatic drag and drop (unreleased development feature)
+
+Drop one or more network files anywhere in the main workspace. The same file-drop area now classifies by format and content:
+
+- **Primary configurations:** ordinary text configurations and unencrypted RouterOS backups use the original configuration workflow.
+- **Auvik reports:** .xlsx workbooks with valid Excel ZIP structure are recognized as supplementary. Each matching device in the loaded workspace receives only its own report rows. A site-wide workbook may populate several existing configurations. No matching hostname means the workbook is rejected without creating a dummy configuration.
+- **CLI output:** recognized show/display/get/diagnose command captures or distinctive operational interface/LLDP fields are supplementary, not new switches. CLI prompts identify a matching hostname; otherwise the explicitly dropped-on or selected device is used. Conflicting or ambiguous host identities are reported.
+- **Mixed drops:** switch configs are added first even when supplementary files appear earlier in the drop batch. Errors do not erase valid file imports or existing generated reports.
+- **Supplementary dialog:** drop report or operational text directly into the open dialog; a primary configuration is rejected there, not reclassified.
+
+A file with an unrecognized CSV schema is explicitly rejected rather than treated as a configuration. Unencrypted MikroTik backup byte fidelity and ordinary single-configuration text drop behavior are preserved. The app never guesses a device when hostname matching is ambiguous. Auvik workbooks are parsed in memory only, with ZIP/XML input limits and no macro, script or external reference execution.
+
 ## Input coverage
 
 | Input | Supported interpretation |
@@ -31,7 +43,7 @@ Importing is deliberately conservative. Vendor firmware changes column layouts a
 
 ## Device attribution and precedence
 
-Auvik data is matched only to the **selected configuration's hostname**, comparing full and short hostnames case-insensitively. Unmatched workbooks are rejected. This also permits importing rows for one selected switch from a whole-site Auvik workbook, without including other devices.
+Manual Auvik imports under Supplementary data use the **selected configuration's hostname**. Automatic drag-and-drop instead checks hostnames across all loaded workspace configurations and attaches only matching rows for each device. Full and short hostnames compare case-insensitively. Unmatched workbooks are rejected, and duplicate hostname snapshots require an explicit target.
 
 CLI text is attributed to the *currently selected* configuration by operator choice; a switch's own CLI output may have a different prompt name, so confirm the correct item before importing.
 
@@ -52,5 +64,5 @@ CLI text is attributed to the *currently selected* configuration by operator cho
 
 ## Development regression requirements
 
-Run **SupplementaryChecks**, **verify-supplementary-ui.cjs**, all legacy CI report/parser/browser/update checks and the Windows packaging/updater tests. Run actual Auvik samples only on a trusted workstation, not in public GitHub CI. Capture real UI screenshots with fictional data, keep any stale README images synchronized, and validate physical socket/legend invariants. Do not claim an untested Windows/WebView2 session or live network discovery.
+Run **SupplementaryChecks**, **verify-supplementary-ui.cjs**, **verify-supplementary-drop-ui.cjs**, all legacy CI report/parser/browser/update checks and the Windows packaging/updater tests. Run actual Auvik samples only on a trusted workstation, not in public GitHub CI. Capture real UI screenshots with fictional data, keep any stale README images synchronized, and validate physical socket/legend invariants. Do not claim an untested Windows/WebView2 session or live network discovery.
 

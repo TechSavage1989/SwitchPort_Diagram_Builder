@@ -1,4 +1,4 @@
-Source files for 1.18.3
+Source files for 1.18.4
 
 ALL_MODELS_MODULES.csv
 Branding/Palette.txt
@@ -64,6 +64,7 @@ SwitchportGenerator/ReportText.cs
 SwitchportGenerator/SupplementaryData.cs
 SwitchportGenerator/SwitchportGenerator.csproj
 SwitchportGenerator/VlanPalette.cs
+SwitchportGenerator/WorkspaceDropImporter.cs
 SwitchportGenerator/WorkspaceExport.cs
 SwitchportGenerator/WorkspaceNaming.cs
 SwitchportGenerator/WorkspacePalette.cs
@@ -134,6 +135,7 @@ tests/verify-report-logo-ui.cjs
 tests/verify-ui.cjs
 tests/verify-updates-ui.cjs
 tests/verify-supplementary-ui.cjs
+tests/verify-supplementary-drop-ui.cjs
 tests/verify-workspace-ui.cjs
 tests/verify.py
 tests/verify_saved_exports.py

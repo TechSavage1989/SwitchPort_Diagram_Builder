@@ -44,6 +44,29 @@ public static class SupplementaryData
         return text.Length <= max ? text : text[..max] + "...";
     }
 
+    // A text capture must have an operational command or unmistakable show output
+    // before auto-import. "show running-config" and saved configurations stay primary.
+    public static bool LooksLikeCommandOutput(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        if (Regex.IsMatch(text, @"(?im)^\s*(?:[\w.-]+[#>$]\s*)?(?:show|display|get|diagnose)\s+(?!running-config\b|startup-config\b|current-configuration\b|configuration\b)(?:ip|ipv6|interfaces?|ports?|lldp|cdp|mac|dhcp|arp|routes?|routing|router|switch|system|version|inventory|vlan|neighbors?|ethernet|firewall)\b"))
+            return true;
+        return Regex.IsMatch(text, @"(?im)^[\w./-]+\s+is\s+(?:administratively down|up|down),?\s+line protocol is\s+(?:up|down)\b") ||
+            (Regex.IsMatch(text, @"(?im)^\s*(?:Local (?:Intf|Interface|Port))\s*:", RegexOptions.IgnoreCase) &&
+             Regex.IsMatch(text, @"(?im)^\s*(?:System Name|Device ID|Port id)\s*:", RegexOptions.IgnoreCase));
+    }
+
+    // Only a command-prompt identity is auto-matched to an existing workspace item.
+    public static string PromptHostname(string text)
+    {
+        var matches = Regex.Matches(text, @"(?im)^\s*([\w.-]{1,180})[#>$]\s*(?:show|display|get|diagnose)\s+");
+        var names = matches.Cast<Match>().Select(match => match.Groups[1].Value).Distinct(StringComparer.OrdinalIgnoreCase).Take(2).ToArray();
+        return names.Length == 1 ? names[0] : "";
+    }
+
+    public static string HostKey(string? name) => string.IsNullOrWhiteSpace(name) ? "" :
+        name.Trim().TrimEnd('.').Split('.')[0].ToUpperInvariant();
+
     public static string InterfaceKey(string? value)
     {
         string s = (value ?? "").Trim().ToLowerInvariant().Replace(" ", "").Replace("-", "");
@@ -172,9 +195,9 @@ public static class SupplementaryData
         return index - 1;
     }
 
-    static Dictionary<string, List<string[]>> ReadTables(string path)
+    static Dictionary<string, List<string[]>> ReadTables(Stream file)
     {
-        using var zip = ZipFile.OpenRead(path);
+        using var zip = new ZipArchive(file, ZipArchiveMode.Read, leaveOpen: true);
         if (zip.Entries.Count > 400 || zip.Entries.Sum(e => e.Length) > 120_000_000)
             throw new InvalidOperationException("Workbook exceeds safe import limits.");
         XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -233,14 +256,46 @@ public static class SupplementaryData
     {
         if (!File.Exists(path) || new FileInfo(path).Length > MaxWorkbookBytes)
             throw new InvalidOperationException("Choose an Auvik .xlsx report smaller than 25 MB.");
-        if (string.IsNullOrWhiteSpace(expectedHostname) || expectedHostname.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("The selected configuration needs a hostname before Auvik data can be matched safely.");
+        using var input = File.OpenRead(path);
+        var result = FromAuvikTables(ReadTables(input), Path.GetFileName(path), expectedHostname);
+        return result ?? throw new InvalidOperationException("No Auvik rows matched \"" + Clean(expectedHostname, 90) +
+            "\". Select the matching configuration or check the report's device name.");
+    }
+
+    // Read the workbook once even for a site-wide Auvik export containing many devices.
+    // Entries are kept per matching hostname, never merged with configuration data.
+    public static Dictionary<string, SupplementarySource> FromAuvikBytes(
+        byte[] bytes, string name, IEnumerable<string> expectedHostnames)
+    {
+        if (bytes == null || bytes.Length == 0 || bytes.Length > MaxWorkbookBytes)
+            throw new InvalidOperationException("Auvik workbook must be smaller than 25 MB.");
+        if (bytes.Length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4b)
+            throw new InvalidOperationException("The dropped .xlsx file is not a valid Excel workbook.");
+        using var input = new MemoryStream(bytes, writable: false);
+        var tables = ReadTables(input);
+        var results = new Dictionary<string, SupplementarySource>(StringComparer.OrdinalIgnoreCase);
+        foreach (string hostname in expectedHostnames.Where(h => HostKey(h).Length > 0 && !h.Equals("Unknown", StringComparison.OrdinalIgnoreCase)))
+        {
+            string key = HostKey(hostname);
+            if (results.ContainsKey(key)) continue;
+            var source = FromAuvikTables(tables, name, hostname);
+            if (source != null) results.Add(key, source);
+        }
+        return results;
+    }
+
+    static SupplementarySource? FromAuvikTables(
+        Dictionary<string, List<string[]>> tables, string name, string expectedHostname)
+    {
+        if (string.IsNullOrWhiteSpace(expectedHostname) ||
+            expectedHostname.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+            return null;
         var source = new SupplementarySource
         {
-            Name = Clean(Path.GetFileName(path), 180), Kind = "Auvik workbook",
+            Name = Clean(name, 180), Kind = "Auvik workbook",
             Device = Clean(expectedHostname, 180)
         };
-        foreach (var pair in ReadTables(path))
+        foreach (var pair in tables)
         {
             var rows = pair.Value;
             if (rows.Count < 3) continue;
@@ -284,10 +339,7 @@ public static class SupplementaryData
                 }
             }
         }
-        if (source.Observations.Count == 0)
-            throw new InvalidOperationException("No Auvik rows matched \"" + Clean(expectedHostname, 90) +
-                "\". Select the matching configuration or check the report's device name.");
-        return source;
+        return source.Observations.Count == 0 ? null : source;
     }
 
     public static void Validate(IEnumerable<SupplementarySource>? sources)
