@@ -1,4 +1,4 @@
-Source files for 1.18.4
+Source files for 1.18.5
 
 ALL_MODELS_MODULES.csv
 Branding/Palette.txt
@@ -46,6 +46,7 @@ SwitchportGenerator/DeviceModules.cs
 SwitchportGenerator/Fonts/LICENSE.txt
 SwitchportGenerator/Fonts/Report-Bold.ttf
 SwitchportGenerator/Fonts/Report-Regular.ttf
+SwitchportGenerator/FortiOsParser.cs
 SwitchportGenerator/GeneratedProject.cs
 SwitchportGenerator/Graphics.cs
 SwitchportGenerator/HardwareCatalog.cs
@@ -91,6 +92,8 @@ tests/Data/README.md
 tests/Data/ciede2000-reference.tsv
 tests/DeviceIdentityChecks.cs
 tests/DeviceIdentityChecks.csproj
+tests/FortiOsChecks/FortiOsChecks.csproj
+tests/FortiOsChecks/Program.cs
 tests/GeometryChecks.cs
 tests/GeometryChecks.csproj
 tests/LayoutQualityChecks/LayoutQualityChecks.csproj

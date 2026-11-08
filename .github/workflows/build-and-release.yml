@@ -80,6 +80,8 @@ jobs:
         run: dotnet run --project Source/tests/UpdaterChecks/UpdaterChecks.csproj --configuration Release
       - name: Check supplementary data parsing, import safety and workspace persistence
         run: dotnet run --project Source/tests/SupplementaryChecks/SupplementaryChecks.csproj --configuration Release
+      - name: Check FortiGate 200G and 201G model, physical ports, routed VLANs and A4 layout
+        run: dotnet run --project Source/tests/FortiOsChecks/FortiOsChecks.csproj --configuration Release
       - name: Check ordered workspaces, persistence and batch export
         run: |
           dotnet run --project Source/tests/WorkspaceChecks/WorkspaceChecks.csproj --configuration Release -- build/workspace-fixtures

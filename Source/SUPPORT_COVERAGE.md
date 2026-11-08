@@ -193,3 +193,7 @@ MikroTik RouterOS support in 1.11.0
 Four additional verified CRS profiles and unencrypted backup/text import are
 implemented outside the HPE catalogue. See MIKROTIK_SUPPORT.md for exact scope
 and binary, SwOS, switch-chip and QSFP breakout limitations.
+
+## FortiGate 200G and 201G
+
+FortiOS backup parser supports specifically verified FG2H0G and FG2H1G configuration-version model identifiers. The front-panel inventory is 8 GE RJ45, 8 multigigabit 5GE RJ45, 8 SFP+ 10GE, 4 GE SFP, plus dedicated HA and MGMT RJ45 (30 Ethernet sockets). Only the documented physical front face is drawn. Firmware parsing, interface aliases, administrative states, static L3 addresses, VLAN subinterface parent/ID, aggregate membership, routes and DHCP server scope-interface references are supported. Physical interface VLAN markings represent configured tagged subinterfaces and never imply a switch-mode native VLAN. Unknown FortiGate models remain blocked. See docs/FORTIOS_SUPPORT.md for details and source references.
