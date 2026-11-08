@@ -98,6 +98,13 @@ static class CatalogChecks
     }
     static string Fixture(string sku)
     {
+        if(sku is "FG-200G" or "FG-201G")
+        {
+            string id=sku=="FG-200G"?"FG2H0G":"FG2H1G";
+            return "#config-version="+id+"-7.6.8-FW-build3744-260929:opmode=0:vdom=0:user=example\n"+
+                "config system global\n    set hostname CATALOG-FG-LAB\nend\n"+
+                "config system interface\n    edit \"port1\"\n        set type physical\n    next\nend\n";
+        }
         if(HardwareProfiles.ChassisModels.ContainsKey(sku))return "; "+sku+" Configuration Editor\nhostname CATALOG-LAB\nmodule A type "+HardwareCatalog.Modules.First(m=>HardwareCatalog.IsCompatibleModule(m.Sku,sku)).Sku+"\n";
         var m=HardwareCatalog.Find(sku);
         return CiscoHardware.Find(sku)!=null?Header(sku):MikroTikParser.Models.Any(x=>x.Code==sku)?"# RouterOS 7.16\n# model = "+sku+"\n/system identity\nset name=CATALOG-LAB\n":m?.OS=="Comware"?"# "+sku+"\nversion 7.1.070\nsysname CATALOG-LAB\n":m?.OS=="Instant On 1960"?"config-file-header\nCATALOG-LAB\nvInstantOn_1960_3.3.0.0\nSKU Description \"Instant On 1960 "+sku+"\"\n":m?.OS=="AOS-CX"?"! AOS-CX "+sku+"\nhostname CATALOG-LAB\n":"; "+sku+" Configuration Editor\nhostname CATALOG-LAB\n";
@@ -111,10 +118,13 @@ static class CatalogChecks
         {
             var inv=DeviceModels.Parse(Fixture(choice.Sku),Array.Empty<DeviceIdentity>());
             Check(inv.Blockers.Count==0,"Every inspector choice parses: "+choice.Sku+": "+string.Join(';',inv.Blockers));
+            if(choice.Kind=="Firewall")
+                Check(inv.Vendor=="Fortinet"&&inv.Ports.Count==30&&inv.Devices.Single().Kind=="Firewall",
+                    "FortiGate inspector uses the verified FortiOS 30-socket faceplate: "+choice.Sku);
             var parent=inv.Devices.FirstOrDefault(d=>d.ParentId.Length==0);
             var modules=parent==null?new List<string>():DeviceModules.Slots(inv,parent).SelectMany(s=>s.Options).Select(o=>o.Sku).Distinct().Order(StringComparer.Ordinal).ToList();
             foreach(string module in modules){if(!compatibility.ContainsKey(module))compatibility[module]=new();compatibility[module].Add(choice.Sku);}
-            string source=HardwareCatalog.Find(choice.Sku)?.Source??CiscoHardware.Find(choice.Sku)?.Source??(MikroTikParser.Models.Any(m=>m.Code==choice.Sku)?MikroTikParser.ModelSource(choice.Sku):"Source/HARDWARE_LAYOUT.md");
+            string source=HardwareCatalog.Find(choice.Sku)?.Source??CiscoHardware.Find(choice.Sku)?.Source??(choice.Kind=="Firewall"?"docs/FORTIOS_SUPPORT.md":MikroTikParser.Models.Any(m=>m.Code==choice.Sku)?MikroTikParser.ModelSource(choice.Sku):"Source/HARDWARE_LAYOUT.md");
             if(!records.TryGetValue(choice.Sku,out var row))records[choice.Sku]=row=new[]{inv.Vendor,choice.Sku,choice.Name,choice.Kind,"supported",choice.Kind=="Chassis"?"":InventoryBasis.ConfirmedPhysicalPortCount(inv).ToString(),"",source,source,choice.Kind=="Chassis"?"Chassis capacity only; installed modules require evidence.":""};
             row[6]=string.Join(';',modules);
         }
