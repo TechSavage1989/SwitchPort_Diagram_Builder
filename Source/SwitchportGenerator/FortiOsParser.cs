@@ -206,7 +206,9 @@ public static class FortiOsParser
             string type=Value(values,"type");
             if(type.Equals("aggregate",StringComparison.OrdinalIgnoreCase))
             {
-                string member=Value(values,"member");
+                // Member lists are multi-quoted FortiOS values. Removing the
+                // outer quotes here would corrupt first/last member names.
+                string member=values.TryGetValue("member",out var rawMembers)?rawMembers:"";
                 aggregates[name]=Regex.Matches(member,"\"([^\"]+)\"|([^\\s]+)").Select(m=>
                     m.Groups[1].Success?m.Groups[1].Value:m.Groups[2].Value).ToArray();
                 logical.Add(entry);
