@@ -8,12 +8,19 @@ static class PositionChecks
     static void Check(bool value,string message){assertions++;if(!value)throw new Exception(message);}
     static string Fixture(string sku)
     {
+        if(sku is "FG-200G" or "FG-201G")
+        {
+            string id=sku=="FG-200G"?"FG2H0G":"FG2H1G";
+            return "#config-version="+id+"-7.6.8-FW-build3744-260929:opmode=0:vdom=0:user=example\n"+
+                "config system global\n    set hostname POSITION-FG-LAB\nend\n"+
+                "config system interface\n    edit \"port1\"\n        set type physical\n    next\nend\n";
+        }
         if(HardwareProfiles.ChassisModels.ContainsKey(sku))return "; "+sku+" Configuration Editor\nmodule A type "+HardwareCatalog.Modules.First(m=>HardwareCatalog.IsCompatibleModule(m.Sku,sku)).Sku+"\n";
         var m=HardwareCatalog.Find(sku);
         return CiscoHardware.Find(sku)!=null?"version 17.12\nhostname POSITION-LAB\nswitch 1 provision "+sku+"\n":MikroTikParser.Models.Any(x=>x.Code==sku)?"# RouterOS 7.16\n# model = "+sku+"\n/system identity\nset name=POSITION-LAB\n":m?.OS=="Comware"?"# "+sku+"\nversion 7.1.070\nsysname POSITION-LAB\n":m?.OS=="Instant On 1960"||sku.StartsWith("JL68")?"config-file-header\nPOSITION-LAB\nvInstantOn_"+(sku.StartsWith("JL68")?"1930":"1960")+"_3.3.0.0\nSKU Description \"Instant On "+sku+"\"\n":m?.OS=="AOS-CX"?"! AOS-CX "+sku+"\n":"; "+sku+" Configuration Editor\n";
     }
     static Inventory Parse(string sku)=>DeviceModels.Parse(Fixture(sku),Array.Empty<DeviceIdentity>());
-    static string Source(string sku)=>HardwareCatalog.Find(sku)?.LayoutSource??CiscoHardware.Find(sku)?.Source??CiscoModuleCatalog.Choices.FirstOrDefault(m=>m.Sku==sku)?.LayoutSource??(MikroTikParser.Models.Any(m=>m.Code==sku)?MikroTikParser.ModelSource(sku):"docs/PHYSICAL_POSITION_AUDIT.md");
+    static string Source(string sku)=>HardwareCatalog.Find(sku)?.LayoutSource??CiscoHardware.Find(sku)?.Source??CiscoModuleCatalog.Choices.FirstOrDefault(m=>m.Sku==sku)?.LayoutSource??(sku is "FG-200G" or "FG-201G"?"docs/FORTIOS_SUPPORT.md":MikroTikParser.Models.Any(m=>m.Code==sku)?MikroTikParser.ModelSource(sku):"docs/PHYSICAL_POSITION_AUDIT.md");
     static QuickSheet.Result Final(Inventory inv,string model,string module="")
     {
         Check(inv.Blockers.Count==0,model+": "+string.Join(';',inv.Blockers));
