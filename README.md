@@ -25,6 +25,7 @@
 - **Share one sheet:** place switches from different configurations together on readable A4 sheets in workspace order, with shared VLAN/LAG colors, one combined VLAN legend and exact-sheet previews.
 - **Choose installed modules:** compatible per-slot module selectors supply missing expansion-card inventory for supported switches, stack members and chassis. Automatic detection remains available.
 - **Auto-detect supplementary network evidence (1.18.4):** drag and drop Auvik .xlsx reports or switch/firewall show, display and get command output alongside configurations; matching devices receive their own observed interface, neighbor, routing and DHCP/relay details. Observed fields never override VLAN, LAG, module, administrative or physical geometry configuration.
+- **Import FortiGate 200G/201G backups:** recognize FortiOS configuration-version model identifiers and render the verified 30-port front panel, with independent RJ45, 5GE, SFP+, SFP, HA and management sockets. VLAN subinterfaces retain their tagged parent connections, and routed interfaces do not invent a native VLAN.
 - **Organize multiple configurations:** add files or pasted snapshots, drag to reorder (or use up/down), and keep each diagram's model/device details independent.
 - **Export a report package:** A4 PDF, 300 DPI PNG, CSV, JSON, a technician summary and a validation report.
 
@@ -78,12 +79,12 @@ Get **`SwitchportDiagramBuilder.exe`** or the versioned **Windows x64 ZIP** from
 | --- | --- |
 | Operating system | Windows 10 or 11, 64-bit x64 |
 | Runtime | Microsoft Edge WebView2 Runtime; no separate .NET installation for published builds |
-| Configuration input | Supported HPE/Aruba, Cisco IOS/IOS XE and documented MikroTik RouterOS inputs |
+| Configuration input | Supported HPE/Aruba, Cisco IOS/IOS XE, documented MikroTik RouterOS and FortiGate 200G/201G FortiOS configuration backups |
 | Coverage | Model, syntax and export-format support are bounded; check the guides below before relying on a diagram |
 
 > **Validate before sharing:** a researched model is not automatically a supported layout. Typing a model name does not bypass physical-layout validation. Unknown hardware, conflicting identity or layouts beyond readable A4 capacity can block export rather than silently omit information.
 
-See [hardware coverage](Source/SUPPORT_COVERAGE.md), [module support and compatibility](docs/MODULE_SUPPORT.md), [Cisco module references](docs/CISCO_MODULE_REFERENCES.md), [Cisco support and inventory limits](docs/CISCO_SUPPORT.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
+See [FortiOS support](docs/FORTIOS_SUPPORT.md), [hardware coverage](Source/SUPPORT_COVERAGE.md), [module support and compatibility](docs/MODULE_SUPPORT.md), [Cisco module references](docs/CISCO_MODULE_REFERENCES.md), [Cisco support and inventory limits](docs/CISCO_SUPPORT.md), [MikroTik support](Source/MIKROTIK_SUPPORT.md), [layout rules](Source/LAYOUT_SIZING.md) and [color selection](Source/COLOR_SELECTION.md).
 
 ## Getting started
 

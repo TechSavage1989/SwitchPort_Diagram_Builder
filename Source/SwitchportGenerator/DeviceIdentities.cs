@@ -30,7 +30,7 @@ public static class DeviceIdentities
             .OrderBy(g=>g.Key.Length).ThenBy(g=>g.Key,StringComparer.OrdinalIgnoreCase))
         {
             var baseGroups=device.Where(g=>g.Slot.Length==0).ToList();
-            string kind=baseGroups.Count==0?"Chassis":"Switch";
+            string kind=baseGroups.Count==0?"Chassis":inv.OS=="FortiOS"?"Firewall":"Switch";
             string label=stack?kind+" / Member "+device.Key:kind;
             result.Add(new DeviceIdentity{Id=device.Key,Label=label,Kind=kind,
                 Model=kind=="Chassis"?inv.ChassisModel:string.Join(" / ",baseGroups.Select(g=>ReportText.ModelName(g.Product)).Where(p=>p.Length>0).Distinct())});

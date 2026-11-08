@@ -6,6 +6,7 @@ public static class DeviceModels
     public static IEnumerable<(string Sku,string Name,string Kind)> Choices=>Parser.SupportedModelCodes.Select(s=>(Sku:s,Name:HardwareCatalog.Find(s)?.Name??CiscoHardware.Find(s)?.Name??s,Kind:"Switch"))
         .Where(m=>!HardwareCatalog.IsModule(m.Sku))
         .Concat(MikroTikParser.Models.Select(m=>(Sku:m.Code,Name:m.Code,Kind:"Switch")))
+        .Concat(new[]{(Sku:"FG-200G",Name:"FortiGate 200G",Kind:"Firewall"),(Sku:"FG-201G",Name:"FortiGate 201G",Kind:"Firewall")})
         .Concat(HardwareProfiles.ChassisModels.Select(p=>(Sku:p.Key,Name:p.Value.Name,Kind:"Chassis"))).OrderBy(m=>m.Sku,StringComparer.OrdinalIgnoreCase);
     public static string Clean(string? value)
     {
@@ -13,7 +14,7 @@ public static class DeviceModels
         if(value.Length>100||value.Any(char.IsControl))throw new InvalidOperationException("Model must be 100 characters or fewer on one line.");
         return Parser.Safe(value);
     }
-    public static bool IsSku(string value)=>CiscoHardware.IsModel(value)||Regex.IsMatch(value,@"^(?:J(?:[A-Z]\d{3}|\d{4})|[RS]\d[A-Z]\d{2})[A-Z]$",RegexOptions.IgnoreCase);
+    public static bool IsSku(string value)=>CiscoHardware.IsModel(value)||Regex.IsMatch(value,@"^(?:J(?:[A-Z]\d{3}|\d{4})|[RS]\d[A-Z]\d{2})[A-Z]$|^FG-20[01]G$",RegexOptions.IgnoreCase);
     public static List<DeviceIdentity> Describe(string source,Inventory inv)
     {
         var devices=DeviceIdentities.Describe(inv);
@@ -65,6 +66,13 @@ public static class DeviceModels
             string model=Clean(row.ModelSelection);
             if(device.Kind=="Module"&&model.Length>0)throw new InvalidOperationException("Model selection is available for switches, members and chassis. Module models come from the configuration.");
             if(inv.OS=="RouterOS"&&MikroTikParser.Models.Any(m=>m.Code.Equals(model,StringComparison.OrdinalIgnoreCase))){selections.Add(device.Id,model);continue;}
+            if(inv.OS=="FortiOS"&&Regex.IsMatch(model,@"^FG-20[01]G$",RegexOptions.IgnoreCase))
+            {
+                var actual=inv.Groups.FirstOrDefault(g=>g.Device.Equals(device.Id,StringComparison.OrdinalIgnoreCase)&&g.Slot.Length==0);
+                if(actual==null||!actual.Product.Equals(model,StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Selected FortiGate hardware model conflicts with the backup's verified configuration-version identifier.");
+                continue;
+            }
             if(!IsSku(model))continue;
             string sku=CiscoHardware.IsModel(model)?CiscoHardware.CanonicalModel(model):model.ToUpperInvariant();
             if(device.Kind=="Chassis")

@@ -151,6 +151,7 @@ public static class Parser
         {
             return InstantOnParser.Parse(source,selectedModels);
         }
+        if(FortiOsParser.IsConfiguration(source))return FortiOsParser.Parse(source);
         if(MikroTikParser.IsConfiguration(source))return MikroTikParser.Parse(source,selectedModels);
         if(ComwareParser.IsConfiguration(source))return ComwareParser.Parse(source,selectedModels);
         if(CiscoParser.IsConfiguration(source))return CiscoParser.Parse(source,selectedModels);

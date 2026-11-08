@@ -1,3 +1,13 @@
+# FortiGate 200G/201G FortiOS configuration and physical-port support (under development)
+
+Branch feat/fortigate-200g-fortios adds FortiOsParser to identify FG2H0G (FG-200G) and FG2H1G (FG-201G) from the FortiOS configuration-version line. Verified physical positions are 30 sockets: 8x1GE RJ45, 8x5GE RJ45, 8x10GE SFP+, 4x1GE SFP, HA and MGMT RJ45. The physical source is the Fortinet FortiGate 200G Series QuickStart Guide, front panel pages 8-9, and product datasheet. No hardware layout is inferred from interface settings. Synthetic fixtures only. A real client configuration was reviewed privately but is never committed, uploaded or included in validation logs. Only source code, guides and synthetic test data are publishable.
+
+The parser is called before other platform parsers, extracts an allowlisted subset of system global, system interface, static route and DHCP server settings, separates physical Ethernet from VLAN/aggregate/tunnel/virtual interfaces and exports IP interfaces and routed data. FortiOS routed ports do not have a configured native switchport VLAN; only explicit vlanid subinterfaces mark tagged VLAN relationships on the parent physical port or aggregate members. HA heartbeat socket is not a stacking port. The interface and report model selection is compatible only with an exact hardware ID. The test project Source/tests/FortiOsChecks verifies both models, port IDs/media/geography, routed/aggregate/VLAN mapping, rendering and source data leakage prevention.
+
+Security: Do not commit any real customer FortiOS backup. These can contain encrypted admin credentials, API keys, private addressing, and infrastructure identities. Never derive runtime credentials, session state, live LLDP, or firewall policy details from a backup as if verified.
+
+Release gate: run the full existing CI, plus FortiOsChecks, verify PDF/A4 geometry and Windows updater regression before merging. Interactive Windows/WebView2 startup and actual updater restart still require workstation confirmation.
+
 # Mixed network drag-and-drop auto-detection: 1.18.4
 
 Release candidate for 1.18.4, based on stable 1.18.3. Full feature-branch CI passed at 4e9251995bb3b4d2f75ebc62629478a9a6181599. After this version bump, rerun the full CI on the exact release commit, merge only on green checks, and verify the GitHub release receipt, asset SHA256 digests and update-manifest.json. Never overwrite published v1.18.3 or reuse a version tag.
