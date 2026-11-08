@@ -49,10 +49,11 @@ public sealed class ConfigurationWorkspace
     public bool Dirty { get; set; }
     public string OutputLabel { get; set; } = "";
     public bool ShowWorkspaceTitle { get; set; }
+    public ReportPaper Paper { get; set; } = ReportPaper.Default;
     public string SavedWorkspaceName { get; set; } = "";
     public WorkspacePaletteOverrides PaletteOverrides { get; set; } = new();
 
-    sealed record RemovedItems(ConfigurationItem[] Items,int[] Positions,string? SelectedId,WorkspacePaletteOverrides Palette,string? OutputLabel=null,string? SavedName=null,bool ShowTitle=false);
+    sealed record RemovedItems(ConfigurationItem[] Items,int[] Positions,string? SelectedId,WorkspacePaletteOverrides Palette,string? OutputLabel=null,string? SavedName=null,bool ShowTitle=false,ReportPaper? Paper=null);
     readonly Stack<RemovedItems> undo=new();
     public bool CanUndo=>undo.Count>0;
     public string UndoLabel=>undo.Count==0?"Undo":undo.Peek().OutputLabel!=null?"Undo clear all":"Undo removal";
@@ -61,8 +62,8 @@ public sealed class ConfigurationWorkspace
     public void Clear()
     {
         if(Items.Count==0)return;
-        undo.Push(new(Items.ToArray(),Enumerable.Range(0,Items.Count).ToArray(),SelectedId,CopyPalette(),OutputLabel,SavedWorkspaceName,ShowWorkspaceTitle));
-        Items.Clear();SelectedId=null;OutputLabel="";SavedWorkspaceName="";ShowWorkspaceTitle=false;PaletteOverrides=new();Dirty=true;
+        undo.Push(new(Items.ToArray(),Enumerable.Range(0,Items.Count).ToArray(),SelectedId,CopyPalette(),OutputLabel,SavedWorkspaceName,ShowWorkspaceTitle,Paper));
+        Items.Clear();SelectedId=null;OutputLabel="";SavedWorkspaceName="";ShowWorkspaceTitle=false;Paper=ReportPaper.Default;PaletteOverrides=new();Dirty=true;
     }
     public bool UndoRemoval()
     {
@@ -75,7 +76,7 @@ public sealed class ConfigurationWorkspace
         foreach(var pair in edit.Palette.Vlans)PaletteOverrides.Vlans.TryAdd(pair.Key,pair.Value);
         foreach(var pair in edit.Palette.Aggregates)PaletteOverrides.Aggregates.TryAdd(pair.Key,pair.Value);
         if(edit.OutputLabel!=null&&OutputLabel.Length==0&&SavedWorkspaceName.Length==0&&!ShowWorkspaceTitle)
-        {OutputLabel=edit.OutputLabel;SavedWorkspaceName=edit.SavedName??"";ShowWorkspaceTitle=edit.ShowTitle;}
+        {OutputLabel=edit.OutputLabel;SavedWorkspaceName=edit.SavedName??"";ShowWorkspaceTitle=edit.ShowTitle;Paper=ReportPaper.Normalize(edit.Paper);}
         Dirty=true;return true;
     }
 
@@ -158,7 +159,7 @@ public sealed class ConfigurationWorkspace
 
     public string Serialize()
     {
-        var document = new WorkspaceDocument { Format = FormatName, Version = FormatVersion, Items = Items, SelectedId = SelectedId, OutputLabel = WorkspaceNaming.CleanLabel(OutputLabel), ShowWorkspaceTitle = ShowWorkspaceTitle, PaletteOverrides = PaletteOverrides };
+        var document = new WorkspaceDocument { Format = FormatName, Version = FormatVersion, Items = Items, SelectedId = SelectedId, OutputLabel = WorkspaceNaming.CleanLabel(OutputLabel), ShowWorkspaceTitle = ShowWorkspaceTitle, Paper = ReportPaper.Normalize(Paper), PaletteOverrides = PaletteOverrides };
         string json = JsonSerializer.Serialize(document, JsonOptions);
         if (Encoding.UTF8.GetByteCount(json) > MaxWorkspaceBytes)
             throw new InvalidOperationException("The saved workspace exceeds the 100 MB limit.");
@@ -220,6 +221,7 @@ public sealed class ConfigurationWorkspace
         workspace.SelectedId = document.SelectedId ?? workspace.Items.FirstOrDefault()?.Id;
         workspace.OutputLabel=WorkspaceNaming.CleanLabel(document.OutputLabel);
         workspace.ShowWorkspaceTitle=document.ShowWorkspaceTitle;
+        workspace.Paper=ReportPaper.Normalize(document.Paper);
         workspace.PaletteOverrides=WorkspacePalette.NormalizeOverrides(workspace.Items.Select(item=>(item.Id,item.Inventory)).ToArray(),document.PaletteOverrides??new());
         // Palette overrides are explicit workspace metadata, not independent per-item colors.
         if(workspace.PaletteOverrides.Vlans==null||workspace.PaletteOverrides.Aggregates==null||workspace.PaletteOverrides.Vlans.Count>0||workspace.PaletteOverrides.Aggregates.Count>0)
@@ -251,6 +253,7 @@ public sealed class ConfigurationWorkspace
         public List<ConfigurationItem> Items { get; set; } = new();
         public string OutputLabel { get; set; } = "";
         public bool ShowWorkspaceTitle { get; set; }
+        public ReportPaper? Paper { get; set; }
         public WorkspacePaletteOverrides? PaletteOverrides { get; set; }
     }
 }

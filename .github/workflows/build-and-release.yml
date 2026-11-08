@@ -45,6 +45,8 @@ jobs:
         run: node Source/tests/verify-supplementary-ui.cjs
       - name: Check drag-and-drop auto-classification of Auvik and CLI evidence
         run: node Source/tests/verify-supplementary-drop-ui.cjs
+      - name: Check report paper settings, orientation and UI persistence
+        run: node Source/tests/verify-report-paper-ui.cjs
       - name: Check ordered multi-configuration workspace
         run: node Source/tests/verify-workspace-ui.cjs
       - name: Check launch, copy and logo controls

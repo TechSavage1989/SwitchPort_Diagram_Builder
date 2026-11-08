@@ -3,6 +3,7 @@ const el=id=>document.getElementById(id);
 const MAX_INPUT_BYTES=20_000_000;
 let updating=false,hasInput=false,busy=false,loading=false,dragDepth=0,hasLogo=false,copying=false,deviceLoading=false,deviceSaving=false,deviceRequest=0,deviceDraft=null,modelChoices=[],moduleSlotChoices={},moduleRequest=0,modulePending=false,deviceSaveQueued=false;
 let workspaceItems=[],workspaceDirty=false,selectedId=null,batchLoading=false,draggedItem=null,supplementarySources=[];
+let reportPaper={preset:'a4',orientation:'landscape',description:'A4 landscape'};
 let workspaceShowTitle=false,workspaceOutputLabel='',workspaceSuggestedLabel='',workspaceEffectiveLabel='',combinedAvailable=false,combinedPageCount=0,previewIndex=0,previewRequest=0,previewLoading=false;
 let project={available:false,chartAvailable:false,folderAvailable:false,combined:false,pageCount:0,pdfAvailable:false,label:'',output:'',stale:false,summary:''},projectKnown=false;
 const post=message=>window.chrome.webview.postMessage(message);
@@ -14,6 +15,7 @@ function controls(){
  el('clearWorkspace').disabled=locked()||!workspaceItems.length;el('undoWorkspace').disabled=locked()||!workspaceCanUndo;
  el('saveWorkspace').disabled=locked()||(!workspaceItems.length&&!workspaceDirty);
  el('runAll').disabled=locked()||!workspaceItems.length;el('combinePdf').disabled=locked()||!workspaceItems.length;
+ el('paperSize').disabled=locked();el('paperOrientation').disabled=locked();
  el('openChart').disabled=locked()||!project.chartAvailable;el('openPdf').disabled=locked()||!project.pdfAvailable;el('previewSheets').hidden=!project.combined;el('previewSheets').disabled=locked()||!combinedAvailable;el('openPreviewPng').disabled=locked()||previewLoading||el('combinedPreviewImage').hidden;el('open').disabled=updating||!project.folderAvailable;
  el('editWorkspaceLabel').disabled=locked();el('applyWorkspaceLabel').disabled=locked();el('workspaceLabelInput').disabled=locked();el('showWorkspaceTitle').disabled=locked();
  el('previousCombined').disabled=previewLoading||previewIndex<=0;el('nextCombined').disabled=previewLoading||previewIndex>=combinedPageCount-1;el('openCombined').disabled=locked()||!project.pdfAvailable;
@@ -162,6 +164,12 @@ el('combinedPreviewImage').addEventListener('error',()=>{if(el('combinedPreviewD
 el('combinedPreviewDialog').addEventListener('close',()=>{previewRequest++;previewLoading=false;el('combinedPreviewImage').removeAttribute('src');el('combinedPreviewImage').hidden=true;post({action:'updateEditing',enabled:false});controls();});
 
 el('runAll').onclick=()=>{if(locked()||!workspaceItems.length)return;busy=true;controls();post({action:'runAll',combined:el('combinePdf').checked});};
+const setReportPaper=()=>{
+ if(locked())return;
+ post({action:'setReportPaper',preset:el('paperSize').value,orientation:el('paperOrientation').value});
+};
+el('paperSize').onchange=setReportPaper;
+el('paperOrientation').onchange=setReportPaper;
 el('run').onclick=()=>{if(locked()||!hasInput)return;busy=true;controls();post({action:'run'});};
 function closeDevices(){post({action:'updateEditing',enabled:false});deviceRequest++;moduleRequest++;moduleSlotChoices={};modulePending=false;deviceSaveQueued=false;deviceLoading=false;deviceSaving=false;deviceDraft=null;controls();}
 function draftDevices(){return deviceDraft.filter(row=>!row.PreviewOrphan||row.Name||row.SerialNumber||row.AssetTag||row.Notes).map(({Id,Name,SerialNumber,AssetTag,Notes,ModelSelection,ModuleSelections})=>({Id,Name:Name||'',SerialNumber:SerialNumber||'',AssetTag:AssetTag||'',Notes:Notes||'',ModelSelection:ModelSelection||'',ModuleSelections:(ModuleSelections||[]).map(({Slot,Sku})=>({Slot,Sku}))}));}
@@ -265,6 +273,11 @@ function renderWorkspace(message){
  const selectionChanged=selectedId!==(message.selectedId||null);
  workspaceCanUndo=!!message.canUndo;el('undoWorkspace').setAttribute('aria-label',message.undoLabel||'Undo');el('undoWorkspace').title='Restore the most recently removed configuration(s), including edits and order';
  workspaceItems=message.items||[];workspaceDirty=!!message.dirty;selectedId=message.selectedId||null;
+ if(message.paper&&typeof message.paper.preset==='string'&&typeof message.paper.orientation==='string'){
+  reportPaper={...reportPaper,...message.paper};
+  el('paperSize').value=reportPaper.preset;el('paperOrientation').value=reportPaper.orientation;
+  el('sheetPaperLabel').textContent='('+reportPaper.description+')';
+ }
  if(typeof message.showWorkspaceTitle==='boolean')workspaceShowTitle=message.showWorkspaceTitle;
  if(typeof message.outputLabel==='string')workspaceOutputLabel=message.outputLabel;
  if(typeof message.suggestedLabel==='string')workspaceSuggestedLabel=message.suggestedLabel;
@@ -406,7 +419,7 @@ window.chrome.webview.addEventListener('message',event=>{
  }
  if(m.type==='batchComplete'){
   busy=false;loading=false;
-  const details=[m.message,m.pageCount?m.pageCount+' A4 page'+(m.pageCount===1?'':'s')+'.':'',...(m.warnings||[]),m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');
+  const details=[m.message,m.pageCount?m.pageCount+' '+reportPaper.description+' page'+(m.pageCount===1?'':'s')+'.':'',...(m.warnings||[]),m.details,m.output?'Output: '+m.output:''].filter(Boolean).join('\n');
   if(!project.available||project.output!==m.output)status('status',details);
   controls();return;
  }

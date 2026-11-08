@@ -1,4 +1,4 @@
-Source files for 1.18.5
+Source files for 1.18.6
 
 ALL_MODELS_MODULES.csv
 Branding/Palette.txt
@@ -59,6 +59,7 @@ SwitchportGenerator/MikroTikParser.cs
 SwitchportGenerator/PerceptualColor.cs
 SwitchportGenerator/Program.cs
 SwitchportGenerator/QuickSheet.cs
+SwitchportGenerator/ReportPaper.cs
 SwitchportGenerator/ReportLogo.cs
 SwitchportGenerator/ReportNaming.cs
 SwitchportGenerator/ReportText.cs
@@ -112,6 +113,8 @@ tests/ReportInventoryChecks/Program.cs
 tests/ReportInventoryChecks/ReportInventoryChecks.csproj
 tests/ReportLogoChecks.cs
 tests/ReportLogoChecks.csproj
+tests/ReportPaperChecks/ReportPaperChecks.csproj
+tests/ReportPaperChecks/Program.cs
 tests/UpdaterChecks/Program.cs
 tests/UpdaterChecks/UpdaterChecks.csproj
 tests/SupplementaryChecks/Program.cs
@@ -135,6 +138,7 @@ tests/verify-mikrotik-ui.cjs
 tests/verify-output-copy.cjs
 tests/verify-report-inventory-pdf.py
 tests/verify-report-logo-ui.cjs
+tests/verify-report-paper-ui.cjs
 tests/verify-ui.cjs
 tests/verify-updates-ui.cjs
 tests/verify-supplementary-ui.cjs

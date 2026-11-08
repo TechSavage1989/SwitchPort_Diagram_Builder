@@ -78,3 +78,10 @@ label{font-size:13px;color:#dbeaf8}input{min-width:0;min-height:42px;width:100%;
 .config-panel>.device-tools{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
 .config-panel>.device-tools button{min-width:0;min-height:32px;padding:6px 9px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-height:520px){.config-panel>.device-tools button{min-height:26px;padding:4px 7px;font-size:11px}.config-panel>.device-tools{gap:5px}}
+
+/* Report paper has independent, explicit workspace settings. */
+.report-paper-controls{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;min-width:0}
+.report-paper-controls label{display:grid;gap:5px;color:#c7d5e3;font-size:12px;font-weight:600;min-width:0}
+.report-paper-controls select{width:100%;min-width:0;min-height:34px;border:1px solid #46647e;border-radius:7px;background:#0c1928;color:#eef6ff;padding:6px 8px;font:12px Segoe UI,system-ui,sans-serif}
+.report-paper-controls small{grid-column:1/-1;color:#a9c1d4;font-size:10px;line-height:1.35}
+@media(max-height:520px){.report-paper-controls{gap:5px}.report-paper-controls label{font-size:10px}.report-paper-controls select{min-height:28px;padding:4px 7px}.report-paper-controls small{display:none}}

@@ -621,9 +621,11 @@ public static class Png
         if((long)width*height>50_000_000)throw new InvalidOperationException("Raster size exceeds limit.");
         using var surface=SkiaSharp.SKSurface.Create(new SkiaSharp.SKImageInfo(width,height));
         var canvas=surface.Canvas;canvas.Clear(SkiaSharp.SKColors.White);
-        double marginX=width*18/841.89,marginY=height*18/595.28;
+        // 18 PDF points are a physical 0.25 inch / 75 pixels at 300 DPI,
+        // regardless of Letter, Legal or ISO page aspect ratio.
+        double marginX=75,marginY=75;
         float scale=(float)Math.Min((width-2*marginX)/scene.Width,(height-2*marginY)/scene.Height);
-        canvas.Translate((float)(width-scene.Width*scale)/2,(float)marginY);canvas.Scale(scale);ReportRenderer.Draw(canvas,scene);
+        canvas.Translate((float)((width-scene.Width*scale)/2),(float)((height-scene.Height*scale)/2));canvas.Scale(scale);ReportRenderer.Draw(canvas,scene);
         using var image=surface.Snapshot();using var data=image.Encode(SkiaSharp.SKEncodedImageFormat.Png,100);
         byte[] png=data.ToArray();
         using var file=File.Create(path);file.Write(png,0,33);
@@ -636,14 +638,19 @@ public static class Png
 }
 public static class Pdf
 {
-    public static void Save(List<Scene> scenes,string path)
+    public static void Save(List<Scene> scenes,string path,ReportPaper? paper=null)
     {
+        var selected=ReportPaper.Normalize(paper);selected.Validate();
         using var document=SkiaSharp.SKDocument.CreatePdf(path);
         foreach(var scene in scenes)
         {
-            var canvas=document.BeginPage(841.89f,595.28f);canvas.Clear(SkiaSharp.SKColors.White);
-            float scale=(float)Math.Min(805.89/scene.Width,559.28/scene.Height);
-            canvas.Translate((float)(841.89-scene.Width*scale)/2,18);canvas.Scale(scale);ReportRenderer.Draw(canvas,scene);document.EndPage();
+            var canvas=document.BeginPage((float)selected.WidthPt,(float)selected.HeightPt);
+            canvas.Clear(SkiaSharp.SKColors.White);
+            // Preserve all verified socket proportions and text; never crop a
+            // scene to make a selected physical sheet fit.
+            float scale=(float)Math.Min((selected.WidthPt-36)/scene.Width,(selected.HeightPt-36)/scene.Height);
+            canvas.Translate((float)((selected.WidthPt-scene.Width*scale)/2),(float)((selected.HeightPt-scene.Height*scale)/2));
+            canvas.Scale(scale);ReportRenderer.Draw(canvas,scene);document.EndPage();
         }
         document.Close();
     }

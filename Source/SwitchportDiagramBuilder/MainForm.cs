@@ -113,6 +113,12 @@ public sealed partial class MainForm : Form
             else if (message?.action == "undoWorkspace" && !busy) { workspace.UndoRemoval();InvalidateBatch();SendSelection(); }
             else if (message?.action == "setWorkspaceTitle" && !busy) { workspace.ShowWorkspaceTitle=message.enabled??false;workspace.Dirty=true;InvalidateBatch();SendWorkspace(); }
             else if (message?.action == "setWorkspaceLabel" && !busy) { workspace.OutputLabel=WorkspaceNaming.CleanLabel(message.text);workspace.Dirty=true;InvalidateBatch();SendWorkspace(); }
+            else if (message?.action == "setReportPaper" && !busy)
+            {
+                var paper=ReportPaper.Parse(message.preset,message.orientation);paper.Validate();
+                if(paper!=workspace.Paper){workspace.Paper=paper;workspace.Dirty=true;InvalidateBatch();}
+                SendWorkspace();
+            }
             else if (message?.action == "previewCombined" && !busy) PreviewCombined(message.index??0,message.requestId);
             else if (message?.action == "openCombined" && !busy) OpenCombined();
             else if (message?.action == "saveWorkspace" && !busy) SaveWorkspace();
@@ -254,6 +260,8 @@ public sealed partial class MainForm : Form
             Send(new { type = "status", message = "Validating configuration and building diagrams..." });
             var start = new ProcessStartInfo(runner) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
             start.ArgumentList.Add("--generate");start.ArgumentList.Add("--input"); start.ArgumentList.Add(input); start.ArgumentList.Add("--output"); start.ArgumentList.Add(output);start.ArgumentList.Add("--named-folder");
+            start.ArgumentList.Add("--paper");start.ArgumentList.Add(workspace.Paper.Preset);
+            start.ArgumentList.Add("--orientation");start.ArgumentList.Add(workspace.Paper.Orientation);
             if(reportLogo!=null){start.ArgumentList.Add("--logo");start.ArgumentList.Add(LogoPath);}
             if(deviceDetails.Count>0)
             {
@@ -329,5 +337,5 @@ public sealed partial class MainForm : Form
         if (!IsDisposed && web.CoreWebView2 != null) web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(value));
     }
     sealed record IncomingFile(string? name,string? text,string? encoding,string? error);
-    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null,int? moduleRequest=null,bool? supplementaryOnly=null);
+    sealed record Msg(string action, string? path,string? text,string? name,DeviceIdentity[]? devices,int? requestId,bool? enabled=null,string? id=null,int? index=null,IncomingFile[]? files=null,bool? combined=null,int? moduleRequest=null,bool? supplementaryOnly=null,string? preset=null,string? orientation=null);
 }

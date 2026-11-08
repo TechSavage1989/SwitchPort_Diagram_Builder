@@ -14,7 +14,7 @@ public sealed partial class MainForm
       Send(new
       {
         type="workspace",selectedId=workspace.SelectedId,dirty=workspace.Dirty,canUndo=workspace.CanUndo,undoLabel=workspace.UndoLabel,
-        showWorkspaceTitle=workspace.ShowWorkspaceTitle,outputLabel=workspace.OutputLabel,effectiveLabel=WorkspaceNaming.Effective(workspace),suggestedLabel=WorkspaceNaming.Suggested(workspace),workspaceName=workspace.SavedWorkspaceName,
+        showWorkspaceTitle=workspace.ShowWorkspaceTitle,paper=new{preset=workspace.Paper.Preset,orientation=workspace.Paper.Orientation,description=workspace.Paper.Description},outputLabel=workspace.OutputLabel,effectiveLabel=WorkspaceNaming.Effective(workspace),suggestedLabel=WorkspaceNaming.Suggested(workspace),workspaceName=workspace.SavedWorkspaceName,
         items=workspace.Items.Select(item=>new
         {
             id=item.Id,name=item.Name,hostname=DisplayName(item),model=ReportText.SwitchModel(item.Inventory),
@@ -121,7 +121,7 @@ public sealed partial class MainForm
             var result=await Task.Run(()=>WorkspaceExport.Export(workspace,outputRoot,reportLogo==null?null:LogoPath,combined));
             string message=$"Build complete: {result.SuccessCount} of {result.Items.Count} configurations exported.";
             string details=string.Join("\n",result.Items.Select((item,index)=>$"{index+1}. {workspace.Items.First(source=>source.Id==item.Id).Name}: "+(item.Success?"Exported":"Blocked: "+item.Error)))
-                +(result.CombinedError.Length>0?"\n\n"+result.CombinedError:combined?$"\n\n{result.PageCount} shared A4 sheet(s); complete switch blocks and one shared VLAN key per sheet.":"")
+                +(result.CombinedError.Length>0?"\n\n"+result.CombinedError:combined?$"\n\n{result.PageCount} shared {workspace.Paper.Description} sheet(s); complete switch blocks and one shared VLAN key per sheet.":"")
                 +(result.Warnings.Count>0?"\n\n"+string.Join("\n",result.Warnings):"");
             bool accepted=projects.RecordBatch(result,combined,WorkspaceNaming.Effective(workspace),message+"\n\n"+details+"\n\nOutput: "+result.OutputDirectory);
             SendSelection();

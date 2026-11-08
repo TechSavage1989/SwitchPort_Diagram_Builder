@@ -4,13 +4,13 @@ using System.Text.Json;
 using SwitchportGenerator;
 public static class GeneratorEntry
 {
-    static readonly string[] Visuals={"wall-chart.png","a4-one-page.png","a4-one-page.pdf","a4-booklet.pdf"};
+    static string[] VisualsFor(ReportPaper paper)=>new[]{"wall-chart.png",paper.FileStem+"-one-page.png",paper.FileStem+"-one-page.pdf",paper.FileStem+"-booklet.pdf"};
     static readonly JsonSerializerOptions JsonOptions=new(){WriteIndented=true};
     static string Hash(byte[] bytes)=>Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
     static int Main(string[] args)=>Run(args);
     public static int Run(string[] args,RenderPalette? renderPalette=null)
     {
-        string? input=null,output=null,models=null,modelName=null,logo=null,deviceDetails=null,paletteFile=null,supplementaryFile=null;bool namedFolder=false;
+        string? input=null,output=null,models=null,modelName=null,logo=null,deviceDetails=null,paletteFile=null,supplementaryFile=null,paperPreset=null,paperOrientation=null;bool namedFolder=false;
         for(int i=0;i<args.Length;i++)
         {
             if(args[i]=="--input"&&i+1<args.Length)input=args[++i];
@@ -21,12 +21,16 @@ public static class GeneratorEntry
             else if(args[i]=="--device-details"&&i+1<args.Length)deviceDetails=args[++i];
             else if(args[i]=="--palette"&&i+1<args.Length)paletteFile=args[++i];
             else if(args[i]=="--supplementary"&&i+1<args.Length)supplementaryFile=args[++i];
+            else if(args[i]=="--paper"&&i+1<args.Length)paperPreset=args[++i];
+            else if(args[i]=="--orientation"&&i+1<args.Length)paperOrientation=args[++i];
             else if(args[i]=="--named-folder")namedFolder=true;
             else {Console.Error.WriteLine("Usage: SwitchportGenerator.exe --input <configuration-file> --output <output-directory> [--models <SKU or member=SKU pairs>] [--model-name <printed model name>] [--logo <image-file>] [--device-details <JSON-file>]");return 2;}
         }
         if(string.IsNullOrWhiteSpace(input)||string.IsNullOrWhiteSpace(output)){Console.Error.WriteLine("Both --input and --output are required.");return 2;}
         try
         {
+            var paper=ReportPaper.Parse(paperPreset,paperOrientation);paper.Validate();
+            var visuals=VisualsFor(paper);
             input=Path.GetFullPath(input);output=Path.GetFullPath(output);
             // Each run uses an empty directory so a blocked run cannot leave stale charts.
             Directory.CreateDirectory(output);
@@ -95,7 +99,7 @@ public static class GeneratorEntry
             SupplementaryData.WriteExports(output, supplementary);
             string summary=Summary(inv)+SupplementaryData.Summary(supplementary);
             File.WriteAllText(Path.Combine(output,"technician-summary.txt"),summary);
-            if(inv.Blockers.Count>0){WriteReport(output,inv,hash,false);Console.Error.WriteLine("RENDER_BLOCKED=TRUE\n"+string.Join('\n',inv.Blockers));return 3;}
+            if(inv.Blockers.Count>0){WriteReport(output,inv,hash,false,paper:paper);Console.Error.WriteLine("RENDER_BLOCKED=TRUE\n"+string.Join('\n',inv.Blockers));return 3;}
             string staging=Path.Combine(output,".rendering");Directory.CreateDirectory(staging);
             try
             {
@@ -106,22 +110,23 @@ public static class GeneratorEntry
                 var sceneErrors=booklet.SelectMany(Charts.ValidateScene).Distinct().ToList();
                 if(sceneErrors.Count>0)
                 {
-                    inv.Blockers.AddRange(sceneErrors);WriteReport(output,inv,hash,false);
+                    inv.Blockers.AddRange(sceneErrors);WriteReport(output,inv,hash,false,paper:paper);
                     Console.Error.WriteLine("RENDER_BLOCKED=TRUE\n"+string.Join('\n',sceneErrors));return 3;
                 }
-                // Both raster diagrams use the same A4 landscape canvas at 300 DPI.
-                Png.Save(scene,Path.Combine(staging,Visuals[0]),3508,2480,true);
-                Png.Save(scene,Path.Combine(staging,Visuals[1]),3508,2480,true);
-                Pdf.Save(new(){scene},Path.Combine(staging,Visuals[2]));
-                Pdf.Save(booklet,Path.Combine(staging,Visuals[3]));
-                foreach(string file in Visuals){if(new FileInfo(Path.Combine(staging,file)).Length<100)throw new InvalidOperationException("Generated chart is empty.");}
-                foreach(string file in Visuals)File.Move(Path.Combine(staging,file),Path.Combine(output,file));
-                WriteReport(output,inv,hash,true,scene);
+                // The report scene remains an unscaled, validated A4 working layout.
+                // Output PDF and 300dpi PNG use the selected physical paper.
+                Png.Save(scene,Path.Combine(staging,visuals[0]),paper.PixelWidth,paper.PixelHeight,true);
+                Png.Save(scene,Path.Combine(staging,visuals[1]),paper.PixelWidth,paper.PixelHeight,true);
+                Pdf.Save(new(){scene},Path.Combine(staging,visuals[2]),paper);
+                Pdf.Save(booklet,Path.Combine(staging,visuals[3]),paper);
+                foreach(string file in visuals){if(new FileInfo(Path.Combine(staging,file)).Length<100)throw new InvalidOperationException("Generated chart is empty.");}
+                foreach(string file in visuals)File.Move(Path.Combine(staging,file),Path.Combine(output,file));
+                WriteReport(output,inv,hash,true,scene,paper);
                 Console.WriteLine("Created 8 deliverables. "+(InventoryBasis.HasConfiguredInterfaces(inv)?InventoryBasis.CountLabel(inv):"Physical interfaces: "+inv.Ports.Count)+". Inventory SHA256: "+hash);return 0;
             }
             catch
             {
-                foreach(string file in Visuals)File.Delete(Path.Combine(output,file));throw;
+                foreach(string file in visuals)File.Delete(Path.Combine(output,file));throw;
             }
             finally {if(Directory.Exists(staging))Directory.Delete(staging,true);}
         }
@@ -166,8 +171,9 @@ public static class GeneratorEntry
         return s.ToString();
     }
     static string Quote(string value)=>"\""+Parser.Safe(value).Replace("\"","\"\"")+"\"";
-    static void WriteReport(string output,Inventory inv,string hash,bool success,Scene? scene=null)
+    static void WriteReport(string output,Inventory inv,string hash,bool success,Scene? scene=null,ReportPaper? paper=null)
     {
+        var selected=ReportPaper.Normalize(paper);
         var report=new StringBuilder();report.AppendLine("VALIDATION REPORT");report.AppendLine(new string('=',72));report.AppendLine("RENDER_BLOCKED="+(success?"FALSE":"TRUE"));
         report.AppendLine("Inventory SHA256: "+hash);
         if(InventoryBasis.HasConfiguredInterfaces(inv))
@@ -204,8 +210,8 @@ public static class GeneratorEntry
             foreach(var item in entries)report.AppendLine($"VLAN {item.Key}: {item.Value}");
             foreach(var item in AggregatePalette.Assign(inv,p=>VlanPalette.NativeFill(p,palette),palette.Values))report.AppendLine($"Outline {item.Key}: {item.Value}");
         }
-        report.AppendLine("All raster diagrams: A4 landscape, 3508 x 2480 pixels at 300 DPI. All PDF pages: A4 landscape.");
-        report.AppendLine("One complete working diagram fits A4 without needing supplemental pages for the port key. One normalized inventory feeds CSV, summary, JSON, both PNGs, and both PDFs. Inventory fingerprint is retained in this validation report.");
+         report.AppendLine("Selected report paper: "+selected.Description+". All PNGs: "+selected.PixelWidth+" x "+selected.PixelHeight+" pixels at 300 DPI. All PDF pages: "+selected.Description+".");
+        report.AppendLine("Report contents are composed at the verified A4 reference geometry and uniformly fitted to the selected paper without clipping or stretching physical sockets. Smaller sizes and portrait pages can reduce printed text size; choose larger landscape paper for dense port charts. One normalized inventory feeds CSV, summary, JSON, both PNGs, and both PDFs. Inventory fingerprint is retained in this validation report.");
         report.AppendLine(ReportText.CableMoveDisclaimer);
         report.AppendLine("Assumptions/limitations:");foreach(var a in inv.Assumptions)report.AppendLine("- "+a);
         foreach(var b in inv.Blockers)report.AppendLine("BLOCKER: "+b);

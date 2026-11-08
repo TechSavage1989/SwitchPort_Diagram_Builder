@@ -146,12 +146,9 @@ static class AdaptiveLayoutChecks
             Check(numberSize.Text==number!.Text,name+": port number was truncated: "+port.Id);
             Check(Math.Abs(number.X+numberSize.Width/2-(bounds.X+bounds.W/2))<.035,name+": port number is not centered: "+port.Id);
             if(final)Check(number.Size>=4.5-1e-5,name+": printed port number is below its readable floor.");
-            if(!optical)
-            {
-                foreach(var c in new[]{(number.X,number.Y),(number.X+numberSize.Width,number.Y),(number.X,number.Y+numberSize.Height),(number.X+numberSize.Width,number.Y+numberSize.Height)})
-                    Check(Contains(face,c.Item1,c.Item2),name+": RJ45 number escaped its tab: "+port.Id);
-            }
-            else Check(number.Y>bounds.Y+bounds.H,name+": optical number must remain below its cage.");
+            Check(number.Y+numberSize.Height<bounds.Y-.25||
+                number.Y>bounds.Y+bounds.H+.25,
+                name+": port number must be outside its socket: "+port.Id);
             foreach(var d in dots)
             {
                 double extent=Extent(d);if(d.Voice)voice++;

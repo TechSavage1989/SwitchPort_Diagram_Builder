@@ -14,6 +14,7 @@ public sealed class WorkspaceExportResult
     public string CombinedError { get; internal set; } = "";
     public List<string> CombinedImages { get; } = new();
     public List<string> Warnings { get; } = new();
+    public ReportPaper Paper { get; init; } = ReportPaper.Default;
     public int PageCount => CombinedImages.Count;
     public int SuccessCount => Items.Count(item => item.Success);
     public int FailureCount => Items.Count - SuccessCount;
@@ -26,9 +27,10 @@ public static class WorkspaceExport
     {
         if (workspace.Items.Count == 0) throw new InvalidOperationException("Add a configuration before building reports.");
         outputRoot = Path.GetFullPath(outputRoot); Directory.CreateDirectory(outputRoot);
+        var paper=ReportPaper.Normalize(workspace.Paper);paper.Validate();
         var palette=WorkspacePalette.Create(workspace,workspace.PaletteOverrides);
         string batchDirectory=WorkspaceNaming.CreateOutputDirectory(outputRoot,WorkspaceNaming.Effective(workspace));
-        var result = new WorkspaceExportResult { OutputDirectory = batchDirectory };
+        var result = new WorkspaceExportResult { OutputDirectory = batchDirectory, Paper=paper };
         result.Warnings.AddRange(palette.Warnings);
         File.WriteAllText(Path.Combine(batchDirectory,"workspace-palette.json"),JsonSerializer.Serialize(new{palette.Items,palette.Warnings},new JsonSerializerOptions{WriteIndented=true}));
         string temporary = Path.Combine(Path.GetTempPath(), "SwitchportDiagramBuilder-" + Guid.NewGuid().ToString("N"));
@@ -48,7 +50,7 @@ public static class WorkspaceExport
                     string details = Path.Combine(temporary, "devices.json");
                     File.WriteAllText(input, item.Text, new UTF8Encoding(false));
                     File.WriteAllText(details, JsonSerializer.Serialize(item.Devices));
-                    var arguments = new List<string> { "--input", input, "--output", output, "--device-details", details };
+                    var arguments = new List<string> { "--input", input, "--output", output, "--device-details", details, "--paper",paper.Preset, "--orientation",paper.Orientation };
                     if (item.SupplementarySources.Count > 0)
                     {
                         string evidence = Path.Combine(temporary, "supplementary.json");
@@ -72,7 +74,7 @@ public static class WorkspaceExport
                     result.Items.Add(new(item.Id, item.Name, output, false, error));
                 }
             }
-            if (combinedPdf && result.SuccessCount > 0) WriteCombined(result, logoPath, WorkspaceNaming.DocumentTitle(workspace));
+            if (combinedPdf && result.SuccessCount > 0) WriteCombined(result, logoPath, WorkspaceNaming.DocumentTitle(workspace),paper);
             File.WriteAllText(Path.Combine(batchDirectory, "workspace-export.json"), JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
             return result;
         }
@@ -100,10 +102,10 @@ public static class WorkspaceExport
         return blockers.Length > 0 ? string.Join("\n", blockers) : "Generation blocked. Review the validation report in this item's output folder.";
     }
 
-    static void WriteCombined(WorkspaceExportResult result, string? logoPath,string? title)
+    static void WriteCombined(WorkspaceExportResult result, string? logoPath,string? title,ReportPaper paper)
     {
-        string diagramsPath = Path.Combine(result.OutputDirectory, "workspace-a4-diagrams.pdf");
-        string bookletPath = Path.Combine(result.OutputDirectory, "workspace-a4-booklets.pdf");
+        string diagramsPath = Path.Combine(result.OutputDirectory, "workspace-"+paper.FileStem+"-diagrams.pdf");
+        string bookletPath = Path.Combine(result.OutputDirectory, "workspace-"+paper.FileStem+"-booklets.pdf");
         string context="preparing shared report";
         try
         {
@@ -129,13 +131,13 @@ public static class WorkspaceExport
             var sheets=WorkspaceSheet.Build(inputs,logo,title);
             result.Warnings.AddRange(sheets.Warnings);
             context="writing shared report files";
-            Pdf.Save(sheets.Pages,diagramsPath);Pdf.Save(sheets.Pages.Concat(details).ToList(),bookletPath);
+            Pdf.Save(sheets.Pages,diagramsPath,paper);Pdf.Save(sheets.Pages.Concat(details).ToList(),bookletPath,paper);
             for(int index=0;index<sheets.Pages.Count;index++)
             {
                 string image=Path.Combine(result.OutputDirectory,$"workspace-sheet-{index+1:D3}.png");
-                Png.Save(sheets.Pages[index],image,3508,2480,true);result.CombinedImages.Add(image);
+                Png.Save(sheets.Pages[index],image,paper.PixelWidth,paper.PixelHeight,true);result.CombinedImages.Add(image);
             }
-            File.WriteAllText(Path.Combine(result.OutputDirectory,"workspace-layout.json"),JsonSerializer.Serialize(new{PageCount=sheets.Pages.Count,sheets.GeometryScale,sheets.Placements,sheets.LegendEntries,sheets.Warnings},new JsonSerializerOptions{WriteIndented=true}));
+            File.WriteAllText(Path.Combine(result.OutputDirectory,"workspace-layout.json"),JsonSerializer.Serialize(new{PageCount=sheets.Pages.Count,Paper=paper,sheets.GeometryScale,sheets.Placements,sheets.LegendEntries,sheets.Warnings},new JsonSerializerOptions{WriteIndented=true}));
             result.CombinedDiagramsPath = diagramsPath; result.CombinedBookletPath = bookletPath;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or JsonException or OnePageCapacityException)

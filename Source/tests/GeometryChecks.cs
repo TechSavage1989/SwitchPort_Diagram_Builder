@@ -300,13 +300,18 @@ static class GeometryChecks
             Assert(number.Bold&&number.Size>=QuickSheet.MinimumPortFont-.001,"Port identifiers retain bold type at or above the readable printed size floor");
             var measured=ReportRenderer.Measure(number);
             Assert(Math.Abs(number.X+measured.Width/2-(socket.Tile.X+socket.Tile.W/2))<.001,"Port number is horizontally centered");
-            Assert(number.Y>socket.Tile.Y+socket.Tile.H*.4,"Port number is reserved at the bottom of its socket");
-            if(!socket.Optical)Assert(number.InkBox&&number.Y>=socket.Tile.Y+QuickSheet.TabTop*item.GeometryScale&&number.Y+measured.Height<socket.Tile.Y+socket.Tile.H,"RJ45 number stays within the narrow tab and clear of the thin dark border");
-            var outline=item.Scene.Shapes.Last(shape=>shape.Owner==socket.Port).Points;
-            if(socket.Optical)
-                Assert(number.Color=="#101820"&&number.Y>socket.Tile.Y+socket.Tile.H+.5&&number.Y+measured.Height<socket.Tile.Y+QuickSheet.PortHeight*item.GeometryScale,"Optical numbers sit below the cage on the RJ45 row's number line, including black stack cages");
-            else foreach(var corner in new[]{(number.X,number.Y),(number.X+measured.Width,number.Y),(number.X,number.Y+measured.Height),(number.X+measured.Width,number.Y+measured.Height)})
-                Assert(Within(outline,corner.Item1,corner.Item2),"RJ45 number stays within its tab");
+            // Labels are outside the face in their dedicated exterior bands,
+            // with top-row labels above and bottom-row labels below.
+            Assert(number.Color=="#101820"&&number.InkBox,"External port number is dark readable bold text.");
+            bool above=number.Y+measured.Height<socket.Tile.Y-.25;
+            bool below=number.Y>socket.Tile.Y+socket.Tile.H+.25;
+            Assert(above||below,"Port number must be entirely above or below its socket, never inside.");
+            Assert(!item.Scene.Shapes.Where(shape=>shape.Owner==socket.Port).Any(shape=>
+            {
+                var bounds=shape.Points;
+                double left=bounds.Min(p=>p.X),right=bounds.Max(p=>p.X),top=bounds.Min(p=>p.Y),bottom=bounds.Max(p=>p.Y);
+                return number.X<right&&number.X+measured.Width>left&&number.Y<bottom&&number.Y+measured.Height>top;
+            }),"Port number must stay clear of LAG outline and socket geometry.");
             var marks=item.Scene.Dots.Where(d=>d.X>socket.Tile.X&&d.X<socket.Tile.X+socket.Tile.W&&d.Y>socket.Tile.Y&&d.Y<socket.Tile.Y+socket.Tile.H).ToList();
             double Extent(Dot d)=>d.Voice?d.Radius+d.VoiceExtra+d.Outline/2:Math.Max(d.Radius+d.Halo,d.Radius+d.Outline/2);
             foreach(var mark in marks)
@@ -314,7 +319,7 @@ static class GeometryChecks
                 double extent=Extent(mark);
                 foreach(var corner in new[]{(mark.X-extent,mark.Y-extent),(mark.X+extent,mark.Y-extent),(mark.X-extent,mark.Y+extent),(mark.X+extent,mark.Y+extent)})
                     Assert(Within(outline,corner.Item1,corner.Item2),"Full marker stroke/halo stays inside port");
-                Assert(mark.Y+extent<number.Y-.2,"Enlarged markers remain clear of the reserved port number area");
+                Assert(mark.Y+extent<number.Y-.2||mark.Y-extent>number.Y+measured.Height,"VLAN markers remain clear of the exterior port number.");
             }
             for(int i=0;i<marks.Count;i++)for(int j=i+1;j<marks.Count;j++)
                 Assert(Math.Abs(marks[i].X-marks[j].X)>Extent(marks[i])+Extent(marks[j])||Math.Abs(marks[i].Y-marks[j].Y)>Extent(marks[i])+Extent(marks[j]),"Marker extents never overlap each other");
@@ -344,7 +349,7 @@ static class GeometryChecks
         {
             Assert(item.Scene.Boxes.Where(b=>b.Role=="ActivePanel").All(b=>Math.Abs(b.H-item.Scene.Boxes.First(b=>b.Role=="ActivePanel").H)<.001),"Active panel heights remain consistent within every tested switch and module");
             foreach(var row in item.Sockets.GroupBy(s=>s.Tile.Y))
-                Assert(row.Max(s=>s.NumberBounds.Y+s.NumberBounds.H)-row.Min(s=>s.NumberBounds.Y+s.NumberBounds.H)<.001,"RJ45 tab numbers and external SFP numbers are horizontally aligned");
+                Assert(row.Max(s=>s.NumberBounds.Y+s.NumberBounds.H)-row.Min(s=>s.NumberBounds.Y+s.NumberBounds.H)<.001,"RJ45 and SFP labels use the same exterior number band for a physical row.");
         }
         foreach(var item in new[]{tagSheet,denseSheet,copperSheet,fiveSheet})
         {
@@ -494,7 +499,7 @@ static class GeometryChecks
         Assert(dc.Firmware=="Unknown","A product SKU in an AOS-CX identity header is not a firmware version");
         var q49=dcMap.Single(p=>p.Port=="1/1/49");var q50=dcMap.Single(p=>p.Port=="1/1/50");var q51=dcMap.Single(p=>p.Port=="1/1/51");var q52=dcMap.Single(p=>p.Port=="1/1/52");
         Assert(q49.Tile.X==q50.Tile.X&&q50.Tile.X==q51.Tile.X&&q49.Tile.Y<q50.Tile.Y&&q50.Tile.Y<q51.Tile.Y&&q52.Tile.X>q49.Tile.X&&q52.Tile.Y==q49.Tile.Y,"8320 QSFP uplinks use two columns of three physical sockets");
-        Assert(Math.Abs(QuickSheet.PanelHeight(dc)-81.4)<.01,"Three physical rows retain the same port size, with equal panel height within the diagram");
+        Assert(Math.Abs(QuickSheet.PanelHeight(dc)-111.4)<.01,"Three rows reserve exterior number bands between row pairs while retaining socket size.");
         Console.WriteLine("PASS all "+count+" source-referenced catalogue profiles parse and fit their verified socket layouts on A4; Comware native/hybrid/voice/aggregate/IRF and explicit mixed-member identities; compact independent ports, combo alternatives and three-row QSFP bank.");
     }
 }
