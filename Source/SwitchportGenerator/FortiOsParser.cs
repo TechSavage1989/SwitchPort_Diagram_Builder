@@ -126,7 +126,7 @@ public static class FortiOsParser
             }
             else
             {
-                id=ordinal==29?"ha":"mgmt";media="RJ-45";display=ordinal==29?"HA":"MGMT";
+                id=ordinal==29?"ha":"mgmt";media="RJ-45";display=ordinal==29?"HA":"MG";
                 col=0;row=ordinal==29?0:1;
             }
             group.SocketLayout.Add(new HardwareSocket
@@ -134,13 +134,15 @@ public static class FortiOsParser
             inv.Ports.Add(new Port
             {
                 Id=id,Group=group.Id,Number=ordinal,DisplayNumber=display,Media=media,
+                Description=ordinal==29?"Dedicated HA":ordinal==30?"Dedicated MGMT":"",
                 Mode="Physical",UntaggedState="Unknown"
             });
         }
         inv.Groups.Add(group);
         inv.Assumptions.Add("Physical faceplate verified: "+PhysicalReference+
             ". 8 GE RJ45, 8 5GE RJ45, 8 10GE SFP+, 4 GE SFP, dedicated HA and MGMT RJ45. "+
-            "Console, USB and virtual modem are not Ethernet data sockets. "+HardwareReference);
+            "Console, USB and virtual modem are not Ethernet data sockets. "+
+            "MG is an abbreviated in-socket label for the MGMT port; the complete interface ID is mgmt. "+HardwareReference);
         inv.Assumptions.Add("FortiOS routed interfaces do not imply an access/native VLAN. "+
             "Tagged VLAN markers represent configured 802.1Q subinterfaces, not measured switchport trunk membership.");
 

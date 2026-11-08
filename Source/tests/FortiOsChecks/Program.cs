@@ -136,7 +136,7 @@ static class FortiOsChecks
         Check(inv.Ports.Count(p=>p.Media=="RJ-45")==18,"16 copper + HA + MGMT");
         Check(inv.Ports.Count(p=>p.Media=="SFP+")==8&&inv.Ports.Count(p=>p.Media=="SFP")==4,"separate optical media");
         Check(Port(inv,"x8").Media=="SFP+"&&Port(inv,"port20").Media=="SFP","Optical labels and media");
-        Check(Port(inv,"ha").DisplayNumber=="HA"&&Port(inv,"mgmt").DisplayNumber=="MGMT","HA and MGMT printed labels");
+        Check(Port(inv,"ha").DisplayNumber=="HA"&&Port(inv,"mgmt").DisplayNumber=="MG","HA and MGMT printed labels");
         Check(Port(inv,"port9").Speed=="5000auto"&&Port(inv,"x1").Speed=="10000full","Speed configured");
         Check(Port(inv,"port6").Disabled==true&&!Port(inv,"port2").Disabled.GetValueOrDefault(),"Administrative state");
         Check(Port(inv,"port2").Description=="Trusted link"&&Port(inv,"port11").Description=="Multigig port","Interface aliases");
