@@ -180,6 +180,34 @@ static class FortiOsChecks
         var unsupported=DeviceModels.Parse(Sample("FG999G"),Array.Empty<DeviceIdentity>());
         Check(unsupported.Blockers.Any(s=>s.Contains("unconfirmed")),"Unknown FortiGate variant cannot be mapped to known faceplate");
         Check(unsupported.Groups.Count==0&&unsupported.Ports.Count==0,"Unknown FG hardware cannot create invented physical ports");
+        // Full exported package from fictional configuration, including the
+        // generated PDF/PNG pages. Never test with a customer backup.
+        string temp=Path.Combine(Path.GetTempPath(),"fortios-report-"+Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(temp);
+        try
+        {
+            string input=Path.Combine(temp,"synthetic-fortios.cfg"),output=Path.Combine(temp,"reports");
+            File.WriteAllText(input,Sample("FG2H0G"));
+            Check(GeneratorEntry.Run(new[]{"--input",input,"--output",output})==0,
+                "FortiGate synthetic backup must produce a complete report package.");
+            foreach(string name in new[]{
+                "inventory.json","port-map.csv","technician-summary.txt","validation-report.txt",
+                "wall-chart.png","a4-one-page.png","a4-one-page.pdf","a4-booklet.pdf"})
+                Check(File.Exists(Path.Combine(output,name))&&new FileInfo(Path.Combine(output,name)).Length>100,
+                    "Missing or empty FortiGate generated deliverable: "+name);
+            string inventory=File.ReadAllText(Path.Combine(output,"inventory.json"));
+            Check(inventory.Contains("FG-200G")&&inventory.Contains("port20")&&inventory.Contains("mgmt"),
+                "Actual generated inventory must preserve exact FortiGate model and physical ports.");
+            Check(!inventory.Contains("FAKE-NO-SECRETS")&&
+                !File.ReadAllText(Path.Combine(output,"technician-summary.txt")).Contains("FAKE-NO-SECRETS"),
+                "Generated FortiGate reports must not expose admin credential contents.");
+            Check(File.ReadAllText(Path.Combine(output,"validation-report.txt")).Contains("RENDER_BLOCKED=FALSE"),
+                "FortiGate full report should render without capacity warnings or validation blockers.");
+        }
+        finally
+        {
+            try{Directory.Delete(temp,true);}catch(IOException){}
+        }
         Check(!FortiOsParser.IsConfiguration("; JL256A Configuration Editor\nhostname ARUBA-LAB\n"),"Aruba configs retain their own parser");
         Check(!FortiOsParser.IsConfiguration("# by RouterOS 7.16\n/system identity\n"),"RouterOS configs retain their own parser");
         Console.WriteLine("PASS FortiOsChecks ("+assertions+" assertions) without any customer data.");
