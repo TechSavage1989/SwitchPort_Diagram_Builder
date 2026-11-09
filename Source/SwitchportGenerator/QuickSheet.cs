@@ -58,10 +58,13 @@ public static class QuickSheet
         public double TitleInkHeight {get;set;}
         public double KeyTextWidth {get;set;}=78;
         public double PreferredRadius=>Math.Min(MaximumDotRadius,DotRadius*Scale);
-        public double Header=>Math.Max(Height(Font(7),Scale),TitleInkHeight)+1.0/Scale;
+        public double Header=>(FaceScale<1?TitleInkHeight:Math.Max(Height(Font(7),Scale),TitleInkHeight))+1.0/Scale;
         public double HeaderInset=>.15/Scale;
         public double TitleTop=>.55/Scale;
-        public double NumberBand=>Math.Max(FaceScale<1?5.5:6.5,Height(NumberFont,Scale)+(FaceScale<1?1:2)/Scale);
+        public double NumberInkHeight {get;set;}
+        public double NumberBand=>FaceScale<1
+            ?Math.Max(4.5,NumberInkHeight+NumberInset+.25/Scale)
+            :Math.Max(6.5,Height(NumberFont,Scale)+2/Scale);
         public double SocketTop=>Header+NumberBand+(Compact==0?1:Math.Max(.65/Scale,AggregateOutset+.4/Scale));
         public double PanelBottom=>NumberBand+(Compact==0?.8:Math.Max(.7/Scale,AggregateOutset+.4/Scale));
         public double PanelGap=>Compact==0?.5:.3/Scale;
@@ -338,16 +341,18 @@ public static class QuickSheet
                 // Only unusually tall stacks may compact all socket faces
                 // together, preserving the exact RJ45/SFP aspect ratios and
                 // the full-size exterior number text.
-                foreach(double face in inv.Groups.Count>=6?new[]{1.0,.85,.75,.7,.65}:new[]{1.0})
+                foreach(double face in inv.Groups.Count>=6?new[]{1.0,.95,.9,.85,.8,.75,.7,.65}:new[]{1.0})
                 foreach(bool wholeWords in new[]{true,false})foreach(bool narrow in new[]{true,false})
                 {
                     try
                     {
                         var candidate=BuildCore(inv,original,hash,narrow,new(scale,compact,wholeWords,keyBelow,MaximumBottom:maximumHeight,FaceScale:face),palette,aggregate);
-                        ApplyGeometry(candidate,scale,compact);
+                        ApplyGeometry(candidate,scale,compact,face);
                         DrawVisualGuide(candidate.Scene,inv,palette,aggregate);
                         var errors=Charts.ValidateScene(candidate.Scene);
                         if(errors.Count>0)throw new OnePageCapacityException(string.Join("; ",errors));
+                        if(!MarkersFit(candidate,MinimumDotRadius))
+                            throw new OnePageCapacityException("complete VLAN markers cannot fit at the readable minimum size");
                         return candidate;
                     }
                     catch(OnePageCapacityException ex){last=ex;}
@@ -391,13 +396,13 @@ public static class QuickSheet
         var aggregate=AggregatePalette.Assign(inv,p=>Fill(p,palette),palette.Values);
         var candidates=new List<Result>();OnePageCapacityException? last=null;
         foreach(bool keyBelow in includeVlanKey?new[]{false,true}:new[]{false})for(int compact=0;compact<=2;compact++)
-        foreach(double face in inv.Groups.Count>=6?new[]{1.0,.85,.75,.7,.65}:new[]{1.0})
+        foreach(double face in inv.Groups.Count>=6?new[]{1.0,.95,.9,.85,.8,.75,.7,.65}:new[]{1.0})
         foreach(bool wholeWords in new[]{true,false})foreach(bool narrow in new[]{true,false})
         {
             try
             {
                 var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow,maximumBodyWidth,maximumHeight,face),palette,aggregate,includeVlanKey,includeDetails);
-                ApplyGeometry(candidate,1,compact);
+                ApplyGeometry(candidate,1,compact,face);
                 double radius=markerRadius??DotRadius;
                 if(!MarkersFit(candidate,radius))
                 {
@@ -553,6 +558,8 @@ public static class QuickSheet
     {
         var output=new Result();var scene=output.Scene;var groups=inv.Groups.ToDictionary(g=>g.Id);
         plan.TitleInkHeight=inv.Groups.Select(g=>ReportRenderer.Measure(new Label(0,0,PanelTitle(inv,g),plan.Font(7)*plan.Scale,"#ffffff",true,0,"",true)).Height/plan.Scale).DefaultIfEmpty(0).Max();
+        plan.NumberInkHeight=inv.Ports.Select(p=>Display(groups[p.Group],p,"")+(p.Disabled==true?"!":"")).Distinct()
+            .Select(text=>ReportRenderer.Measure(new Label(0,0,text,plan.NumberFont*plan.Scale,Bold:true,InkBox:true)).Height/plan.Scale).DefaultIfEmpty(0).Max();
         // Reserve readable legend content before maximizing the physical bank.
         // Long names may wrap, but a large diagram cannot squeeze the key into
         // character-wide columns or split the numeric VLAN identity.
@@ -772,7 +779,7 @@ public static class QuickSheet
         scene.DiagramBodyWidth=includeVlanKey?keyX+keyWidth:diagramWidth;
         return output;
     }
-    static void ApplyGeometry(Result result,double scale,int compact)
+    static void ApplyGeometry(Result result,double scale,int compact,double faceScale=1)
     {
         var scene=result.Scene;double dx=Math.Max(0,(PageWidth-scene.DiagramBodyWidth*scale)/2);
         bool Body(double y)=>y>=DiagramTop-.01&&y<IconKeyTop;
@@ -786,7 +793,8 @@ public static class QuickSheet
         {
             var p=result.Sockets[i];result.Sockets[i]=p with{Tile=Box(p.Tile),NumberBounds=Box(p.NumberBounds),FacePoints=p.FacePoints.Select(v=>(X(v.X),Y(v.Y))).ToArray(),MarkerTop=Y(p.MarkerTop),MarkerBottom=Y(p.MarkerBottom),MarkerInset=p.MarkerInset*scale};
         }
-        scene.DiagramScale=scale;scene.MarkerRadius=DotRadius;scene.CompactionLevel=compact;scene.IsAdaptiveLayout=true;
+        // Report the actual socket scale, including uniform dense-stack compaction.
+        scene.DiagramScale=scale*faceScale;scene.MarkerRadius=DotRadius;scene.CompactionLevel=compact;scene.IsAdaptiveLayout=true;
     }
     public static void FitToPage(Scene scene)
     {

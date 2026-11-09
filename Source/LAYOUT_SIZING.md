@@ -1,10 +1,22 @@
 # Adaptive layout sizing
 
-The main diagram remains one A4 landscape page. Its body uses one geometry
-scale, preserving every RJ45 and optical interface aspect ratio. A reference
-RJ45 box is 25.2 by 23.2 points with a 17.8-point main face and narrow number
-tab. Optical cages retain their 16.2-point reference height. VLAN density never
-changes those proportions.
+The solver uses an A4 landscape reference scene, uniformly fitted to the selected
+physical report paper. Its sockets share one geometry scale, preserving every
+RJ45 and optical interface aspect ratio. A reference RJ45 box is 25.2 by 23.2
+points with a 17.8-point main face and narrow latch tab. Optical cages retain
+their 16.2-point reference height. VLAN density never changes those proportions.
+Port numbers sit in separate bands above top rows and below bottom rows, with
+additional bands between row pairs on multirow hardware.
+
+Tall configurations with six or more groups may uniformly compact socket faces
+down to 65% of reference size. Exterior numbers still retain their 4.5-point
+font floor and headings retain seven points. Compact bands use actual bold
+number and heading ink bounds, including disabled-port suffixes. Reported
+geometry includes the face-compaction factor; it is the measured socket scale,
+not the separate scale of surrounding text and key spacing. Every candidate
+must fit all VLAN markers at the 1.1-point radius floor before selection.
+Narrow or portrait paper can further reduce printed size because paper fitting
+does not reflow the reference scene.
 
 ## Readable content before enlargement
 

@@ -42,8 +42,19 @@ static class ReportPaperChecks
             Check(data.Length>90&&BinaryPrimitives.ReadInt32BigEndian(data.AsSpan(16,4))==paper.PixelWidth&&
                 BinaryPrimitives.ReadInt32BigEndian(data.AsSpan(20,4))==paper.PixelHeight,
                 "PNG dimensions do not match "+paper.Description);
-            Check(Encoding.ASCII.GetString(data).Contains("pHYs"),"Missing 300 DPI raster metadata.");
-            Check(data.AsSpan().IndexOf("pHYs"u8)>=0,"Missing physical-resolution PNG chunk.");
+            int physical=-1;
+            for(int offset=8;offset+12<=data.Length;)
+            {
+                int length=BinaryPrimitives.ReadInt32BigEndian(data.AsSpan(offset,4));
+                Check(length>=0&&length<=data.Length-offset-12,"Invalid PNG chunk length.");
+                if(data.AsSpan(offset+4,4).SequenceEqual("pHYs"u8))
+                {Check(length==9,"Invalid physical-resolution PNG chunk.");physical=offset+8;break;}
+                offset+=length+12;
+            }
+            Check(physical>=0,"Missing physical-resolution PNG chunk.");
+            Check(BinaryPrimitives.ReadInt32BigEndian(data.AsSpan(physical,4))==11811&&
+                BinaryPrimitives.ReadInt32BigEndian(data.AsSpan(physical+4,4))==11811&&data[physical+8]==1,
+                "PNG must declare 300 DPI in both axes using pixels per metre.");
         }
         finally{File.Delete(file);}
     }
@@ -103,19 +114,54 @@ static class ReportPaperChecks
         Check(invalid,"Unsupported orientation must be rejected.");
     }
 
+    static void ExportPaper()
+    {
+        string root=Path.Combine(Path.GetTempPath(),"switchport-paper-export-"+Guid.NewGuid().ToString("N"));
+        try
+        {
+            var workspace=new ConfigurationWorkspace{Paper=ReportPaper.Parse("letter","portrait")};
+            workspace.AddText("; JL256A Configuration Editor\nhostname PAPER-ACCESS\n","access.txt");
+            workspace.AddText("! AOS-CX JL679A\nhostname PAPER-FIBER\n","fiber.txt");
+            var result=WorkspaceExport.Export(workspace,root);
+            Check(result.SuccessCount==2&&result.FailureCount==0&&result.CombinedError.Length==0,
+                "Selected-paper individual and shared exports must succeed.");
+            Check(Path.GetFileName(result.CombinedDiagramsPath)=="workspace-letter-portrait-diagrams.pdf"&&
+                Path.GetFileName(result.CombinedBookletPath)=="workspace-letter-portrait-booklets.pdf",
+                "Shared reports must use the selected paper filename stem.");
+            foreach(var item in result.Items)
+            {
+                Check(Directory.GetFiles(item.OutputDirectory).Length==8,"Individual reports must preserve the eight-file baseline.");
+                foreach(string name in new[]{"letter-portrait-one-page.pdf","letter-portrait-one-page.png","letter-portrait-booklet.pdf"})
+                    Check(File.Exists(Path.Combine(item.OutputDirectory,name)),"Missing selected-paper output: "+name);
+            }
+            foreach(string file in Directory.GetFiles(root,"*.pdf",SearchOption.AllDirectories))
+            {
+                var boxes=Regex.Matches(Encoding.Latin1.GetString(File.ReadAllBytes(file)),@"/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]");
+                Check(boxes.Count>0,"Exported PDF has no physical media box: "+file);
+                foreach(Match box in boxes)
+                    Check(Math.Abs(double.Parse(box.Groups[1].Value,System.Globalization.CultureInfo.InvariantCulture)-612)<.55&&
+                        Math.Abs(double.Parse(box.Groups[2].Value,System.Globalization.CultureInfo.InvariantCulture)-792)<.55,
+                        "Every individual/shared PDF page must use US Letter portrait.");
+            }
+            foreach(string file in result.CombinedImages.Concat(result.Items.Select(item=>Path.Combine(item.OutputDirectory,"letter-portrait-one-page.png"))))
+            {
+                byte[] png=File.ReadAllBytes(file);
+                Check(BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(16,4))==2550&&BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(20,4))==3300,
+                    "Individual/shared paper previews must use US Letter portrait at 300 DPI.");
+            }
+        }
+        finally{if(Directory.Exists(root))Directory.Delete(root,true);}
+    }
+
     public static int Main()
     {
         Workspace();
         ExternalLabels();
-        AssertPdf("a4","landscape",297,210);
-        AssertPdf("letter","landscape",279.4,215.9);
-        AssertPdf("letter","portrait",215.9,279.4);
-        AssertPdf("legal","landscape",355.6,215.9);
-        AssertPdf("tabloid","landscape",431.8,279.4);
-        AssertPdf("a5","portrait",148,210);
-        AssertPdf("a3","landscape",420,297);
-        AssertPdf("a2","landscape",594,420);
+        foreach(var (name,width,height) in new[]{("letter",215.9,279.4),("legal",215.9,355.6),("tabloid",279.4,431.8),
+            ("a5",148.0,210.0),("a4",210.0,297.0),("a3",297.0,420.0),("a2",420.0,594.0)})
+        {AssertPdf(name,"portrait",width,height);AssertPdf(name,"landscape",height,width);}
         AssertPng("a4","landscape");AssertPng("letter","landscape");AssertPng("letter","portrait");
+        ExportPaper();
         Console.WriteLine("PASS ReportPaperChecks ("+checks+" checks).");
         return 0;
     }

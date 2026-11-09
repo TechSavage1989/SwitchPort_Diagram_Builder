@@ -154,7 +154,8 @@ static class AdaptiveLayoutChecks
                 double extent=Extent(d);if(d.Voice)voice++;
                 foreach(var c in new[]{(d.X-extent,d.Y-extent),(d.X+extent,d.Y-extent),(d.X-extent,d.Y+extent),(d.X+extent,d.Y+extent)})
                     Check(Contains(face,c.Item1,c.Item2),name+": marker halo/outline escaped its proportional face: "+port.Id);
-                Check(d.Y+extent<number.Y-.05,name+": marker touches the reserved number area: "+port.Id);
+                Check(d.Y+extent<number.Y-.05||d.Y-extent>number.Y+numberSize.Height+.05,
+                    name+": marker touches the reserved number area: "+port.Id);
             }
             for(int i=0;i<dots.Count;i++)for(int j=i+1;j<dots.Count;j++)
                 Check(Math.Abs(dots[i].X-dots[j].X)>Extent(dots[i])+Extent(dots[j])-1e-5||Math.Abs(dots[i].Y-dots[j].Y)>Extent(dots[i])+Extent(dots[j])-1e-5,name+": marker extents overlap: "+port.Id);
@@ -165,7 +166,11 @@ static class AdaptiveLayoutChecks
         Check(all.All(d=>d.VoiceExtra==0),name+": voice diamonds and circles must use one consistent outer size.");
         if(final)
         {
-            Check(scales.Min()>=1-1e-4,name+": interfaces were uniformly shrunk instead of reducing markers as the fallback.");
+            // Exterior number bands can require uniformly smaller faces on tall
+            // stacks. All other sheets retain the original reference-size floor;
+            // font, marker, aspect-ratio and collision guards still apply above.
+            double minimumScale=inv.Groups.Count>=6?.65:1;
+            Check(scales.Min()>=minimumScale-1e-4,name+": interfaces fell below the permitted uniform geometry floor.");
             Check(all[0].Radius>=1.1-1e-5&&all[0].Radius<=Math.Min(4.2,2.1*scene.DiagramScale)+1e-5,name+": marker size exceeds readable/preferred bounds.");
             foreach(var label in scene.Labels.Where(l=>l.Owner.Length==0))Check(label.Size>=7-1e-5,name+": printed heading/key text is below seven points: "+label.Text);
             CheckHeadingInk(scene,name);
