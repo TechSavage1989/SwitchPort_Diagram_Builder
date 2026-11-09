@@ -6,6 +6,8 @@ The shared report setting is stored as ReportPaper in the version-1 saved worksp
 
 PR #7 continuation fixes dense-stack sizing metadata in both standalone and shared components. Tall-stack number/header bands use measured ink; candidate selection rejects sockets that cannot contain all markers at the readable floor. The eight-member/40-VLAN regression retains all 640 markers, proportional faces and font floors. Adaptive checks accept markers above or below exterior numbers, and restrict below-reference socket sizes to the existing tall-stack compaction policy. ReportPaperChecks now runs in CI, checks both orientations of all seven PDF presets, validates numeric PNG resolution metadata and exercises individual/shared Letter-portrait exports and filename stems. The 600x430 Windows viewport keeps Updates in the header row so restored logos and generated output fit. README screenshots were recaptured from the current UI/report renderer with fictional data.
 
+Shared sheets prefer full-size sockets at equal marker readability, report each component's measured geometry scale, and start a separate page when tall-stack compaction would mix physical scales. WorkspaceSheetChecks verifies the recorded scale against actual socket widths, including tall stacks.
+
 Focused commands: `dotnet run --project Source/tests/ReportPaperChecks/ReportPaperChecks.csproj -c Release`, GeometryChecks, AdaptiveLayoutChecks, LayoutQualityChecks and WorkspaceSheetChecks, followed by the complete `.github/workflows/build-and-release.yml` gates. Release-workflow Python tests require Linux-style symlink support; run their complete suite in Linux CI, without weakening checks for a Windows workstation.
 
 # FortiGate 200G/201G FortiOS configuration and physical-port support: 1.18.5

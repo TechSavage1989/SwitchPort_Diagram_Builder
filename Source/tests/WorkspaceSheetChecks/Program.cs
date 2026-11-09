@@ -171,6 +171,9 @@ static class WorkspaceSheetChecks
         foreach(var input in inputs)
         {
             var placement=result.Placements.Single(item=>item.Id==input.Id);var scene=result.Pages[placement.PageNumber-1];
+            var faces=scene.Shapes.Where(shape=>shape.Owner.StartsWith(input.Id+":",StringComparison.Ordinal)&&shape.Fill.Length>0).ToArray();
+            Check(faces.Length>0&&faces.All(face=>Math.Abs((face.Points.Max(point=>point.X)-face.Points.Min(point=>point.X))/QuickSheet.PortWidth-placement.GeometryScale)<.001),
+                "Per-configuration geometry metadata must match measured socket widths, including compact tall stacks.");
             var numbers=scene.Labels.Where(label=>label.Owner.StartsWith(input.Id+":",StringComparison.Ordinal)).ToArray();
             Check(numbers.Length==Charts.Layout(input.Inventory).Count,"Every original socket keeps its printed number including combo sockets: "+input.Id);
             Check(scene.Labels.Any(label=>label.Text==ReportText.DisplayName(input.Inventory)),"Every configuration has a visible identifying hostname/display name.");

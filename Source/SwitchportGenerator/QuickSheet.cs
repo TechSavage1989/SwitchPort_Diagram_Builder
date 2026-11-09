@@ -426,7 +426,9 @@ public static class QuickSheet
         // A shared side key uses the width left by the switch. Reclaim unused
         // panel width before optimizing height, so a few shorter description
         // lines do not force complete VLAN names onto needless key pages.
-        var ordered=candidates.OrderByDescending(candidate=>Math.Round(candidate.MarkerRadius,5));
+        // At equal marker readability, preserve the largest physical sockets.
+        var ordered=candidates.OrderByDescending(candidate=>Math.Round(candidate.MarkerRadius,5))
+            .ThenByDescending(candidate=>candidate.GeometryScale);
         var best=(!includeVlanKey&&maximumBodyWidth.HasValue
             ?ordered.ThenBy(candidate=>candidate.Scene.DiagramBodyWidth).ThenBy(candidate=>candidate.Scene.Height)
             :ordered.ThenBy(candidate=>candidate.Scene.Height))
