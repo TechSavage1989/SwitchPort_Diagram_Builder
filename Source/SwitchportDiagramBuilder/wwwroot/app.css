@@ -91,3 +91,6 @@ label{font-size:13px;color:#dbeaf8}input{min-width:0;min-height:42px;width:100%;
 
 /* Extra-short Windows working areas prioritize controls over decorative header text. */
 @media(max-height:520px){.app-brand p{display:none}.report-paper-controls select{min-height:25px;padding:3px 5px}.config-panel #chooseOutput,.config-panel #chooseLogo{min-height:28px;padding:4px 7px}}
+
+/* The safety note moves out of the 430px launch viewport; report pages still contain it. */
+@media(max-height:450px){main>footer{display:none}}
