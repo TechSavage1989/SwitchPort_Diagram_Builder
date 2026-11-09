@@ -44,13 +44,16 @@ public static class QuickSheet
         public Dictionary<int,string> VlanColors {get;}=new();
         public Dictionary<string,string> AggregateColors {get;}=new(StringComparer.OrdinalIgnoreCase);
     }
-    sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null,double? MaximumBottom=null)
+    sealed record LayoutPlan(double Scale,int Compact,bool PreferWholeWords=true,bool KeyBelow=false,double? MaximumBodyWidth=null,double? MaximumBottom=null,double FaceScale=1)
     {
         public double Width=>(PageWidth-.8)/Scale;
         public double Bottom=>Math.Min(DiagramTop+(DiagramBottom-DiagramTop)/Scale,MaximumBottom is {} limit?DiagramTop+(limit-DiagramTop)/Scale:double.MaxValue);
         public double Gap=>Compact==0?PortGap:.65;
-        public double Pitch=>PortWidth+Gap;
-        public double RowPitch=>PortHeight+Gap;
+        public double FaceWidth=>PortWidth*FaceScale;
+        public double FaceHeight=>PortHeight*FaceScale;
+        public double OpticalFaceHeight=>OpticalHeight*FaceScale;
+        public double Pitch=>FaceWidth+Gap;
+        public double RowPitch=>FaceHeight+Gap;
         public double RowOffset(int row)=>row*RowPitch+(row/2)*NumberBand*2;
         public double TitleInkHeight {get;set;}
         public double KeyTextWidth {get;set;}=78;
@@ -58,7 +61,7 @@ public static class QuickSheet
         public double Header=>Math.Max(Height(Font(7),Scale),TitleInkHeight)+1.0/Scale;
         public double HeaderInset=>.15/Scale;
         public double TitleTop=>.55/Scale;
-        public double NumberBand=>Math.Max(6.5,Height(NumberFont,Scale)+2/Scale);
+        public double NumberBand=>Math.Max(FaceScale<1?5.5:6.5,Height(NumberFont,Scale)+(FaceScale<1?1:2)/Scale);
         public double SocketTop=>Header+NumberBand+(Compact==0?1:Math.Max(.65/Scale,AggregateOutset+.4/Scale));
         public double PanelBottom=>NumberBand+(Compact==0?.8:Math.Max(.7/Scale,AggregateOutset+.4/Scale));
         public double PanelGap=>Compact==0?.5:.3/Scale;
@@ -77,7 +80,7 @@ public static class QuickSheet
         public double PanelHeight(Inventory inv)
         {
             int rows=Math.Max(2,inv.Groups.SelectMany(g=>g.SocketLayout).Select(s=>s.Row+1).DefaultIfEmpty(2).Max());
-            return SocketTop+RowOffset(rows-1)+PortHeight+PanelBottom;
+            return SocketTop+RowOffset(rows-1)+FaceHeight+PanelBottom;
         }
     }
     record Panel(string Group,string Title,double X,double Y,double W,double H);
@@ -231,8 +234,8 @@ public static class QuickSheet
     static void DrawSocket(Result output,Inventory inv,Group g,Port port,Placement original,double x,double y,int row,Dictionary<string,string> colors,LayoutPlan plan)
     {
         var scene=output.Scene;bool optical=original.Socket=="M"||original.Socket!="T"&&port.Media!="RJ-45";
-        double h=optical?OpticalHeight:PortHeight;
-        var points=port.Media=="Unspecified"?new[]{(x,y),(x+PortWidth,y),(x+PortWidth,y+h),(x,y+h)}:Outline(x,y,optical);
+        double h=optical?plan.OpticalFaceHeight:plan.FaceHeight;
+        var points=port.Media=="Unspecified"?new[]{(x,y),(x+plan.FaceWidth,y),(x+plan.FaceWidth,y+h),(x,y+h)}:Outline(x,y,optical,plan.FaceScale);
         string fill=Fill(port,output.VlanColors);
         SocketShape(scene,points,fill,port.Aggregate.Length>0?colors[port.Aggregate]:null,port.Id,optical);
         string display=Display(g,port,original.Socket)+(port.Disabled==true?"!":"");
@@ -243,18 +246,18 @@ public static class QuickSheet
         var number=new Label(0,0,display,plan.NumberFont,"#101820",true,0,port.Id,true);
         var measured=ReportRenderer.Measure(number with{Size=number.Size*plan.Scale});
         double numberWidthActual=measured.Width/plan.Scale,numberHeight=measured.Height/plan.Scale;
-        double numberWidth=PortWidth-2*NativeInset;
+        double numberWidth=plan.FaceWidth-2*NativeInset;
         if(numberWidthActual>numberWidth)throw new OnePageCapacityException("interface number exceeds the width of its exterior label band");
-        double numberY=row%2==0?y-plan.NumberInset-numberHeight:y+PortHeight+plan.NumberInset;
-        var labelBox=new Box(x+(PortWidth-numberWidthActual)/2,numberY,numberWidthActual,numberHeight,"");
+        double numberY=row%2==0?y-plan.NumberInset-numberHeight:y+plan.FaceHeight+plan.NumberInset;
+        var labelBox=new Box(x+(plan.FaceWidth-numberWidthActual)/2,numberY,numberWidthActual,numberHeight,"");
         if(row%2==0?labelBox.Y+labelBox.H>y-.25:labelBox.Y<y+h+.25)
             throw new OnePageCapacityException("interface number could not clear its physical socket");
         scene.Labels.Add(number with {X=labelBox.X,Y=labelBox.Y});
         double markerInset=plan.Compact>0&&port.Aggregate.Length==0?FaceStroke/2+.1:NativeInset+.05;
-        output.Sockets.Add(new(port.Id,original.Socket,new Box(x,y,PortWidth,h,fill),display,optical,labelBox)
+        output.Sockets.Add(new(port.Id,original.Socket,new Box(x,y,plan.FaceWidth,h,fill),display,optical,labelBox)
         {
             FacePoints=points,MarkerTop=y+(plan.Compact==0?MarkerTopInset:markerInset+.025),
-            MarkerBottom=(optical?y+h:y+TabTop)-markerInset-.15,
+            MarkerBottom=(optical?y+h:y+TabTop*plan.FaceScale)-markerInset-.15,
             MarkerInset=markerInset,MarkerCount=MarkerVlans(inv,port).Count
         });
     }
@@ -332,11 +335,15 @@ public static class QuickSheet
         {
             Result? Attempt(double scale)
             {
+                // Only unusually tall stacks may compact all socket faces
+                // together, preserving the exact RJ45/SFP aspect ratios and
+                // the full-size exterior number text.
+                foreach(double face in inv.Groups.Count>=6?new[]{1.0,.85,.75,.7,.65}:new[]{1.0})
                 foreach(bool wholeWords in new[]{true,false})foreach(bool narrow in new[]{true,false})
                 {
                     try
                     {
-                        var candidate=BuildCore(inv,original,hash,narrow,new(scale,compact,wholeWords,keyBelow,MaximumBottom:maximumHeight),palette,aggregate);
+                        var candidate=BuildCore(inv,original,hash,narrow,new(scale,compact,wholeWords,keyBelow,MaximumBottom:maximumHeight,FaceScale:face),palette,aggregate);
                         ApplyGeometry(candidate,scale,compact);
                         DrawVisualGuide(candidate.Scene,inv,palette,aggregate);
                         var errors=Charts.ValidateScene(candidate.Scene);
@@ -384,11 +391,12 @@ public static class QuickSheet
         var aggregate=AggregatePalette.Assign(inv,p=>Fill(p,palette),palette.Values);
         var candidates=new List<Result>();OnePageCapacityException? last=null;
         foreach(bool keyBelow in includeVlanKey?new[]{false,true}:new[]{false})for(int compact=0;compact<=2;compact++)
+        foreach(double face in inv.Groups.Count>=6?new[]{1.0,.85,.75,.7,.65}:new[]{1.0})
         foreach(bool wholeWords in new[]{true,false})foreach(bool narrow in new[]{true,false})
         {
             try
             {
-                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow,maximumBodyWidth,maximumHeight),palette,aggregate,includeVlanKey,includeDetails);
+                var candidate=BuildCore(inv,original,hash,narrow,new(1,compact,wholeWords,keyBelow,maximumBodyWidth,maximumHeight,face),palette,aggregate,includeVlanKey,includeDetails);
                 ApplyGeometry(candidate,1,compact);
                 double radius=markerRadius??DotRadius;
                 if(!MarkersFit(candidate,radius))
@@ -710,14 +718,13 @@ public static class QuickSheet
             }
             else scene.Text(panel.X+3,panel.Y+plan.TitleTop,panel.Title,plan.Font(7),"#ffffff",true,panel.W-6,inkBox:true);
             var pp=positions[g.Id];
-            double width=pp.Max(p=>p.Column)*plan.Pitch+PortWidth;
+            double width=pp.Max(p=>p.Column)*plan.Pitch+plan.FaceWidth;
             if(width>panel.W-3)throw new OnePageCapacityException("module socket inventory exceeds fixed-scale panel width");
             double x0=panel.X+(panel.W-width)/2;
             double leading=pp.Min(p=>p.Column)*plan.Pitch;
             if(leading>plan.Pitch)scene.Rect(x0,panel.Y+plan.SocketTop,leading-plan.Gap,panel.H-plan.SocketTop-plan.PanelBottom,"#e3e8ed","#c6d2dc",role:"BlankFascia");
             int rows=pp.Max(p=>p.Row)+1;
-            double rowPitch=PortHeight+plan.Gap;
-            double bankHeight=plan.RowOffset(rows-1)+PortHeight;
+            double bankHeight=plan.RowOffset(rows-1)+plan.FaceHeight;
             double bankTop=panel.Y+plan.SocketTop+(panel.H-plan.SocketTop-plan.PanelBottom-bankHeight)/2;
             foreach(var item in pp)
             {
