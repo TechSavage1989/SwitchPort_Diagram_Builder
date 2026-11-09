@@ -312,6 +312,7 @@ static class GeometryChecks
                 double left=bounds.Min(p=>p.X),right=bounds.Max(p=>p.X),top=bounds.Min(p=>p.Y),bottom=bounds.Max(p=>p.Y);
                 return number.X<right&&number.X+measured.Width>left&&number.Y<bottom&&number.Y+measured.Height>top;
             }),"Port number must stay clear of LAG outline and socket geometry.");
+            var outline=item.Scene.Shapes.Last(shape=>shape.Owner==socket.Port).Points;
             var marks=item.Scene.Dots.Where(d=>d.X>socket.Tile.X&&d.X<socket.Tile.X+socket.Tile.W&&d.Y>socket.Tile.Y&&d.Y<socket.Tile.Y+socket.Tile.H).ToList();
             double Extent(Dot d)=>d.Voice?d.Radius+d.VoiceExtra+d.Outline/2:Math.Max(d.Radius+d.Halo,d.Radius+d.Outline/2);
             foreach(var mark in marks)
